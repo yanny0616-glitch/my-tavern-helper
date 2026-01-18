@@ -1,4 +1,4 @@
-﻿import { uuidv4 } from '../ui/util/common';
+﻿import { uuidv4 } from '../../../util/common';
 import type { CardHubItem } from '../types';
 
 const LIBRARY_KEY = 'cardhub_library';

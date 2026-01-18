@@ -44,7 +44,7 @@
     "示例",
     "src",
     "util",
-    "*.d.ts",
+    "*.d.ts", "util",
   ],
   "exclude": [
     "**/dist/**",
