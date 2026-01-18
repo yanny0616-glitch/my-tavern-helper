@@ -79,6 +79,11 @@ const config: Config = {
   entries: glob_script_files().map(parse_entry),
 };
 
+const entryFilter = process.env.TAVERN_HELPER_ENTRY?.trim();
+const filteredEntries = entryFilter
+  ? config.entries.filter(entry => entry.script.includes(entryFilter))
+  : config.entries;
+
 let io: Server;
 function watch_tavern_helper(compiler: webpack.Compiler) {
   if (compiler.options.watch) {
@@ -561,4 +566,4 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
   });
 }
 
-export default config.entries.map(parse_configuration);
+export default filteredEntries.map(parse_configuration);
