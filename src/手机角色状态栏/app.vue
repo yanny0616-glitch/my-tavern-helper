@@ -26,9 +26,7 @@
               <div class="role-meta">
                 <p class="role-title">角色状态栏</p>
                 <h1>{{ status.name }}</h1>
-                <p class="role-subtitle">
-                  位置: {{ status.location }} | 时间: {{ status.date }} {{ status.time }}
-                </p>
+                <p class="role-subtitle">位置: {{ status.location }} | 时间: {{ status.date }} {{ status.time }}</p>
               </div>
               <div class="status-pill">在线</div>
             </section>
@@ -186,7 +184,7 @@ const emotions = computed(() => {
   --glow: rgba(216, 107, 59, 0.35);
   --teal: #2e6f6d;
   --mist: rgba(255, 255, 255, 0.6);
-  font-family: "PingFang SC", "Songti SC", "STSong", "SimSun", serif;
+  font-family: 'PingFang SC', 'Songti SC', 'STSong', 'SimSun', serif;
   color: var(--ink);
   display: flex;
   justify-content: center;
@@ -316,7 +314,9 @@ const emotions = computed(() => {
   height: 100%;
   border-radius: 20px;
   background: linear-gradient(135deg, #2e6f6d, #d86b3b);
-  box-shadow: 0 0 0 3px #f5e4d2, 0 10px 18px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0 0 0 3px #f5e4d2,
+    0 10px 18px rgba(0, 0, 0, 0.2);
 }
 
 .pulse {
@@ -328,7 +328,7 @@ const emotions = computed(() => {
 }
 
 .role-meta h1 {
-  font-family: "ZCOOL XiaoWei", serif;
+  font-family: 'ZCOOL XiaoWei', serif;
   font-size: 26px;
   letter-spacing: 2px;
   margin: 0;
