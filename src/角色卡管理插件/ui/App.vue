@@ -496,12 +496,7 @@
           <button class="cardhub-preview__close" type="button" @click="closeBatchTagDialog">×</button>
         </div>
         <div class="cardhub-batch__filters">
-          <input
-            v-model="batchTagSearch"
-            class="cardhub-batch__search"
-            type="search"
-            placeholder="搜索角色名或标签"
-          />
+          <input v-model="batchTagSearch" class="cardhub-batch__search" type="search" placeholder="搜索角色名或标签" />
           <div class="cardhub-batch__hint">提示：可先在主界面筛选，再打开批量标签。</div>
         </div>
         <div class="cardhub-batch__field">
