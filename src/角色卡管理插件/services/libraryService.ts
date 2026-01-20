@@ -69,12 +69,8 @@ function stableStringify(value: unknown): string {
   if (Array.isArray(value)) {
     return `[${value.map(item => stableStringify(item)).join(',')}]`;
   }
-  const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) =>
-    a.localeCompare(b),
-  );
-  return `{${entries
-    .map(([key, val]) => `${JSON.stringify(key)}:${stableStringify(val)}`)
-    .join(',')}}`;
+  const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b));
+  return `{${entries.map(([key, val]) => `${JSON.stringify(key)}:${stableStringify(val)}`).join(',')}}`;
 }
 
 function buildFingerprint(rawType: CardHubItem['rawType'], raw: string): string {
@@ -106,17 +102,12 @@ export function loadLibrary(): CardHubItem[] {
   return readLibrary().entries;
 }
 
-export async function addToLibrary(
-  files: FileList | File[],
-  existingEntries?: CardHubItem[],
-): Promise<CardHubItem[]> {
+export async function addToLibrary(files: FileList | File[], existingEntries?: CardHubItem[]): Promise<CardHubItem[]> {
   const list = Array.from(files);
   if (!list.length) {
     return loadLibrary();
   }
-  const current = Array.isArray(existingEntries) && existingEntries.length
-    ? existingEntries
-    : loadLibrary();
+  const current = Array.isArray(existingEntries) && existingEntries.length ? existingEntries : loadLibrary();
   const fingerprints = new Set<string>();
   current.forEach(entry => {
     const fingerprint = ensureFingerprint(entry);
@@ -195,4 +186,3 @@ export function removeFromLibrary(entryId: string): CardHubItem[] {
   writeLibrary(updated);
   return updated;
 }
-

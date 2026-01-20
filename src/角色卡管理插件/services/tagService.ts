@@ -66,9 +66,7 @@ function findCharacter(ctx: TagStore, target: CardHubItem) {
   if (!Array.isArray(ctx.characters)) {
     return null;
   }
-  const byAvatar = target.avatar
-    ? ctx.characters.find(character => character.avatar === target.avatar)
-    : null;
+  const byAvatar = target.avatar ? ctx.characters.find(character => character.avatar === target.avatar) : null;
   if (byAvatar) {
     return byAvatar;
   }
@@ -119,9 +117,7 @@ export function updateCharacterTags(target: CardHubItem, nextTags: string[]): st
   if (!character) {
     return nextTags;
   }
-  const cleaned = Array.from(
-    new Set(nextTags.map(tag => normalizeTagName(tag)).filter(Boolean)),
-  );
+  const cleaned = Array.from(new Set(nextTags.map(tag => normalizeTagName(tag)).filter(Boolean)));
 
   character.tags = cleaned;
   if (character.data) {

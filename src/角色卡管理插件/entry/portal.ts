@@ -25,7 +25,8 @@ function ensureMounted() {
 
   $style = $(`<style>`)
     .attr('data-cardhub-style', getScriptId())
-    .text(`
+    .text(
+      `
       .cardhub-root {
         position: fixed;
         inset: 0;
@@ -1292,17 +1293,20 @@ function ensureMounted() {
           gap: 8px;
         }
       }
-    `)
+    `,
+    )
     .appendTo('head');
 
   $mount = createScriptIdDiv().addClass('cardhub-mount').appendTo('body');
   app = createApp(App);
   app.mount($mount[0]);
 
-  watch(() => cardHubState.open, () => {}, { immediate: true });
+  watch(
+    () => cardHubState.open,
+    () => {},
+    { immediate: true },
+  );
 }
-
-
 
 async function refreshCharacters() {
   setLoading(true);

@@ -15,12 +15,7 @@
       </header>
 
       <div class="cardhub-toolbar">
-        <input
-          v-model="state.search"
-          class="cardhub-search"
-          type="search"
-          placeholder="搜索角色名或标签"
-        />
+        <input v-model="state.search" class="cardhub-search" type="search" placeholder="搜索角色名或标签" />
         <button class="cardhub-button" type="button" @click="refresh">刷新</button>
         <button class="cardhub-button is-ghost" type="button" @click="triggerImport">导入</button>
         <button class="cardhub-button is-ghost" type="button" @click="exportSelected">批量导出</button>
@@ -89,18 +84,11 @@
 
         <div class="cardhub-content">
           <div v-if="state.loading" class="cardhub-loading">正在读取角色卡...</div>
-          <div v-else-if="!filteredCharacters.length" class="cardhub-empty">
-            暂无角色卡，或没有匹配的搜索结果。
-          </div>
+          <div v-else-if="!filteredCharacters.length" class="cardhub-empty">暂无角色卡，或没有匹配的搜索结果。</div>
           <div v-else class="cardhub-grid-wrap">
             <div class="cardhub-pagination">
               <div v-if="totalPages > 1" class="cardhub-pagination__actions">
-                <button
-                  class="cardhub-pagination__button"
-                  type="button"
-                  :disabled="currentPage <= 1"
-                  @click="prevPage"
-                >
+                <button class="cardhub-pagination__button" type="button" :disabled="currentPage <= 1" @click="prevPage">
                   上一页
                 </button>
                 <button
@@ -115,83 +103,83 @@
               <span class="cardhub-pagination__status">第 {{ currentPage }} / {{ totalPages }} 页</span>
             </div>
             <div class="cardhub-grid">
-            <article
-              v-for="character in pagedCharacters"
-              :key="character.id"
-              class="cardhub-card"
-              @click="openManage(character)"
-            >
-              <div
-                class="cardhub-card__avatar"
-                :class="{ 'has-avatar': Boolean(avatarUrl(character)) }"
-                :style="avatarStyle(character)"
+              <article
+                v-for="character in pagedCharacters"
+                :key="character.id"
+                class="cardhub-card"
+                @click="openManage(character)"
               >
-                <span>{{ character.name.slice(0, 1) || '?' }}</span>
-              </div>
-              <div class="cardhub-card__info">
-                <div class="cardhub-card__name">{{ character.name }}</div>
-                <div class="cardhub-card__meta">
-                  <span>{{ character.origin === 'tavern' ? '已导入' : '未导入' }}</span>
-                  <span>{{ displayTags(character).length }} 标签</span>
+                <div
+                  class="cardhub-card__avatar"
+                  :class="{ 'has-avatar': Boolean(avatarUrl(character)) }"
+                  :style="avatarStyle(character)"
+                >
+                  <span>{{ character.name.slice(0, 1) || '?' }}</span>
                 </div>
-                <div class="cardhub-card__tags">
+                <div class="cardhub-card__info">
+                  <div class="cardhub-card__name">{{ character.name }}</div>
+                  <div class="cardhub-card__meta">
+                    <span>{{ character.origin === 'tavern' ? '已导入' : '未导入' }}</span>
+                    <span>{{ displayTags(character).length }} 标签</span>
+                  </div>
+                  <div class="cardhub-card__tags">
+                    <button
+                      v-for="tag in displayTags(character)"
+                      :key="tag"
+                      class="cardhub-tag"
+                      type="button"
+                      title="点击移除标签"
+                      @click.stop="removeTag(character, tag)"
+                    >
+                      {{ tag }}
+                      <span class="cardhub-tag__remove">×</span>
+                    </button>
+                    <button
+                      v-if="activeTagKey !== tagKey(character)"
+                      class="cardhub-tag is-add"
+                      type="button"
+                      @click.stop="startTagEdit(character)"
+                    >
+                      + 标签
+                    </button>
+                    <input
+                      v-else
+                      v-model="tagInput"
+                      class="cardhub-tag-input"
+                      type="text"
+                      placeholder="新标签"
+                      @keydown.enter.prevent="confirmTag(character)"
+                      @keydown.esc.prevent="cancelTagEdit"
+                      @blur="confirmTag(character)"
+                      @click.stop
+                      @mousedown.stop
+                      @touchstart.stop
+                    />
+                  </div>
+                </div>
+                <div class="cardhub-card__actions">
                   <button
-                    v-for="tag in displayTags(character)"
-                    :key="tag"
-                    class="cardhub-tag"
+                    class="cardhub-card__action is-secondary"
                     type="button"
-                    title="点击移除标签"
-                    @click.stop="removeTag(character, tag)"
-                  >
-                    {{ tag }}
-                    <span class="cardhub-tag__remove">×</span>
-                  </button>
-                  <button
-                    v-if="activeTagKey !== tagKey(character)"
-                    class="cardhub-tag is-add"
-                    type="button"
-                    @click.stop="startTagEdit(character)"
-                  >
-                    + 标签
-                  </button>
-                  <input
-                    v-else
-                    v-model="tagInput"
-                    class="cardhub-tag-input"
-                    type="text"
-                    placeholder="新标签"
-                    @keydown.enter.prevent="confirmTag(character)"
-                    @keydown.esc.prevent="cancelTagEdit"
-                    @blur="confirmTag(character)"
-                    @click.stop
+                    @click.stop="handleCardAction(character)"
+                    @pointerdown.stop
                     @mousedown.stop
                     @touchstart.stop
-                  />
+                  >
+                    {{ character.origin === 'tavern' ? '导出' : '导入' }}
+                  </button>
+                  <button
+                    class="cardhub-card__action"
+                    type="button"
+                    @click.stop="openManage(character)"
+                    @pointerdown.stop
+                    @mousedown.stop
+                    @touchstart.stop
+                  >
+                    管理
+                  </button>
                 </div>
-              </div>
-              <div class="cardhub-card__actions">
-                <button
-                  class="cardhub-card__action is-secondary"
-                  type="button"
-                  @click.stop="handleCardAction(character)"
-                  @pointerdown.stop
-                  @mousedown.stop
-                  @touchstart.stop
-                >
-                  {{ character.origin === 'tavern' ? '导出' : '导入' }}
-                </button>
-                <button
-                  class="cardhub-card__action"
-                  type="button"
-                  @click.stop="openManage(character)"
-                  @pointerdown.stop
-                  @mousedown.stop
-                  @touchstart.stop
-                >
-                  管理
-                </button>
-              </div>
-            </article>
+              </article>
             </div>
           </div>
         </div>
@@ -214,11 +202,7 @@
               </span>
             </div>
             <div class="cardhub-manage__overview">
-              <div
-                v-for="item in manageOverview"
-                :key="item.label"
-                class="cardhub-manage__overview-card"
-              >
+              <div v-for="item in manageOverview" :key="item.label" class="cardhub-manage__overview-card">
                 <div class="cardhub-manage__overview-label">{{ item.label }}</div>
                 <div class="cardhub-manage__overview-value">{{ item.value }}</div>
                 <div v-if="item.hint" class="cardhub-manage__overview-hint">{{ item.hint }}</div>
@@ -589,9 +573,7 @@ function applyTagFilter(list: CardHubItem[]): CardHubItem[] {
   if (!selectedTags.value.length) {
     return list;
   }
-  return list.filter(character =>
-    selectedTags.value.some(tag => getMergedTags(character).includes(tag)),
-  );
+  return list.filter(character => selectedTags.value.some(tag => getMergedTags(character).includes(tag)));
 }
 
 function toggleTagFilter(tag: string) {
@@ -671,7 +653,6 @@ function resolveConfirm(result: ConfirmResult) {
   }
 }
 
-
 function removeTag(character: CardHubItem, tag: string) {
   const nextTags = getMergedTags(character).filter(item => item !== tag);
   applyTagUpdate(character, nextTags);
@@ -740,12 +721,7 @@ async function exportSelected() {
     return;
   }
   const tagLabel = selectedTags.value.length ? selectedTags.value.join('、') : '无';
-  const statusLabel =
-    statusFilter.value === 'all'
-      ? '全部'
-      : statusFilter.value === 'imported'
-        ? '已导入'
-        : '未导入';
+  const statusLabel = statusFilter.value === 'all' ? '全部' : statusFilter.value === 'imported' ? '已导入' : '未导入';
   const searchLabel = state.search.trim() || '无';
   const message =
     `将导出 ${list.length} 张角色卡。\n` +
@@ -852,27 +828,19 @@ async function openManage(card: CardHubItem) {
   manageOpeningSummary.value = null;
   manageChatSummary.value = null;
 
-  const [manageResult, chatsResult] = await Promise.allSettled([
-    resolveManageData(card),
-    resolveRecentChats(card),
-  ]);
+  const [manageResult, chatsResult] = await Promise.allSettled([resolveManageData(card), resolveRecentChats(card)]);
 
   if (requestId !== manageRequestId || manageCard.value?.id !== card.id) {
     return;
   }
 
   const manageData: ManageData =
-    manageResult.status === 'fulfilled'
-      ? manageResult.value
-      : { openings: [], profile: null, openingSummary: null };
+    manageResult.status === 'fulfilled' ? manageResult.value : { openings: [], profile: null, openingSummary: null };
   manageOpenings.value = manageData.openings;
   manageProfile.value = manageData.profile;
   manageOpeningSummary.value = manageData.openingSummary;
 
-  const chatData: ManageChatData =
-    chatsResult.status === 'fulfilled'
-      ? chatsResult.value
-      : { list: [], summary: null };
+  const chatData: ManageChatData = chatsResult.status === 'fulfilled' ? chatsResult.value : { list: [], summary: null };
   manageChats.value = chatData.list;
   manageChatSummary.value = chatData.summary;
 }
@@ -1089,12 +1057,7 @@ function isLikelyBase64(value: string): boolean {
 }
 
 function readUint32BE(bytes: Uint8Array, offset: number): number {
-  return (
-    (bytes[offset] << 24) |
-    (bytes[offset + 1] << 16) |
-    (bytes[offset + 2] << 8) |
-    bytes[offset + 3]
-  ) >>> 0;
+  return ((bytes[offset] << 24) | (bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | bytes[offset + 3]) >>> 0;
 }
 
 function bytesToString(bytes: Uint8Array): string {
@@ -1121,9 +1084,7 @@ async function getFullCharacterData(card: CardHubItem): Promise<SillyTavern.v1Ch
   if (!list.length) {
     return null;
   }
-  const byAvatar = card.avatar
-    ? list.findIndex(item => item.avatar === card.avatar || item.name === card.avatar)
-    : -1;
+  const byAvatar = card.avatar ? list.findIndex(item => item.avatar === card.avatar || item.name === card.avatar) : -1;
   const byName = list.findIndex(item => item.name === card.name);
   const idx = byAvatar >= 0 ? byAvatar : byName;
   if (idx < 0) {
@@ -1170,10 +1131,7 @@ function extractCardProfile(data: any): ManageProfile | null {
       data?.data?.creator_notes,
     ),
     systemPrompt: pickString(data?.system_prompt, data?.data?.system_prompt),
-    postHistory: pickString(
-      data?.post_history_instructions,
-      data?.data?.post_history_instructions,
-    ),
+    postHistory: pickString(data?.post_history_instructions, data?.data?.post_history_instructions),
     creator: pickString(data?.creator, data?.data?.creator),
   };
   const book = data?.character_book ?? data?.data?.character_book;
@@ -1686,10 +1644,7 @@ async function manageDelete(card: CardHubItem) {
   }
   const deleteChoice = await openConfirm({
     title: '删除方式',
-    message:
-      `删除「${card.name}」：\n` +
-      `- 移到私有库：可在私有库中找回\n` +
-      `- 永久删除：不可恢复`,
+    message: `删除「${card.name}」：\n` + `- 移到私有库：可在私有库中找回\n` + `- 永久删除：不可恢复`,
     confirmLabel: '移到私有库',
     altLabel: '永久删除',
     cancelLabel: '取消',
@@ -1737,9 +1692,7 @@ async function moveToLibrary(card: CardHubItem) {
   }
   const response = await fetch(avatarPath, { cache: 'no-cache' });
   const blob = await response.blob();
-  const updated = await addToLibrary([
-    new File([blob], `${card.name}.png`, { type: 'image/png' }),
-  ]);
+  const updated = await addToLibrary([new File([blob], `${card.name}.png`, { type: 'image/png' })]);
   setLibrary(updated);
 }
 
@@ -1789,13 +1742,10 @@ function downloadBlob(blob: Blob, fileName: string) {
   URL.revokeObjectURL(url);
 }
 
-
-
 async function dataUrlToBlob(dataUrl: string): Promise<Blob> {
   const response = await fetch(dataUrl);
   return await response.blob();
 }
-
 
 async function refresh() {
   setLoading(true);
@@ -1811,7 +1761,6 @@ async function refresh() {
 function close() {
   setOpen(false);
 }
-
 </script>
 
 <style scoped>
@@ -1819,7 +1768,7 @@ function close() {
   position: fixed;
   inset: 0;
   z-index: 9999;
-  font-family: "ZCOOL XiaoWei", "STSong", "Songti SC", "SimSun", serif;
+  font-family: 'ZCOOL XiaoWei', 'STSong', 'Songti SC', 'SimSun', serif;
   color: #1b1b1b;
   display: none;
   align-items: center;
@@ -1858,7 +1807,9 @@ function close() {
   z-index: 1;
   opacity: 0;
   transform: translateY(8px) scale(0.985);
-  transition: opacity 180ms ease, transform 180ms ease;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
 }
 
 .cardhub-root.open .cardhub-panel {
@@ -1901,7 +1852,9 @@ function close() {
   line-height: 34px;
   text-align: center;
   cursor: pointer;
-  transition: background-color 160ms ease, transform 120ms ease;
+  transition:
+    background-color 160ms ease,
+    transform 120ms ease;
 }
 
 .cardhub-close:hover {
@@ -1936,7 +1889,10 @@ function close() {
   color: #fff;
   cursor: pointer;
   font-size: 12px;
-  transition: background-color 160ms ease, transform 120ms ease, box-shadow 160ms ease;
+  transition:
+    background-color 160ms ease,
+    transform 120ms ease,
+    box-shadow 160ms ease;
 }
 
 .cardhub-button:hover {
@@ -2008,7 +1964,10 @@ function close() {
   padding: 8px 10px;
   cursor: pointer;
   font-size: 12px;
-  transition: background-color 160ms ease, color 160ms ease, transform 120ms ease;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    transform 120ms ease;
 }
 
 .cardhub-chip.is-active {
@@ -2040,7 +1999,11 @@ function close() {
   font-size: 12px;
   color: #6a3f2a;
   cursor: pointer;
-  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, transform 120ms ease;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease,
+    transform 120ms ease;
 }
 
 .cardhub-tag-filter__chip.is-active {
@@ -2059,12 +2022,12 @@ function close() {
   margin-top: 8px;
 }
 
-  .cardhub-content {
-    padding: 20px;
-    overflow: auto;
-    flex: 1;
-    min-height: 0;
-  }
+.cardhub-content {
+  padding: 20px;
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+}
 
 .cardhub-grid-wrap {
   display: grid;
@@ -2099,7 +2062,10 @@ function close() {
   padding: 4px 10px;
   font-size: 11px;
   cursor: pointer;
-  transition: background-color 160ms ease, border-color 160ms ease, transform 120ms ease;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 120ms ease;
 }
 
 .cardhub-pagination__button:disabled {
@@ -2141,7 +2107,10 @@ function close() {
   align-items: center;
   border: 1px solid rgba(86, 59, 44, 0.15);
   cursor: pointer;
-  transition: transform 140ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  transition:
+    transform 140ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
   width: 100%;
   max-width: 260px;
 }
@@ -2201,7 +2170,10 @@ function close() {
   font-size: 11px;
   color: #6a3f2a;
   cursor: pointer;
-  transition: background-color 160ms ease, border-color 160ms ease, transform 120ms ease;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 120ms ease;
 }
 
 .cardhub-tag:hover {
@@ -2247,7 +2219,10 @@ function close() {
   border-radius: 12px;
   font-size: 12px;
   cursor: pointer;
-  transition: transform 120ms ease, box-shadow 160ms ease, background-color 160ms ease;
+  transition:
+    transform 120ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
 }
 
 .cardhub-card__actions {
@@ -2305,7 +2280,9 @@ function close() {
   color: #3b2a20;
   font-size: 18px;
   cursor: pointer;
-  transition: background-color 160ms ease, transform 120ms ease;
+  transition:
+    background-color 160ms ease,
+    transform 120ms ease;
 }
 
 .cardhub-preview__close:hover {
@@ -2508,7 +2485,10 @@ function close() {
   font-size: 12px;
   cursor: pointer;
   text-transform: none;
-  transition: background-color 160ms ease, transform 120ms ease, box-shadow 160ms ease;
+  transition:
+    background-color 160ms ease,
+    transform 120ms ease,
+    box-shadow 160ms ease;
 }
 
 .cardhub-manage__btn.is-primary {
@@ -2685,7 +2665,11 @@ function close() {
   padding: 8px 14px;
   font-size: 12px;
   cursor: pointer;
-  transition: transform 120ms ease, box-shadow 160ms ease, background-color 160ms ease, border-color 160ms ease;
+  transition:
+    transform 120ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease;
 }
 
 .cardhub-confirm__button.is-confirm {
@@ -2759,7 +2743,9 @@ function close() {
     max-width: none !important;
     margin: 0 !important;
     border-radius: 24px !important;
-    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    box-shadow:
+      0 12px 48px rgba(0, 0, 0, 0.3),
+      0 2px 8px rgba(0, 0, 0, 0.1) !important;
     display: flex !important;
     flex-direction: column !important;
     z-index: 99999 !important;
