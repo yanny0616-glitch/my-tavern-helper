@@ -1,5 +1,5 @@
 ﻿<template>
-  <div class="cardhub-root" :class="{ open: state.open }">
+  <div class="cardhub-root" :class="{ open: state.open }" :style="themeStyle">
     <div class="cardhub-backdrop" @click="close" />
     <section class="cardhub-panel" role="dialog" aria-label="CardHub 角色卡管理器">
       <header class="cardhub-header">
@@ -813,6 +813,27 @@ const defaultTheme: CardHubTheme = {
 const themeDialogOpen = ref(false);
 const themeCurrent = ref<CardHubTheme>({ ...defaultTheme });
 const themeDraft = reactive<CardHubTheme>({ ...defaultTheme });
+const themeStyle = computed<Record<string, string>>(() => {
+  const theme = themeDialogOpen.value ? (themeDraft as CardHubTheme) : themeCurrent.value;
+  return {
+    '--cardhub-bg-start': theme.bgStart,
+    '--cardhub-bg-end': theme.bgEnd,
+    '--cardhub-surface': theme.surface,
+    '--cardhub-surface-alt': theme.surfaceAlt,
+    '--cardhub-text': theme.text,
+    '--cardhub-text-muted': theme.textMuted,
+    '--cardhub-accent': theme.accent,
+    '--cardhub-accent-strong': theme.accentStrong,
+    '--cardhub-border': theme.border,
+    '--cardhub-surface-rgb': hexToRgb(theme.surface),
+    '--cardhub-surface-alt-rgb': hexToRgb(theme.surfaceAlt),
+    '--cardhub-border-rgb': hexToRgb(theme.border),
+    '--cardhub-accent-rgb': hexToRgb(theme.accent),
+    '--cardhub-accent-strong-rgb': hexToRgb(theme.accentStrong),
+    '--cardhub-accent-text': contrastTextColor(theme.accent),
+    '--cardhub-accent-strong-text': contrastTextColor(theme.accentStrong),
+  };
+});
 const themePresets = [
   {
     name: '晨雾',
