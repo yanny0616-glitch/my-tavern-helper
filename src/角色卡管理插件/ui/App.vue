@@ -173,7 +173,7 @@
                       aria-label="收藏"
                       @click.stop="toggleFavorite(character)"
                     >
-                    <i class="fa-solid fa-star" aria-hidden="true"></i>
+                      <i class="fa-solid fa-star" aria-hidden="true"></i>
                     </button>
                   </div>
                   <div class="cardhub-card__meta">
@@ -399,12 +399,7 @@
           <button class="cardhub-preview__close" type="button" @click="closeExportDialog">×</button>
         </div>
         <div class="cardhub-export__filters">
-          <input
-            v-model="exportSearch"
-            class="cardhub-export__search"
-            type="search"
-            placeholder="搜索角色名或标签"
-          />
+          <input v-model="exportSearch" class="cardhub-export__search" type="search" placeholder="搜索角色名或标签" />
           <div class="cardhub-export__filter-row">
             <button
               class="cardhub-export__chip"
@@ -686,9 +681,7 @@ const exportVisibleCandidates = computed(() => {
   });
 });
 const exportSelectedSet = computed(() => new Set(exportSelectedIds.value));
-const exportSelectedItems = computed(() =>
-  exportCandidates.value.filter(item => exportSelectedSet.value.has(item.id)),
-);
+const exportSelectedItems = computed(() => exportCandidates.value.filter(item => exportSelectedSet.value.has(item.id)));
 
 const FAVORITES_KEY = 'cardhub_favorites';
 const favoriteIds = ref<string[]>([]);
@@ -1045,7 +1038,7 @@ function getImportAt(card: CardHubItem): number {
     return card.createdAt;
   }
   const key = getChatCacheKey(card);
-  return key ? importCache.value[key] ?? 0 : 0;
+  return key ? (importCache.value[key] ?? 0) : 0;
 }
 
 function getLastChatAt(card: CardHubItem): number {
@@ -1053,7 +1046,7 @@ function getLastChatAt(card: CardHubItem): number {
     return card.lastChatAt;
   }
   const key = getChatCacheKey(card);
-  return key ? lastChatCache.value[key] ?? 0 : 0;
+  return key ? (lastChatCache.value[key] ?? 0) : 0;
 }
 
 function updateLastChatCache(key: string, timestamp: number) {
@@ -1176,7 +1169,9 @@ function hexToRgb(value: string): string {
 }
 
 function contrastTextColor(value: string): string {
-  const rgb = hexToRgb(value).split(',').map(part => Number(part.trim()));
+  const rgb = hexToRgb(value)
+    .split(',')
+    .map(part => Number(part.trim()));
   if (rgb.length !== 3) {
     return '#1b1b1b';
   }
@@ -2028,8 +2023,7 @@ function formatMaybeTimestamp(value: unknown): string {
 
 function parseTimestampFromText(raw: string): number | null {
   const text = raw.replace(/\.jsonl$/i, '').trim();
-  const pattern =
-    /(\d{4})[./-](\d{1,2})[./-](\d{1,2})(?:[ T_@-]*(\d{1,2})[:：](\d{1,2})(?:[:：](\d{1,2}))?)?/;
+  const pattern = /(\d{4})[./-](\d{1,2})[./-](\d{1,2})(?:[ T_@-]*(\d{1,2})[:：](\d{1,2})(?:[:：](\d{1,2}))?)?/;
   const match = text.match(pattern);
   if (!match) {
     return null;
@@ -3418,7 +3412,6 @@ function close() {
   word-break: break-word;
 }
 
-
 .cardhub-manage__chat-text {
   color: #3b2a20;
   line-height: 1.5;
@@ -3574,7 +3567,10 @@ function close() {
   padding: 6px 12px;
   font-size: 12px;
   cursor: pointer;
-  transition: transform 120ms ease, box-shadow 160ms ease, background-color 160ms ease;
+  transition:
+    transform 120ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
 }
 
 .cardhub-export__btn.is-primary {
