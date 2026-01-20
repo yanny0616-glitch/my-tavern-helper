@@ -237,6 +237,18 @@ function ensureMounted() {
         display: none;
       }
 
+      .cardhub-button,
+      .cardhub-export__btn,
+      .cardhub-batch__btn,
+      .cardhub-theme__btn,
+      .cardhub-confirm__button {
+        height: 32px;
+        padding: 6px 12px;
+        line-height: 1;
+        font-weight: 500;
+        letter-spacing: 0.2px;
+      }
+
       .cardhub-body {
         display: grid;
         grid-template-columns: minmax(160px, 220px) 1fr;
@@ -268,7 +280,7 @@ function ensureMounted() {
 
       .cardhub-section-title {
         font-size: 12px;
-        color: var(--cardhub-text-muted);
+        color: var(--cardhub-text);
         text-transform: uppercase;
         letter-spacing: 1px;
       }
@@ -276,13 +288,14 @@ function ensureMounted() {
       .cardhub-chip {
         text-align: left;
         border: none;
-        background: rgba(var(--cardhub-surface-rgb), 0.85);
+        background: rgba(var(--cardhub-surface-alt-rgb), 0.92);
         border-radius: 12px;
         padding: 8px 10px;
         cursor: pointer;
         font-size: 12px;
+        color: var(--cardhub-text);
         transition: background-color 160ms ease, color 160ms ease, transform 120ms ease, box-shadow 160ms ease;
-        box-shadow: 0 6px 14px rgba(43, 32, 24, 0.08);
+        box-shadow: 0 6px 14px rgba(var(--cardhub-border-rgb), 0.18);
       }
 
       .cardhub-chip.is-active {
@@ -308,15 +321,15 @@ function ensureMounted() {
       }
 
       .cardhub-tag-filter__chip {
-        border: 1px solid rgba(var(--cardhub-border-rgb), 0.6);
-        background: rgba(var(--cardhub-surface-rgb), 0.9);
+        border: 1px solid rgba(var(--cardhub-border-rgb), 0.85);
+        background: rgba(var(--cardhub-surface-alt-rgb), 0.96);
         border-radius: 999px;
         padding: 6px 10px;
         font-size: 12px;
-        color: var(--cardhub-text-muted);
+        color: var(--cardhub-text);
         cursor: pointer;
         transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, transform 120ms ease, box-shadow 160ms ease;
-        box-shadow: 0 6px 14px rgba(43, 32, 24, 0.08);
+        box-shadow: 0 6px 14px rgba(var(--cardhub-border-rgb), 0.24);
       }
 
       .cardhub-tag-filter__chip.is-active {
@@ -334,6 +347,16 @@ function ensureMounted() {
 
       .cardhub-chip--clear {
         margin-top: 8px;
+      }
+
+      .cardhub-filter-row {
+        display: grid;
+        gap: 12px;
+      }
+
+      .cardhub-filter-block {
+        display: grid;
+        gap: 8px;
       }
 
       .cardhub-content {
@@ -511,12 +534,12 @@ function ensureMounted() {
       }
 
       .cardhub-tag {
-        border: 1px solid rgba(var(--cardhub-border-rgb), 0.6);
-        background: rgba(var(--cardhub-surface-alt-rgb), 0.9);
+        border: 1px solid rgba(var(--cardhub-accent-strong-rgb), 0.45);
+        background: rgba(var(--cardhub-accent-strong-rgb), 0.18);
         border-radius: 999px;
         padding: 4px 8px;
         font-size: 11px;
-        color: var(--cardhub-text-muted);
+        color: var(--cardhub-text);
         cursor: pointer;
         transition: background-color 160ms ease, border-color 160ms ease, transform 120ms ease;
       }
@@ -530,11 +553,13 @@ function ensureMounted() {
       .cardhub-tag__remove {
         margin-left: 4px;
         font-weight: 700;
+        color: var(--cardhub-text);
       }
 
       .cardhub-tag.is-add {
         background: transparent;
         border-style: dashed;
+        color: var(--cardhub-text);
       }
 
       .cardhub-tag-input {
@@ -548,6 +573,26 @@ function ensureMounted() {
         outline: none;
         height: 24px;
         line-height: 16px;
+      }
+
+      .cardhub-tag-edit {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .cardhub-tag-confirm {
+        border: none;
+        background: rgba(var(--cardhub-accent-rgb), 0.2);
+        color: var(--cardhub-text);
+        width: 22px;
+        height: 22px;
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
       }
 
       .cardhub-tag-input:focus {
@@ -710,6 +755,7 @@ function ensureMounted() {
         display: grid;
         gap: 16px;
         overflow: auto;
+        overflow-x: hidden;
       }
 
       .cardhub-manage__top {
@@ -807,6 +853,8 @@ function ensureMounted() {
         line-height: 1.5;
         color: var(--cardhub-text);
         white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        word-break: break-word;
       }
 
       .cardhub-manage__label {
@@ -873,6 +921,8 @@ function ensureMounted() {
         line-height: 1.5;
         color: var(--cardhub-text);
         white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        word-break: break-word;
       }
 
       .cardhub-manage__opening {
@@ -945,6 +995,8 @@ function ensureMounted() {
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
+        overflow-wrap: anywhere;
+        word-break: break-word;
       }
 
       .cardhub-manage__empty {
@@ -959,13 +1011,13 @@ function ensureMounted() {
       }
 
       .cardhub-confirm {
-        position: absolute;
+        position: fixed;
         inset: 0;
         background: rgba(24, 16, 10, 0.55);
         backdrop-filter: blur(6px);
         display: grid;
         place-items: center;
-        z-index: 100004;
+        z-index: 100010;
       }
 
       .cardhub-confirm__panel {
@@ -1001,7 +1053,6 @@ function ensureMounted() {
       .cardhub-confirm__button {
         border: none;
         border-radius: 999px;
-        padding: 8px 14px;
         font-size: 12px;
         cursor: pointer;
         transition: transform 120ms ease, box-shadow 160ms ease, background-color 160ms ease, border-color 160ms ease;
@@ -1033,7 +1084,7 @@ function ensureMounted() {
       }
 
       .cardhub-export {
-        position: absolute;
+        position: fixed;
         inset: 0;
         background: rgba(24, 16, 10, 0.55);
         backdrop-filter: blur(6px);
@@ -1052,6 +1103,7 @@ function ensureMounted() {
         display: grid;
         gap: 12px;
         overflow: hidden;
+        margin: auto;
       }
 
       .cardhub-export__header {
@@ -1132,7 +1184,6 @@ function ensureMounted() {
       .cardhub-export__btn {
         border: none;
         border-radius: 999px;
-        padding: 6px 12px;
         font-size: 12px;
         cursor: pointer;
         transition: transform 120ms ease, box-shadow 160ms ease, background-color 160ms ease;
@@ -1216,19 +1267,219 @@ function ensureMounted() {
         color: var(--cardhub-text-muted);
       }
 
-      .cardhub-theme {
-        position: absolute;
+      .cardhub-batch {
+        position: fixed;
         inset: 0;
         background: rgba(24, 16, 10, 0.55);
         backdrop-filter: blur(6px);
         display: grid;
         place-items: center;
-        z-index: 100003;
+        z-index: 100004;
+      }
+
+      .cardhub-batch__panel {
+        width: min(720px, 92vw);
+        max-height: 86vh;
+        background: var(--cardhub-surface-alt);
+        border-radius: 20px;
+        padding: 18px 18px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        box-shadow: var(--cardhub-shadow-strong);
+        overflow: hidden;
+        margin: auto;
+      }
+
+      .cardhub-batch__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .cardhub-batch__title {
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      .cardhub-batch__subtitle {
+        font-size: 12px;
+        color: var(--cardhub-text-muted);
+      }
+
+      .cardhub-batch__filters {
+        display: grid;
+        gap: 6px;
+      }
+
+      .cardhub-batch__search {
+        border-radius: 999px;
+        border: 1px solid rgba(var(--cardhub-border-rgb), 0.7);
+        padding: 8px 12px;
+        font-size: 13px;
+        background: rgba(var(--cardhub-surface-rgb), 0.85);
+      }
+
+      .cardhub-batch__hint {
+        font-size: 11px;
+        color: var(--cardhub-text-muted);
+      }
+
+      .cardhub-batch__field input {
+        width: 100%;
+        border-radius: 12px;
+        border: 1px solid rgba(var(--cardhub-border-rgb), 0.7);
+        padding: 10px 12px;
+        font-size: 13px;
+        background: rgba(var(--cardhub-surface-rgb), 0.85);
+      }
+
+      .cardhub-batch__suggestions {
+        display: grid;
+        gap: 8px;
+      }
+
+      .cardhub-batch__suggest-title {
+        font-size: 12px;
+        color: var(--cardhub-text-muted);
+      }
+
+      .cardhub-batch__suggest-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .cardhub-batch__chip {
+        border: 1px solid rgba(var(--cardhub-border-rgb), 0.6);
+        background: rgba(var(--cardhub-surface-rgb), 0.9);
+        border-radius: 999px;
+        padding: 4px 8px;
+        font-size: 11px;
+        color: var(--cardhub-text);
+        cursor: pointer;
+        transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+      }
+
+      .cardhub-batch__chip.is-active {
+        background: var(--cardhub-accent-strong);
+        color: var(--cardhub-accent-strong-text);
+        border-color: transparent;
+      }
+
+      .cardhub-batch__toolbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .cardhub-batch__spacer {
+        flex: 1;
+      }
+
+      .cardhub-batch__btn {
+        border: none;
+        border-radius: 999px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: transform 120ms ease, box-shadow 160ms ease, background-color 160ms ease;
+      }
+
+      .cardhub-batch__btn.is-primary {
+        background: var(--cardhub-accent);
+        color: var(--cardhub-accent-text);
+      }
+
+      .cardhub-batch__btn.is-secondary {
+        background: transparent;
+        color: var(--cardhub-text-muted);
+        border: 1px solid rgba(var(--cardhub-border-rgb), 0.7);
+      }
+
+      .cardhub-batch__btn.is-ghost {
+        background: rgba(var(--cardhub-accent-rgb), 0.12);
+        color: var(--cardhub-accent-strong);
+      }
+
+      .cardhub-batch__btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 14px rgba(43, 32, 24, 0.18);
+      }
+
+      .cardhub-batch__list {
+        display: grid;
+        gap: 8px;
+        overflow: auto;
+        padding-right: 6px;
+        max-height: 42vh;
+      }
+
+      .cardhub-batch__item {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(var(--cardhub-border-rgb), 0.4);
+        background: rgba(var(--cardhub-surface-alt-rgb), 0.75);
+        cursor: pointer;
+        transition: border-color 160ms ease;
+      }
+
+      .cardhub-batch__item:hover {
+        border-color: rgba(var(--cardhub-border-rgb), 0.8);
+      }
+
+      .cardhub-batch__checkbox {
+        width: 16px;
+        height: 16px;
+      }
+
+      .cardhub-batch__main {
+        display: grid;
+        gap: 4px;
+      }
+
+      .cardhub-batch__name {
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .cardhub-batch__meta {
+        display: flex;
+        gap: 10px;
+        font-size: 11px;
+        color: var(--cardhub-text-muted);
+      }
+
+      .cardhub-batch__tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .cardhub-batch__tag {
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: rgba(var(--cardhub-surface-rgb), 0.98);
+        font-size: 10px;
+        color: var(--cardhub-text-muted);
+      }
+
+      .cardhub-theme {
+        position: fixed;
+        inset: 0;
+        background: rgba(24, 16, 10, 0.55);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: grid;
+        place-items: center;
+        z-index: 100005;
       }
 
       .cardhub-theme__panel {
         width: min(640px, 92vw);
-        max-height: 86vh;
+        max-height: calc(100% - 48px);
         background: var(--cardhub-surface-alt);
         border-radius: 22px;
         box-shadow: var(--cardhub-shadow-strong);
@@ -1236,6 +1487,7 @@ function ensureMounted() {
         display: grid;
         gap: 14px;
         overflow: auto;
+        margin: auto;
       }
 
       .cardhub-theme__header {
@@ -1266,7 +1518,7 @@ function ensureMounted() {
         display: grid;
         gap: 6px;
         font-size: 12px;
-        color: var(--cardhub-text-muted);
+        color: var(--cardhub-text);
         background: rgba(var(--cardhub-surface-rgb), 0.9);
         border: 1px solid rgba(var(--cardhub-border-rgb), 0.5);
         border-radius: 14px;
@@ -1318,7 +1570,6 @@ function ensureMounted() {
       .cardhub-theme__btn {
         border: none;
         border-radius: 999px;
-        padding: 6px 12px;
         font-size: 12px;
         cursor: pointer;
         transition: transform 120ms ease, box-shadow 160ms ease, background-color 160ms ease;
@@ -1353,6 +1604,7 @@ function ensureMounted() {
       .cardhub-preview__close:focus-visible,
       .cardhub-confirm__button:focus-visible,
       .cardhub-export__btn:focus-visible,
+      .cardhub-batch__btn:focus-visible,
       .cardhub-theme__btn:focus-visible {
         outline: 2px solid rgba(var(--cardhub-accent-rgb), 0.6);
         outline-offset: 2px;
@@ -1457,7 +1709,8 @@ function ensureMounted() {
           flex-shrink: 0;
           display: flex;
           flex-wrap: wrap;
-          gap: 6px;
+          column-gap: 6px;
+          row-gap: 8px;
           padding: 8px 12px;
           position: sticky;
           top: 44px;
@@ -1469,13 +1722,21 @@ function ensureMounted() {
           width: 100%;
           font-size: 12px;
           padding: 6px 10px;
+          height: 34px;
+        }
+
+        .cardhub-toolbar {
+          column-gap: 6px;
+          row-gap: 8px;
         }
 
         .cardhub-button {
-          flex: 0 0 auto;
+          flex: 0 1 auto;
           min-width: 0;
-          font-size: 10px;
-          padding: 4px 8px;
+          font-size: 11px;
+          padding: 6px 10px;
+          height: 32px;
+          line-height: 1;
         }
 
         .cardhub-body {
@@ -1504,6 +1765,22 @@ function ensureMounted() {
           margin-bottom: 4px;
         }
 
+        .cardhub-filter-row {
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+        }
+
+        .cardhub-filter-block {
+          gap: 6px;
+        }
+
+        .cardhub-filter-block .cardhub-chip-row {
+          flex-wrap: wrap;
+          overflow: visible;
+          mask-image: none;
+          -webkit-mask-image: none;
+        }
+
         .cardhub-divider {
           margin: 4px 0;
         }
@@ -1514,8 +1791,8 @@ function ensureMounted() {
           flex-wrap: nowrap;
           overflow-x: auto;
           -webkit-overflow-scrolling: touch;
-          gap: 4px;
-          padding-bottom: 2px;
+          gap: 6px;
+          padding-bottom: 4px;
           mask-image: linear-gradient(90deg, transparent 0%, #000 12px, #000 calc(100% - 12px), transparent 100%);
           -webkit-mask-image: linear-gradient(
             90deg,
@@ -1538,15 +1815,19 @@ function ensureMounted() {
         }
 
         .cardhub-chip {
-          font-size: 10px;
-          padding: 4px 8px;
+          font-size: 11px;
+          padding: 6px 10px;
+          min-height: 30px;
+          line-height: 1;
           white-space: nowrap;
           flex-shrink: 0;
         }
 
         .cardhub-tag-filter__chip {
-          font-size: 9px;
-          padding: 3px 7px;
+          font-size: 10px;
+          padding: 5px 9px;
+          min-height: 28px;
+          line-height: 1;
           white-space: nowrap;
           flex-shrink: 0;
         }
@@ -1563,7 +1844,8 @@ function ensureMounted() {
           position: sticky;
           bottom: 0;
           background: var(--cardhub-surface-alt);
-          padding: 8px 0 6px;
+          padding: 8px 12px 6px;
+          padding-right: 72px;
           border-top: 1px solid rgba(var(--cardhub-border-rgb), 0.5);
           z-index: 1;
         }
@@ -1575,6 +1857,14 @@ function ensureMounted() {
         .cardhub-pagination__button {
           flex: 1;
           text-align: center;
+        }
+
+        .cardhub-pagination__status {
+          position: absolute;
+          right: 12px;
+          top: 10px;
+          font-size: 10px;
+          white-space: nowrap;
         }
 
         .cardhub-grid {
@@ -1635,6 +1925,13 @@ function ensureMounted() {
         .cardhub-tag {
           font-size: 9px;
           padding: 3px 6px;
+          color: var(--cardhub-text);
+        }
+
+        .cardhub-tag-confirm {
+          width: 20px;
+          height: 20px;
+          font-size: 11px;
         }
 
         .cardhub-card__actions {
@@ -1671,6 +1968,7 @@ function ensureMounted() {
           border-radius: 18px !important;
           padding: 16px !important;
           overflow: auto !important;
+          overflow-x: hidden !important;
         }
 
         .cardhub-preview__avatar {
@@ -1734,6 +2032,8 @@ function ensureMounted() {
 
         .cardhub-manage__detail-content {
           font-size: 11px;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
 
         .cardhub-manage__btn {
@@ -1749,6 +2049,8 @@ function ensureMounted() {
         .cardhub-manage__content {
           font-size: 11px;
           padding: 10px;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
 
         .cardhub-manage__chat-row {
@@ -1767,6 +2069,8 @@ function ensureMounted() {
 
         .cardhub-manage__chat-text {
           -webkit-line-clamp: 2;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
 
         .cardhub-manage__actions {
@@ -1775,7 +2079,7 @@ function ensureMounted() {
         }
 
         .cardhub-export {
-          position: absolute !important;
+          position: fixed !important;
           inset: 0 !important;
           display: flex !important;
           align-items: center !important;
@@ -1809,6 +2113,7 @@ function ensureMounted() {
         .cardhub-export__btn {
           font-size: 11px;
           padding: 6px 10px;
+          height: 28px;
         }
 
         .cardhub-export__list {
@@ -1833,8 +2138,8 @@ function ensureMounted() {
           font-size: 9px;
         }
 
-        .cardhub-theme {
-          position: absolute !important;
+        .cardhub-batch {
+          position: fixed !important;
           inset: 0 !important;
           display: flex !important;
           align-items: center !important;
@@ -1843,28 +2148,109 @@ function ensureMounted() {
           box-sizing: border-box !important;
         }
 
+        .cardhub-batch__panel {
+          width: calc(100vw - 32px) !important;
+          max-width: 360px !important;
+          max-height: calc(100vh - 32px) !important;
+          max-height: calc(100dvh - 32px) !important;
+          border-radius: 18px !important;
+          padding: 12px !important;
+        }
+
+        .cardhub-batch__toolbar {
+          gap: 6px;
+        }
+
+        .cardhub-batch__search,
+        .cardhub-batch__field input {
+          font-size: 12px;
+          padding: 6px 10px;
+        }
+
+        .cardhub-batch__chip {
+          font-size: 10px;
+          padding: 3px 6px;
+        }
+
+        .cardhub-batch__btn {
+          font-size: 11px;
+          padding: 6px 10px;
+          height: 28px;
+        }
+
+        .cardhub-batch__list {
+          max-height: 40vh;
+        }
+
+        .cardhub-batch__name {
+          font-size: 12px;
+        }
+
+        .cardhub-batch__meta {
+          font-size: 10px;
+        }
+
+        .cardhub-batch__tag {
+          font-size: 9px;
+        }
+
+        .cardhub-theme {
+          position: fixed !important;
+          inset: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          height: 100dvh !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          padding: 16px !important;
+          box-sizing: border-box !important;
+          background: rgba(24, 16, 10, 0.55) !important;
+          backdrop-filter: blur(10px) !important;
+          -webkit-backdrop-filter: blur(10px) !important;
+        }
+
         .cardhub-theme__panel {
           width: calc(100vw - 32px) !important;
           max-width: 360px !important;
           max-height: calc(100vh - 32px) !important;
           max-height: calc(100dvh - 32px) !important;
           border-radius: 18px !important;
-          padding: 16px !important;
+          padding: 12px !important;
         }
 
         .cardhub-theme__grid {
-          grid-template-columns: 1fr;
-          gap: 10px;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px 10px;
         }
 
         .cardhub-theme__field {
           font-size: 11px;
-          padding: 8px 10px;
+          padding: 6px 10px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          flex: 1 1 calc(50% - 6px);
+          min-width: 0;
+        }
+
+        .cardhub-theme__field span {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .cardhub-theme__field input[type='color'] {
+          height: 26px;
+          width: 70px;
         }
 
         .cardhub-theme__btn {
           font-size: 11px;
           padding: 6px 10px;
+          height: 28px;
         }
 
         .cardhub-theme__presets {

@@ -22,6 +22,7 @@
         <button class="cardhub-button" type="button" @click="refresh">刷新</button>
         <button class="cardhub-button is-ghost" type="button" @click="triggerImport">导入</button>
         <button class="cardhub-button is-ghost" type="button" @click="exportSelected">批量导出</button>
+        <button class="cardhub-button is-ghost" type="button" @click="openBatchTagDialog">批量标签</button>
         <input
           ref="importInput"
           class="cardhub-import-input"
@@ -34,76 +35,81 @@
 
       <div class="cardhub-body">
         <div class="cardhub-sidebar">
-          <div class="cardhub-section-title">分类</div>
-          <div class="cardhub-chip-row">
-            <button
-              class="cardhub-chip"
-              :class="{ 'is-active': statusFilter === 'all' }"
-              type="button"
-              @click="statusFilter = 'all'"
-            >
-              全部
-            </button>
-            <button
-              class="cardhub-chip"
-              :class="{ 'is-active': statusFilter === 'imported' }"
-              type="button"
-              @click="statusFilter = 'imported'"
-            >
-              已导入
-            </button>
-            <button
-              class="cardhub-chip"
-              :class="{ 'is-active': statusFilter === 'unimported' }"
-              type="button"
-              @click="statusFilter = 'unimported'"
-            >
-              未导入
-            </button>
-            <button
-              class="cardhub-chip"
-              :class="{ 'is-active': favoritesOnly }"
-              type="button"
-              @click="favoritesOnly = !favoritesOnly"
-            >
-              收藏
-            </button>
-          </div>
-          <div class="cardhub-divider" />
-          <div class="cardhub-section-title">排序</div>
-          <div class="cardhub-chip-row">
-            <button
-              class="cardhub-chip"
-              :class="{ 'is-active': sortKey === 'recent' }"
-              type="button"
-              @click="sortKey = 'recent'"
-            >
-              最近聊天
-            </button>
-            <button
-              class="cardhub-chip"
-              :class="{ 'is-active': sortKey === 'name' }"
-              type="button"
-              @click="sortKey = 'name'"
-            >
-              名称
-            </button>
-            <button
-              class="cardhub-chip"
-              :class="{ 'is-active': sortKey === 'tags' }"
-              type="button"
-              @click="sortKey = 'tags'"
-            >
-              标签数量
-            </button>
-            <button
-              class="cardhub-chip"
-              :class="{ 'is-active': sortKey === 'imported' }"
-              type="button"
-              @click="sortKey = 'imported'"
-            >
-              导入时间
-            </button>
+          <div class="cardhub-filter-row">
+            <div class="cardhub-filter-block">
+              <div class="cardhub-section-title">分类</div>
+              <div class="cardhub-chip-row">
+                <button
+                  class="cardhub-chip"
+                  :class="{ 'is-active': statusFilter === 'all' }"
+                  type="button"
+                  @click="statusFilter = 'all'"
+                >
+                  全部
+                </button>
+                <button
+                  class="cardhub-chip"
+                  :class="{ 'is-active': statusFilter === 'imported' }"
+                  type="button"
+                  @click="statusFilter = 'imported'"
+                >
+                  已导入
+                </button>
+                <button
+                  class="cardhub-chip"
+                  :class="{ 'is-active': statusFilter === 'unimported' }"
+                  type="button"
+                  @click="statusFilter = 'unimported'"
+                >
+                  未导入
+                </button>
+                <button
+                  class="cardhub-chip"
+                  :class="{ 'is-active': favoritesOnly }"
+                  type="button"
+                  @click="favoritesOnly = !favoritesOnly"
+                >
+                  收藏
+                </button>
+              </div>
+            </div>
+            <div class="cardhub-filter-block">
+              <div class="cardhub-section-title">排序</div>
+              <div class="cardhub-chip-row">
+                <button
+                  class="cardhub-chip"
+                  :class="{ 'is-active': sortKey === 'recent' }"
+                  type="button"
+                  @click="sortKey = 'recent'"
+                >
+                  最近聊天
+                </button>
+                <button
+                  class="cardhub-chip"
+                  :class="{ 'is-active': sortKey === 'name' }"
+                  type="button"
+                  @click="sortKey = 'name'"
+                >
+                  名称
+                </button>
+                <button
+                  class="cardhub-chip"
+                  :class="{ 'is-active': sortKey === 'tags' }"
+                  type="button"
+                  @click="sortKey = 'tags'"
+                >
+                  标签数量
+                </button>
+                <button
+                  class="cardhub-chip"
+                  :class="{ 'is-active': sortKey === 'imported' }"
+                  type="button"
+                  @click="sortKey = 'imported'"
+                >
+                  导入时间
+                </button>
+              </div>
+            </div>
           </div>
           <div class="cardhub-divider" />
           <div class="cardhub-section-title">标签</div>
@@ -200,19 +206,18 @@
                     >
                       + 标签
                     </button>
-                    <input
-                      v-else
-                      v-model="tagInput"
-                      class="cardhub-tag-input"
-                      type="text"
-                      placeholder="新标签"
-                      @keydown.enter.prevent="confirmTag(character)"
-                      @keydown.esc.prevent="cancelTagEdit"
-                      @blur="confirmTag(character)"
-                      @click.stop
-                      @mousedown.stop
-                      @touchstart.stop
-                    />
+                    <div v-else class="cardhub-tag-edit" @click.stop @mousedown.stop @touchstart.stop>
+                      <input
+                        v-model="tagInput"
+                        class="cardhub-tag-input"
+                        type="text"
+                        placeholder="新标签"
+                        @keydown.enter.prevent="confirmTag(character)"
+                        @keydown.esc.prevent="cancelTagEdit"
+                        @blur="confirmTag(character)"
+                      />
+                      <button class="cardhub-tag-confirm" type="button" @click="confirmTag(character)">✔</button>
+                    </div>
                   </div>
                 </div>
                 <div class="cardhub-card__actions">
@@ -479,6 +484,77 @@
       </div>
     </div>
 
+    <div v-if="batchTagDialogOpen" class="cardhub-batch" @click.self="closeBatchTagDialog">
+      <div class="cardhub-batch__panel" role="dialog" aria-label="批量标签">
+        <div class="cardhub-batch__header">
+          <div>
+            <div class="cardhub-batch__title">批量标签</div>
+            <div class="cardhub-batch__subtitle">
+              已选 {{ batchTagSelectedIds.length }} / {{ batchTagVisibleCandidates.length }}
+            </div>
+          </div>
+          <button class="cardhub-preview__close" type="button" @click="closeBatchTagDialog">×</button>
+        </div>
+        <div class="cardhub-batch__filters">
+          <input
+            v-model="batchTagSearch"
+            class="cardhub-batch__search"
+            type="search"
+            placeholder="搜索角色名或标签"
+          />
+          <div class="cardhub-batch__hint">提示：可先在主界面筛选，再打开批量标签。</div>
+        </div>
+        <div class="cardhub-batch__field">
+          <input v-model="batchTagInput" type="text" placeholder="输入标签，逗号/换行分隔" />
+        </div>
+        <div v-if="batchTagSuggestions.length" class="cardhub-batch__suggestions">
+          <span class="cardhub-batch__suggest-title">已有标签</span>
+          <div class="cardhub-batch__suggest-row">
+            <button
+              v-for="tag in batchTagSuggestions"
+              :key="tag"
+              class="cardhub-batch__chip"
+              :class="{ 'is-active': batchTagSelectedTags.includes(tag) }"
+              type="button"
+              @click="toggleBatchTagSuggestion(tag)"
+            >
+              {{ tag }}
+            </button>
+          </div>
+        </div>
+        <div class="cardhub-batch__toolbar">
+          <button class="cardhub-batch__btn is-secondary" type="button" @click="selectAllBatchTags">全选</button>
+          <button class="cardhub-batch__btn is-secondary" type="button" @click="clearBatchTagSelection">清空</button>
+          <div class="cardhub-batch__spacer"></div>
+          <button class="cardhub-batch__btn is-secondary" type="button" @click="closeBatchTagDialog">取消</button>
+          <button class="cardhub-batch__btn is-ghost" type="button" @click="applyBatchTags('remove')">移除标签</button>
+          <button class="cardhub-batch__btn is-primary" type="button" @click="applyBatchTags('add')">添加标签</button>
+        </div>
+        <div class="cardhub-batch__list">
+          <label v-for="item in batchTagVisibleCandidates" :key="item.id" class="cardhub-batch__item">
+            <input
+              class="cardhub-batch__checkbox"
+              type="checkbox"
+              :checked="batchTagSelectedSet.has(item.id)"
+              @change="toggleBatchTagSelection(item.id)"
+            />
+            <div class="cardhub-batch__main">
+              <div class="cardhub-batch__name">{{ item.name }}</div>
+              <div class="cardhub-batch__meta">
+                <span>{{ item.origin === 'tavern' ? '已导入' : '未导入' }}</span>
+                <span>{{ displayTags(item).length }} 标签</span>
+              </div>
+              <div v-if="displayTags(item).length" class="cardhub-batch__tags">
+                <span v-for="tag in displayTags(item).slice(0, 3)" :key="tag" class="cardhub-batch__tag">
+                  {{ tag }}
+                </span>
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+    </div>
+
     <div v-if="themeDialogOpen" class="cardhub-theme" @click.self="closeThemeDialog">
       <div class="cardhub-theme__panel" role="dialog" aria-label="配色设置">
         <div class="cardhub-theme__header">
@@ -648,6 +724,11 @@ const exportCandidates = computed(() => [...allCards.value]);
 const exportSearch = ref('');
 const exportStatusFilter = ref<'all' | 'imported' | 'unimported'>('all');
 const exportTagFilters = ref<string[]>([]);
+const batchTagDialogOpen = ref(false);
+const batchTagSelectedIds = ref<string[]>([]);
+const batchTagSearch = ref('');
+const batchTagInput = ref('');
+const batchTagSelectedTags = ref<string[]>([]);
 const exportAllTags = computed(() => {
   const tagSet = new Set<string>();
   exportCandidates.value.forEach(card => {
@@ -682,6 +763,22 @@ const exportVisibleCandidates = computed(() => {
 });
 const exportSelectedSet = computed(() => new Set(exportSelectedIds.value));
 const exportSelectedItems = computed(() => exportCandidates.value.filter(item => exportSelectedSet.value.has(item.id)));
+const batchTagCandidates = computed(() => filteredCharacters.value);
+const batchTagVisibleCandidates = computed(() => {
+  const keyword = batchTagSearch.value.trim().toLowerCase();
+  if (!keyword) {
+    return batchTagCandidates.value;
+  }
+  return batchTagCandidates.value.filter(card => {
+    if (card.name.toLowerCase().includes(keyword)) {
+      return true;
+    }
+    const tags = mergedTagsMap.value.get(card.id) ?? getMergedTags(card);
+    return tags.some(tag => tag.toLowerCase().includes(keyword));
+  });
+});
+const batchTagSelectedSet = computed(() => new Set(batchTagSelectedIds.value));
+const batchTagSuggestions = computed(() => allTags.value);
 
 const FAVORITES_KEY = 'cardhub_favorites';
 const favoriteIds = ref<string[]>([]);
@@ -1055,6 +1152,33 @@ function updateLastChatCache(key: string, timestamp: number) {
   saveLastChatCache(next);
 }
 
+function updateLastChatCacheForCard(card: CardHubItem, timestamp: number) {
+  if (timestamp <= 0 || card.origin !== 'tavern') {
+    return;
+  }
+  const keys = new Set<string>();
+  if (card.avatar) {
+    keys.add(`avatar:${card.avatar}`);
+  }
+  if (card.name) {
+    keys.add(`name:${card.name}`);
+  }
+  if (!keys.size) {
+    return;
+  }
+  const next = { ...lastChatCache.value };
+  let changed = false;
+  keys.forEach(key => {
+    if ((next[key] ?? 0) < timestamp) {
+      next[key] = timestamp;
+      changed = true;
+    }
+  });
+  if (changed) {
+    lastChatCache.value = next;
+    saveLastChatCache(next);
+  }
+}
 function updateImportCache(next: Record<string, number>) {
   importCache.value = next;
   saveImportCache(next);
@@ -1336,6 +1460,107 @@ function closeExportDialog() {
   exportDialogOpen.value = false;
 }
 
+function openBatchTagDialog() {
+  if (!batchTagVisibleCandidates.value.length) {
+    toastr.warning('当前没有可操作的角色卡');
+    return;
+  }
+  batchTagInput.value = '';
+  batchTagSearch.value = '';
+  batchTagSelectedTags.value = [];
+  batchTagSelectedIds.value = batchTagVisibleCandidates.value.map(item => item.id);
+  batchTagDialogOpen.value = true;
+}
+
+function closeBatchTagDialog() {
+  batchTagDialogOpen.value = false;
+}
+
+function toggleBatchTagSelection(id: string) {
+  if (batchTagSelectedSet.value.has(id)) {
+    batchTagSelectedIds.value = batchTagSelectedIds.value.filter(item => item !== id);
+  } else {
+    batchTagSelectedIds.value = [...batchTagSelectedIds.value, id];
+  }
+}
+
+function selectAllBatchTags() {
+  batchTagSelectedIds.value = batchTagVisibleCandidates.value.map(item => item.id);
+}
+
+function clearBatchTagSelection() {
+  batchTagSelectedIds.value = [];
+}
+
+function parseBatchTags(input: string, selected: string[]): string[] {
+  const items = input
+    .split(/[,，\n;；、]/)
+    .map(part => part.trim())
+    .filter(Boolean);
+  return Array.from(new Set([...items, ...selected]));
+}
+
+function getCardsByIds(ids: string[]): CardHubItem[] {
+  const map = new Map(allCards.value.map(card => [card.id, card]));
+  return ids.map(id => map.get(id)).filter(Boolean) as CardHubItem[];
+}
+
+function toggleBatchTagSuggestion(tag: string) {
+  if (batchTagSelectedTags.value.includes(tag)) {
+    batchTagSelectedTags.value = batchTagSelectedTags.value.filter(item => item !== tag);
+  } else {
+    batchTagSelectedTags.value = [...batchTagSelectedTags.value, tag];
+  }
+}
+
+function isSameTagSet(current: string[], next: string[]): boolean {
+  if (current.length !== next.length) {
+    return false;
+  }
+  const currentSet = new Set(current);
+  return next.every(tag => currentSet.has(tag));
+}
+
+async function applyBatchTags(mode: 'add' | 'remove') {
+  if (!batchTagSelectedIds.value.length) {
+    toastr.warning('请先选择要操作的角色卡');
+    return;
+  }
+  const tags = parseBatchTags(batchTagInput.value, batchTagSelectedTags.value);
+  if (!tags.length) {
+    toastr.warning('请输入要操作的标签');
+    return;
+  }
+  const actionLabel = mode === 'add' ? '添加' : '移除';
+  const message = `将${actionLabel}标签：${tags.join('、')}\n应用到 ${batchTagSelectedIds.value.length} 张角色卡，是否继续？`;
+  const result = await openConfirm({
+    title: `批量${actionLabel}标签`,
+    message,
+    confirmLabel: `继续${actionLabel}`,
+    cancelLabel: '取消',
+  });
+  if (result !== 'confirm') {
+    return;
+  }
+  const cards = getCardsByIds(batchTagSelectedIds.value);
+  let changed = 0;
+  cards.forEach(card => {
+    const currentTags = displayTags(card);
+    const nextSet = new Set(currentTags);
+    if (mode === 'add') {
+      tags.forEach(tag => nextSet.add(tag));
+    } else {
+      tags.forEach(tag => nextSet.delete(tag));
+    }
+    const nextTags = Array.from(nextSet);
+    if (!isSameTagSet(currentTags, nextTags)) {
+      applyTagUpdate(card, nextTags);
+      changed += 1;
+    }
+  });
+  toastr.success(`已处理 ${changed} 张角色卡`);
+}
+
 function isExportSelected(id: string): boolean {
   return exportSelectedSet.value.has(id);
 }
@@ -1392,6 +1617,23 @@ function nextPage() {
 
 function normalizeNameKey(value: string): string {
   return value.trim().toLocaleLowerCase();
+}
+
+function normalizeAvatarKey(value: string): string {
+  let raw = value.trim();
+  if (!raw) {
+    return '';
+  }
+  try {
+    raw = decodeURIComponent(raw);
+  } catch {
+    // ignore
+  }
+  raw = raw.split('?')[0];
+  if (raw.includes('/')) {
+    raw = raw.split('/').pop() ?? raw;
+  }
+  return raw.trim().toLowerCase();
 }
 
 function findDuplicateCharacterByName(name: string): CardHubItem | null {
@@ -2078,6 +2320,14 @@ function extractChatLatestTimestamp(entry: any): number | null {
   return null;
 }
 
+function sortChatBrief(list: any[]): any[] {
+  return [...list].sort((lhs, rhs) => {
+    const left = extractChatLatestTimestamp(lhs) ?? 0;
+    const right = extractChatLatestTimestamp(rhs) ?? 0;
+    return right - left;
+  });
+}
+
 function extractChatLatestLabel(entry: any): string {
   const candidates = [
     entry?.last_message_time,
@@ -2106,8 +2356,20 @@ async function warmRecentChatCache(cards: CardHubItem[]) {
   if (sortKey.value !== 'recent') {
     return;
   }
+  const pending = cards.filter(card => {
+    if (card.origin !== 'tavern') {
+      return false;
+    }
+    if (typeof card.lastChatAt === 'number' && card.lastChatAt > 0) {
+      return false;
+    }
+    return getLastChatAt(card) <= 0;
+  });
+  if (!pending.length) {
+    return;
+  }
   const token = ++chatCacheToken;
-  for (const card of cards) {
+  for (const card of pending) {
     if (token !== chatCacheToken || sortKey.value !== 'recent') {
       return;
     }
@@ -2117,23 +2379,21 @@ async function warmRecentChatCache(cards: CardHubItem[]) {
     if (typeof card.lastChatAt === 'number' && card.lastChatAt > 0) {
       continue;
     }
-    const key = getChatCacheKey(card);
-    if (!key || lastChatCache.value[key]) {
-      continue;
-    }
+    const cached = getLastChatAt(card);
     let brief: unknown = null;
     try {
-      brief = await TavernHelper.getChatHistoryBrief(card.avatar ?? card.name, true);
+      brief = await TavernHelper.getChatHistoryBrief(card.name ?? card.avatar ?? '', true);
     } catch (error) {
       console.warn('[CardHub] 读取聊天简报失败', error);
     }
     if (Array.isArray(brief) && brief.length) {
-      const timestamp = extractChatLatestTimestamp(brief[0]) ?? 0;
-      if (timestamp > 0) {
-        updateLastChatCache(key, timestamp);
+      const sorted = sortChatBrief(brief);
+      const timestamp = extractChatLatestTimestamp(sorted[0]) ?? 0;
+      if (timestamp > cached) {
+        updateLastChatCacheForCard(card, timestamp);
       }
     }
-    await sleep(60);
+    await sleep(80);
   }
 }
 
@@ -2264,17 +2524,20 @@ async function resolveRecentChats(card: CardHubItem): Promise<ManageChatData> {
   if (card.origin !== 'tavern') {
     return { list: [], summary: null };
   }
-  const brief = await TavernHelper.getChatHistoryBrief(card.avatar ?? card.name, true);
+  const brief = await TavernHelper.getChatHistoryBrief(card.name ?? card.avatar ?? '', true);
   if (!Array.isArray(brief) || !brief.length) {
     return { list: [], summary: { total: 0, latest: '' } };
   }
-  const list = brief.slice(0, 3).map((entry: any) => ({
+  const sorted = sortChatBrief(brief);
+  const latestTimestamp = extractChatLatestTimestamp(sorted[0]) ?? 0;
+  updateLastChatCacheForCard(card, latestTimestamp);
+  const list = sorted.slice(0, 3).map((entry: any) => ({
     name: formatChatTitle(entry),
     label: formatChatFileLabel(entry),
     file: String(entry?.file_name ?? entry?.file_id ?? ''),
     mes: normalizeBriefMessage(String(entry?.mes ?? '')).slice(0, 120),
   }));
-  const latest = extractChatLatestLabel(brief[0]);
+  const latest = extractChatLatestLabel(sorted[0]);
   return {
     list,
     summary: {
@@ -2414,13 +2677,19 @@ function sleep(ms: number): Promise<void> {
 }
 
 function findCharacterIndex(list: SillyTavern.v1CharData[], card: CardHubItem): number {
-  if (card.avatar) {
-    const byAvatar = list.findIndex(item => item.avatar === card.avatar || item.name === card.avatar);
-    if (byAvatar >= 0) {
-      return byAvatar;
-    }
+  const targetName = normalizeNameKey(card.name);
+  const targetAvatar = card.avatar ? normalizeAvatarKey(card.avatar) : '';
+  const byAvatar = targetAvatar
+    ? list.findIndex(item => normalizeAvatarKey(String(item.avatar ?? '')) === targetAvatar)
+    : -1;
+  if (byAvatar >= 0) {
+    return byAvatar;
   }
-  return list.findIndex(item => item.name === card.name);
+  const byName = list.findIndex(item => normalizeNameKey(String(item.name ?? '')) === targetName);
+  if (byName >= 0) {
+    return byName;
+  }
+  return list.findIndex(item => normalizeNameKey(String(item?.data?.name ?? '')) === targetName);
 }
 
 function normalizeChatId(id: string): string {
@@ -3196,6 +3465,7 @@ function close() {
   display: grid;
   gap: 16px;
   overflow: auto;
+  overflow-x: hidden;
 }
 
 .cardhub-manage__top {
@@ -3293,6 +3563,8 @@ function close() {
   line-height: 1.5;
   color: #3b2a20;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .cardhub-manage__label {
@@ -3362,6 +3634,8 @@ function close() {
   line-height: 1.5;
   color: #3b2a20;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .cardhub-manage__opening {
@@ -3419,6 +3693,8 @@ function close() {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .cardhub-manage__empty {
@@ -3733,7 +4009,8 @@ function close() {
     flex-shrink: 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    column-gap: 6px;
+    row-gap: 8px;
     padding: 10px 14px;
   }
 
@@ -3741,13 +4018,16 @@ function close() {
     width: 100%;
     font-size: 13px;
     padding: 8px 12px;
+    height: 34px;
   }
 
   .cardhub-button {
-    flex: 1;
+    flex: 0 1 auto;
     min-width: 0;
     font-size: 11px;
     padding: 6px 10px;
+    height: 32px;
+    line-height: 1;
   }
 
   .cardhub-body {
@@ -3779,8 +4059,9 @@ function close() {
   .cardhub-chip-row,
   .cardhub-tag-filter {
     display: flex;
-    flex-wrap: wrap;
-    overflow: visible;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     gap: 6px;
     padding-bottom: 4px;
   }
@@ -3798,14 +4079,18 @@ function close() {
 
   .cardhub-chip {
     font-size: 11px;
-    padding: 5px 10px;
+    padding: 6px 10px;
+    min-height: 30px;
+    line-height: 1;
     white-space: nowrap;
     flex-shrink: 0;
   }
 
   .cardhub-tag-filter__chip {
     font-size: 10px;
-    padding: 4px 8px;
+    padding: 5px 9px;
+    min-height: 28px;
+    line-height: 1;
     white-space: nowrap;
     flex-shrink: 0;
   }
@@ -3819,6 +4104,8 @@ function close() {
 
   .cardhub-pagination {
     align-items: flex-start;
+    position: relative;
+    padding-right: 72px;
   }
 
   .cardhub-pagination__actions {
@@ -3828,6 +4115,14 @@ function close() {
   .cardhub-pagination__button {
     flex: 1;
     text-align: center;
+  }
+
+  .cardhub-pagination__status {
+    position: absolute;
+    right: 12px;
+    top: 10px;
+    font-size: 10px;
+    white-space: nowrap;
   }
 
   .cardhub-grid {
@@ -3918,6 +4213,7 @@ function close() {
     border-radius: 18px !important;
     padding: 16px !important;
     overflow: auto !important;
+    overflow-x: hidden !important;
   }
 
   .cardhub-preview__avatar {
@@ -3981,6 +4277,8 @@ function close() {
 
   .cardhub-manage__detail-content {
     font-size: 11px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .cardhub-manage__btn {
@@ -3996,6 +4294,8 @@ function close() {
   .cardhub-manage__content {
     font-size: 11px;
     padding: 10px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .cardhub-manage__chat-row {
@@ -4010,6 +4310,8 @@ function close() {
 
   .cardhub-manage__chat-text {
     -webkit-line-clamp: 2;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .cardhub-manage__actions {
