@@ -14,4 +14,3 @@ components.d.ts
 
 # Runtime / local data
 data_runtime/
-/util/
