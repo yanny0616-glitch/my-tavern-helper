@@ -21,7 +21,13 @@ export function registerEntryButtons(controller: CardHubController): () => void 
 
 function registerRoleManagerEntry(controller: CardHubController): (() => void) | null {
   const buttonId = `cardhub-entry-${getScriptId()}`;
-  if ($(`#${buttonId}`).length) {
+  const $existing = $(`#${buttonId}`);
+  if ($existing.length) {
+    $existing
+      .addClass('menu_button fa-solid fa-rectangle-list cardhub-entry-button')
+      .attr('title', '打开 CardHub 角色卡管理器')
+      .attr('aria-label', '打开 CardHub 角色卡管理器')
+      .empty();
     return null;
   }
 
@@ -31,20 +37,21 @@ function registerRoleManagerEntry(controller: CardHubController): (() => void) |
     return null;
   }
 
+  const openOnce = createOpenOnce(() => controller.open('role'));
   const $button = $('<button>')
     .attr('id', buttonId)
     .attr('type', 'button')
-    .addClass('menu_button cardhub-entry-button')
+    .addClass('menu_button fa-solid fa-rectangle-list cardhub-entry-button')
     .attr('title', '打开 CardHub 角色卡管理器')
-    .text('CardHub')
+    .attr('aria-label', '打开 CardHub 角色卡管理器')
     .on('click pointerup touchend', event => {
       event.preventDefault();
       event.stopImmediatePropagation();
-      controller.open('role');
+      openOnce();
     });
 
   $anchor.append($button);
-  const roleDisposer = bindOpenEvents($button[0], () => controller.open('role'));
+  const roleDisposer = bindOpenEvents($button[0], openOnce);
 
   return () => {
     $button.off('click');
@@ -100,20 +107,21 @@ function registerMagicMenuEntry(controller: CardHubController): (() => void) | n
       return;
     }
 
+    const openOnce = createOpenOnce(() => controller.open('magic'));
     const $entry = $('<div>')
       .attr('id', menuId)
       .addClass('list-group-item flex-container flexGap5 interactable cardhub-menu-entry')
       .attr('role', 'button')
       .attr('tabindex', '0')
-      .text('角色卡管理器')
+      .html('<i class="fa-solid fa-id-badge" aria-hidden="true"></i><span>角色卡管理器</span>')
       .on('click pointerup touchend', event => {
         event.preventDefault();
         event.stopImmediatePropagation();
-        controller.open('magic');
+        openOnce();
       });
 
     $menu.append($entry);
-    const entryDisposer = bindOpenEvents($entry[0], () => controller.open('magic'));
+    const entryDisposer = bindOpenEvents($entry[0], openOnce);
     $entry.data('cardhub-dispose', entryDisposer);
   };
 
@@ -147,5 +155,17 @@ function bindOpenEvents(target: HTMLElement, handler: () => void): () => void {
     target.removeEventListener('pointerdown', wrapped, { capture: true } as AddEventListenerOptions);
     target.removeEventListener('mousedown', wrapped, { capture: true } as AddEventListenerOptions);
     target.removeEventListener('touchstart', wrapped, { capture: true } as AddEventListenerOptions);
+  };
+}
+
+function createOpenOnce(handler: () => void): () => void {
+  let lastFiredAt = 0;
+  return () => {
+    const now = Date.now();
+    if (now - lastFiredAt < 250) {
+      return;
+    }
+    lastFiredAt = now;
+    handler();
   };
 }

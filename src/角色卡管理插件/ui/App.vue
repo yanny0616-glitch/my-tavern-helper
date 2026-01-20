@@ -63,6 +63,7 @@
               未导入
             </button>
           </div>
+          <div class="cardhub-divider" />
           <div class="cardhub-section-title">标签</div>
           <div class="cardhub-tag-filter">
             <button
@@ -91,12 +92,34 @@
           <div v-else-if="!filteredCharacters.length" class="cardhub-empty">
             暂无角色卡，或没有匹配的搜索结果。
           </div>
-          <div v-else class="cardhub-grid">
+          <div v-else class="cardhub-grid-wrap">
+            <div class="cardhub-pagination">
+              <div v-if="totalPages > 1" class="cardhub-pagination__actions">
+                <button
+                  class="cardhub-pagination__button"
+                  type="button"
+                  :disabled="currentPage <= 1"
+                  @click="prevPage"
+                >
+                  上一页
+                </button>
+                <button
+                  class="cardhub-pagination__button"
+                  type="button"
+                  :disabled="currentPage >= totalPages"
+                  @click="nextPage"
+                >
+                  下一页
+                </button>
+              </div>
+              <span class="cardhub-pagination__status">第 {{ currentPage }} / {{ totalPages }} 页</span>
+            </div>
+            <div class="cardhub-grid">
             <article
-              v-for="character in filteredCharacters"
+              v-for="character in pagedCharacters"
               :key="character.id"
               class="cardhub-card"
-              @click="openPreview(character)"
+              @click="openManage(character)"
             >
               <div
                 class="cardhub-card__avatar"
@@ -118,7 +141,7 @@
                     class="cardhub-tag"
                     type="button"
                     title="点击移除标签"
-                    @click="removeTag(character, tag)"
+                    @click.stop="removeTag(character, tag)"
                   >
                     {{ tag }}
                     <span class="cardhub-tag__remove">×</span>
@@ -127,7 +150,7 @@
                     v-if="activeTagKey !== tagKey(character)"
                     class="cardhub-tag is-add"
                     type="button"
-                    @click="startTagEdit(character)"
+                    @click.stop="startTagEdit(character)"
                   >
                     + 标签
                   </button>
@@ -140,6 +163,9 @@
                     @keydown.enter.prevent="confirmTag(character)"
                     @keydown.esc.prevent="cancelTagEdit"
                     @blur="confirmTag(character)"
+                    @click.stop
+                    @mousedown.stop
+                    @touchstart.stop
                   />
                 </div>
               </div>
@@ -166,53 +192,11 @@
                 </button>
               </div>
             </article>
+            </div>
           </div>
         </div>
       </div>
     </section>
-
-    <div v-if="previewCard" class="cardhub-preview" @click.self="closePreview">
-      <div class="cardhub-preview__panel" role="dialog" aria-label="角色卡预览">
-        <button class="cardhub-preview__close" type="button" @click="closePreview">×</button>
-        <div class="cardhub-preview__avatar">
-          <img v-if="previewAvatarUrl" :src="previewAvatarUrl" alt="" />
-        </div>
-        <div class="cardhub-preview__info">
-          <div class="cardhub-preview__name">{{ previewCard.name }}</div>
-          <div class="cardhub-preview__meta">
-            <span>{{ previewCard.origin === 'tavern' ? '已导入' : '未导入' }}</span>
-            <span>{{ displayTags(previewCard).length }} 标签</span>
-          </div>
-          <div class="cardhub-preview__tags">
-            <span v-for="tag in displayTags(previewCard)" :key="tag" class="cardhub-preview__tag">
-              {{ tag }}
-            </span>
-          </div>
-        </div>
-        <div class="cardhub-preview__actions">
-          <button
-            class="cardhub-card__action is-secondary"
-            type="button"
-            @click.stop="handleCardAction(previewCard)"
-            @pointerdown.stop
-            @mousedown.stop
-            @touchstart.stop
-          >
-            {{ previewCard.origin === 'tavern' ? '导出' : '导入' }}
-          </button>
-          <button
-            class="cardhub-card__action"
-            type="button"
-            @click.stop="openManage(previewCard)"
-            @pointerdown.stop
-            @mousedown.stop
-            @touchstart.stop
-          >
-            管理
-          </button>
-        </div>
-      </div>
-    </div>
 
     <div v-if="manageCard" class="cardhub-manage" @click.self="closeManage">
       <div class="cardhub-manage__panel" role="dialog" aria-label="角色管理">
@@ -229,10 +213,31 @@
                 {{ tag }}
               </span>
             </div>
+            <div class="cardhub-manage__overview">
+              <div
+                v-for="item in manageOverview"
+                :key="item.label"
+                class="cardhub-manage__overview-card"
+              >
+                <div class="cardhub-manage__overview-label">{{ item.label }}</div>
+                <div class="cardhub-manage__overview-value">{{ item.value }}</div>
+                <div v-if="item.hint" class="cardhub-manage__overview-hint">{{ item.hint }}</div>
+              </div>
+            </div>
           </div>
           <div class="cardhub-manage__media">
             <img v-if="manageAvatarUrl" :src="manageAvatarUrl" alt="" />
           </div>
+        </div>
+        <div class="cardhub-manage__section">
+          <div class="cardhub-manage__label">角色卡预览</div>
+          <div v-if="manageDetails.length" class="cardhub-manage__details">
+            <div v-for="detail in manageDetails" :key="detail.label" class="cardhub-manage__detail">
+              <div class="cardhub-manage__detail-label">{{ detail.label }}</div>
+              <div class="cardhub-manage__detail-content">{{ detail.value }}</div>
+            </div>
+          </div>
+          <div v-else class="cardhub-manage__empty">{{ manageDetailsHint }}</div>
         </div>
         <div class="cardhub-manage__section">
           <div class="cardhub-manage__label">开场白</div>
@@ -248,16 +253,28 @@
         <div class="cardhub-manage__section">
           <div class="cardhub-manage__label">
             <span>最近聊天</span>
-            <button
-              class="cardhub-manage__jump"
-              type="button"
-              @click="openLatestChat"
-              @pointerdown.stop
-              @mousedown.stop
-              @touchstart.stop
-            >
-              进入最近聊天
-            </button>
+            <div class="cardhub-manage__jump-row">
+              <button
+                class="cardhub-manage__btn is-primary"
+                type="button"
+                @click="openLatestChat"
+                @pointerdown.stop
+                @mousedown.stop
+                @touchstart.stop
+              >
+                进入最近聊天
+              </button>
+              <button
+                class="cardhub-manage__btn is-secondary"
+                type="button"
+                @click="openNewChat"
+                @pointerdown.stop
+                @mousedown.stop
+                @touchstart.stop
+              >
+                新聊天
+              </button>
+            </div>
           </div>
           <div v-if="manageChats.length" class="cardhub-manage__chat">
             <div
@@ -269,15 +286,25 @@
               @click="openChat(msg)"
               @keydown.enter.prevent="openChat(msg)"
             >
-              <span class="cardhub-manage__chat-name">{{ msg.name }}</span>
+              <div class="cardhub-manage__chat-main">
+                <div class="cardhub-manage__chat-name">{{ msg.name }}</div>
+                <div v-if="msg.label && msg.label !== msg.name" class="cardhub-manage__chat-label">
+                  {{ msg.label }}
+                </div>
+                <div v-if="msg.keywords.length" class="cardhub-manage__chat-tags">
+                  <span v-for="keyword in msg.keywords" :key="keyword" class="cardhub-manage__chat-tag">
+                    {{ keyword }}
+                  </span>
+                </div>
+              </div>
               <span class="cardhub-manage__chat-text">{{ msg.mes }}</span>
             </div>
           </div>
-          <div v-else class="cardhub-manage__empty">暂无聊天记录</div>
+          <div v-else class="cardhub-manage__empty">{{ manageChatHint }}</div>
         </div>
         <div class="cardhub-manage__actions">
           <button
-            class="cardhub-card__action is-secondary"
+            class="cardhub-manage__btn is-secondary"
             type="button"
             @click.stop="handleCardAction(manageCard)"
             @pointerdown.stop
@@ -287,7 +314,7 @@
             {{ manageCard.origin === 'tavern' ? '导出' : '导入' }}
           </button>
           <button
-            class="cardhub-card__action"
+            class="cardhub-manage__btn is-primary"
             type="button"
             @click.stop="manageDelete(manageCard)"
             @pointerdown.stop
@@ -299,11 +326,34 @@
         </div>
       </div>
     </div>
+
+    <div v-if="confirmState.open" class="cardhub-confirm" @click.self="resolveConfirm('cancel')">
+      <div class="cardhub-confirm__panel" role="dialog" aria-modal="true">
+        <div class="cardhub-confirm__title">{{ confirmState.title }}</div>
+        <div class="cardhub-confirm__message">{{ confirmState.message }}</div>
+        <div class="cardhub-confirm__actions">
+          <button class="cardhub-confirm__button is-cancel" type="button" @click="resolveConfirm('cancel')">
+            {{ confirmState.cancelLabel }}
+          </button>
+          <button
+            v-if="confirmState.altLabel"
+            class="cardhub-confirm__button is-danger"
+            type="button"
+            @click="resolveConfirm('alt')"
+          >
+            {{ confirmState.altLabel }}
+          </button>
+          <button class="cardhub-confirm__button is-confirm" type="button" @click="resolveConfirm('confirm')">
+            {{ confirmState.confirmLabel }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref } from 'vue';
+import { computed, nextTick, reactive, ref, watch } from 'vue';
 import { cardHubState as state, setCharacters, setLibrary, setLoading, setOpen } from '../state/store';
 import { fetchCharacterSummaries } from '../services/characterSource';
 import { regexFromString } from './util/common';
@@ -315,14 +365,154 @@ const selectedTags = ref<string[]>([]);
 const activeTagKey = ref<string | null>(null);
 const tagInput = ref('');
 const statusFilter = ref<'all' | 'imported' | 'unimported'>('all');
+const pageSize = ref(24);
+const currentPage = ref(1);
 const importInput = ref<HTMLInputElement | null>(null);
-const previewCard = ref<CardHubItem | null>(null);
 const manageCard = ref<CardHubItem | null>(null);
 const manageOpenings = ref<string[]>([]);
-const manageChats = ref<Array<{ name: string; mes: string; file: string }>>([]);
+type ManageChatEntry = {
+  name: string;
+  label?: string;
+  mes: string;
+  file: string;
+  keywords: string[];
+};
+
+const manageChats = ref<ManageChatEntry[]>([]);
 const manageOpeningLines = computed(() => previewOpenings(manageOpenings.value, 3));
+let manageRequestId = 0;
+type ManageDetail = {
+  label: string;
+  value: string;
+};
+type ManageProfile = {
+  description?: string;
+  personality?: string;
+  scenario?: string;
+  creatorNotes?: string;
+  systemPrompt?: string;
+  postHistory?: string;
+  creator?: string;
+  worldBookName?: string;
+  worldBookCount?: number;
+};
+type ManageOpeningSummary = {
+  total: number;
+  alternate: number;
+};
+type ManageChatSummary = {
+  total: number;
+  latest: string;
+};
+type ManageChatData = {
+  list: ManageChatEntry[];
+  summary: ManageChatSummary | null;
+};
+type ManageOverviewItem = {
+  label: string;
+  value: string;
+  hint?: string;
+};
+type ManageData = {
+  openings: string[];
+  profile: ManageProfile | null;
+  openingSummary: ManageOpeningSummary | null;
+};
+type ConfirmResult = 'confirm' | 'cancel' | 'alt';
+type ConfirmOptions = {
+  title?: string;
+  message: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  altLabel?: string;
+};
+
+const confirmState = reactive({
+  open: false,
+  title: '',
+  message: '',
+  confirmLabel: '确定',
+  cancelLabel: '取消',
+  altLabel: '',
+  resolve: null as null | ((result: ConfirmResult) => void),
+});
 
 const allCards = computed(() => [...state.characters, ...state.library]);
+const manageProfile = ref<ManageProfile | null>(null);
+const manageOpeningSummary = ref<ManageOpeningSummary | null>(null);
+const manageChatSummary = ref<ManageChatSummary | null>(null);
+const manageDetails = computed(() => {
+  const profile = manageProfile.value;
+  if (!profile) {
+    return [] as ManageDetail[];
+  }
+  const details: ManageDetail[] = [];
+  const pushDetail = (label: string, value: string, maxChars = 240) => {
+    const preview = previewDetailText(value, 3, maxChars);
+    if (preview) {
+      details.push({ label, value: preview });
+    }
+  };
+  pushDetail('角色描述', profile.description ?? '');
+  pushDetail('性格', profile.personality ?? '');
+  pushDetail('场景', profile.scenario ?? '');
+  pushDetail('创作者备注', profile.creatorNotes ?? '');
+  pushDetail('系统提示', profile.systemPrompt ?? '', 200);
+  pushDetail('历史指令', profile.postHistory ?? '', 200);
+  pushDetail('作者', profile.creator ?? '', 80);
+  return details;
+});
+
+const manageDetailsHint = computed(() => {
+  if (!manageCard.value || manageDetails.value.length) {
+    return '';
+  }
+  if (manageCard.value.origin === 'library') {
+    return '未导入卡片暂无可预览内容，可先导入后查看详情。';
+  }
+  return '暂无角色卡详情。';
+});
+
+const manageChatHint = computed(() => {
+  if (manageCard.value?.origin === 'library') {
+    return '未导入卡片暂无聊天记录。';
+  }
+  return '暂无聊天记录。';
+});
+const manageOverview = computed(() => {
+  const items: ManageOverviewItem[] = [];
+  const profile = manageProfile.value;
+  const worldName = profile?.worldBookName?.trim() || '';
+  const worldCount = profile?.worldBookCount;
+  let worldValue = '未绑定';
+  let worldHint = '';
+  if (worldName || typeof worldCount === 'number') {
+    worldValue = worldName || '角色世界书';
+    worldHint = typeof worldCount === 'number' ? `${worldCount} 条` : '';
+  }
+  items.push({ label: '世界书', value: worldValue, hint: worldHint });
+
+  const chat = manageChatSummary.value;
+  let chatValue = '暂无聊天';
+  let chatHint = '';
+  if (chat && chat.total > 0) {
+    chatValue = `${chat.total} 个聊天`;
+    if (chat.latest) {
+      chatHint = `最近：${chat.latest}`;
+    }
+  }
+  items.push({ label: '聊天概况', value: chatValue, hint: chatHint });
+
+  const opening = manageOpeningSummary.value;
+  let openingValue = '暂无开场白';
+  let openingHint = '';
+  if (opening && opening.total > 0) {
+    openingValue = `${opening.total} 条`;
+    openingHint = opening.alternate > 0 ? `替代：${opening.alternate} 条` : '无替代';
+  }
+  items.push({ label: '开场白', value: openingValue, hint: openingHint });
+  return items;
+});
 
 const filteredCharacters = computed(() => {
   const list = applyStatusFilter(allCards.value);
@@ -334,6 +524,16 @@ const filteredCharacters = computed(() => {
   return applyTagFilter(list).filter(character => {
     return matcher.test(character.name) || character.tags.some(tag => matcher.test(tag));
   });
+});
+
+const totalPages = computed(() => {
+  const total = Math.ceil(filteredCharacters.value.length / pageSize.value);
+  return total > 0 ? total : 1;
+});
+
+const pagedCharacters = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  return filteredCharacters.value.slice(start, start + pageSize.value);
 });
 
 const allTags = computed(() => {
@@ -367,21 +567,6 @@ function avatarStyle(character: CardHubItem): Record<string, string> {
 function displayTags(character: CardHubItem): string[] {
   return getMergedTags(character);
 }
-
-function openPreview(card: CardHubItem) {
-  previewCard.value = card;
-}
-
-function closePreview() {
-  previewCard.value = null;
-}
-
-const previewAvatarUrl = computed(() => {
-  if (!previewCard.value) {
-    return null;
-  }
-  return avatarUrl(previewCard.value, true);
-});
 
 const manageAvatarUrl = computed(() => {
   if (!manageCard.value) {
@@ -421,6 +606,71 @@ function clearTagFilter() {
   selectedTags.value = [];
 }
 
+watch([() => state.search, statusFilter, () => selectedTags.value.join('|')], () => {
+  currentPage.value = 1;
+});
+
+watch([filteredCharacters, totalPages], () => {
+  if (currentPage.value > totalPages.value) {
+    currentPage.value = totalPages.value;
+  }
+  if (currentPage.value < 1) {
+    currentPage.value = 1;
+  }
+});
+
+function prevPage() {
+  if (currentPage.value > 1) {
+    currentPage.value -= 1;
+  }
+}
+
+function nextPage() {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value += 1;
+  }
+}
+
+function normalizeNameKey(value: string): string {
+  return value.trim().toLocaleLowerCase();
+}
+
+function findDuplicateCharacterByName(name: string): CardHubItem | null {
+  const target = normalizeNameKey(name);
+  if (!target) {
+    return null;
+  }
+  return state.characters.find(item => normalizeNameKey(item.name) === target) ?? null;
+}
+
+function openConfirm(options: ConfirmOptions): Promise<ConfirmResult> {
+  if (confirmState.open && confirmState.resolve) {
+    confirmState.resolve('cancel');
+  }
+  confirmState.title = options.title ?? '确认操作';
+  confirmState.message = options.message;
+  confirmState.confirmLabel = options.confirmLabel ?? '确定';
+  confirmState.cancelLabel = options.cancelLabel ?? '取消';
+  confirmState.altLabel = options.altLabel ?? '';
+  confirmState.open = true;
+
+  return new Promise(resolve => {
+    confirmState.resolve = resolve;
+  });
+}
+
+function resolveConfirm(result: ConfirmResult) {
+  if (!confirmState.open) {
+    return;
+  }
+  confirmState.open = false;
+  const resolver = confirmState.resolve;
+  confirmState.resolve = null;
+  if (resolver) {
+    resolver(result);
+  }
+}
+
 
 function removeTag(character: CardHubItem, tag: string) {
   const nextTags = getMergedTags(character).filter(item => item !== tag);
@@ -428,7 +678,7 @@ function removeTag(character: CardHubItem, tag: string) {
 }
 
 function tagKey(character: CardHubItem): string {
-  return character.avatar ? `avatar:${character.avatar}` : `name:${character.name}`;
+  return character.id;
 }
 
 function startTagEdit(character: CardHubItem) {
@@ -478,13 +728,17 @@ async function handleImportFiles(event: Event) {
   if (!files || !files.length) {
     return;
   }
-  const updated = await addToLibrary(files);
+  const updated = await addToLibrary(files, state.library);
   setLibrary(updated);
   target.value = '';
 }
 
-function exportSelected() {
+async function exportSelected() {
   const list = filteredCharacters.value;
+  if (!list.length) {
+    toastr.warning('当前没有可导出的角色卡');
+    return;
+  }
   const tagLabel = selectedTags.value.length ? selectedTags.value.join('、') : '无';
   const statusLabel =
     statusFilter.value === 'all'
@@ -500,11 +754,13 @@ function exportSelected() {
     `搜索关键字：${searchLabel}\n` +
     `是否继续？`;
 
-  if (!window.confirm(message)) {
-    return;
-  }
-  if (!list.length) {
-    toastr.warning('当前没有可导出的角色卡');
+  const result = await openConfirm({
+    title: '批量导出',
+    message,
+    confirmLabel: '继续导出',
+    cancelLabel: '取消',
+  });
+  if (result !== 'confirm') {
     return;
   }
   list.forEach(item => exportCard(item));
@@ -521,6 +777,11 @@ async function handleCardAction(card: CardHubItem) {
 async function importLibraryCard(card: CardHubItem) {
   if (!card.raw || !card.rawType) {
     toastr.error('缺少导入数据');
+    return;
+  }
+  const duplicate = findDuplicateCharacterByName(card.name);
+  if (duplicate) {
+    toastr.warning(`已存在同名角色「${duplicate.name}」，已跳过导入`);
     return;
   }
   const headers = (SillyTavern?.getRequestHeaders ? SillyTavern.getRequestHeaders() : {}) as Record<string, string>;
@@ -583,30 +844,261 @@ async function exportLibraryCard(card: CardHubItem) {
 }
 
 async function openManage(card: CardHubItem) {
+  const requestId = ++manageRequestId;
   manageCard.value = card;
-  manageOpenings.value = await resolveOpenings(card);
-  manageChats.value = await resolveRecentChats(card);
+  manageOpenings.value = [];
+  manageChats.value = [];
+  manageProfile.value = null;
+  manageOpeningSummary.value = null;
+  manageChatSummary.value = null;
+
+  const [manageResult, chatsResult] = await Promise.allSettled([
+    resolveManageData(card),
+    resolveRecentChats(card),
+  ]);
+
+  if (requestId !== manageRequestId || manageCard.value?.id !== card.id) {
+    return;
+  }
+
+  const manageData: ManageData =
+    manageResult.status === 'fulfilled'
+      ? manageResult.value
+      : { openings: [], profile: null, openingSummary: null };
+  manageOpenings.value = manageData.openings;
+  manageProfile.value = manageData.profile;
+  manageOpeningSummary.value = manageData.openingSummary;
+
+  const chatData: ManageChatData =
+    chatsResult.status === 'fulfilled'
+      ? chatsResult.value
+      : { list: [], summary: null };
+  manageChats.value = chatData.list;
+  manageChatSummary.value = chatData.summary;
 }
 
 function closeManage() {
   manageCard.value = null;
   manageOpenings.value = [];
   manageChats.value = [];
+  manageProfile.value = null;
+  manageOpeningSummary.value = null;
+  manageChatSummary.value = null;
 }
 
-async function resolveOpenings(card: CardHubItem): Promise<string[]> {
+async function resolveManageData(card: CardHubItem): Promise<ManageData> {
   if (card.origin !== 'tavern') {
-    return [];
+    const data = parseLibraryCardData(card);
+    return {
+      openings: extractOpeningMessages(data),
+      profile: extractCardProfile(data),
+      openingSummary: extractOpeningSummary(data),
+    };
   }
   const raw = await getFullCharacterData(card);
-  const openings = extractOpeningMessages(raw);
-  if (openings.length) {
-    return openings;
-  }
   const fallback =
+    raw ??
     TavernHelper.RawCharacter?.find({ name: card.avatar ?? card.name, allowAvatar: true } as any) ??
     TavernHelper.RawCharacter?.find({ name: card.name, allowAvatar: true } as any);
-  return extractOpeningMessages(fallback);
+  const primary = raw ?? fallback;
+  let openings = extractOpeningMessages(primary);
+  if (!openings.length && fallback && fallback !== primary) {
+    openings = extractOpeningMessages(fallback);
+  }
+  const openingSummary = extractOpeningSummary(primary ?? fallback);
+  return {
+    openings,
+    profile: extractCardProfile(primary ?? fallback),
+    openingSummary,
+  };
+}
+
+function parseLibraryCardData(card: CardHubItem): any | null {
+  if (!card.raw || !card.rawType) {
+    return null;
+  }
+  if (card.rawType === 'json') {
+    return parseJsonSafe(card.raw);
+  }
+  if (card.rawType === 'png') {
+    return parsePngCardData(card.raw);
+  }
+  return null;
+}
+
+function parseJsonSafe(raw: string): any | null {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function parsePngCardData(dataUrl: string): any | null {
+  const bytes = dataUrlToBytes(dataUrl);
+  if (!bytes) {
+    return null;
+  }
+  const chunks = extractPngTextChunks(bytes);
+  const allowedKeys = new Set(['chara', 'character', 'tavern', 'tavern_character', 'card']);
+  for (const chunk of chunks) {
+    if (chunk.key && !allowedKeys.has(chunk.key.toLowerCase())) {
+      continue;
+    }
+    const parsed = parseCardPayload(chunk.value);
+    if (parsed) {
+      return parsed;
+    }
+  }
+  return null;
+}
+
+function dataUrlToBytes(dataUrl: string): Uint8Array | null {
+  const comma = dataUrl.indexOf(',');
+  if (comma < 0) {
+    return null;
+  }
+  const base64 = dataUrl.slice(comma + 1);
+  try {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+  } catch {
+    return null;
+  }
+}
+
+function extractPngTextChunks(bytes: Uint8Array): Array<{ key: string; value: string }> {
+  if (bytes.length < 8) {
+    return [];
+  }
+  const signature = [137, 80, 78, 71, 13, 10, 26, 10];
+  for (let i = 0; i < signature.length; i += 1) {
+    if (bytes[i] !== signature[i]) {
+      return [];
+    }
+  }
+  const chunks: Array<{ key: string; value: string }> = [];
+  let offset = 8;
+  while (offset + 8 <= bytes.length) {
+    const length = readUint32BE(bytes, offset);
+    const type = bytesToString(bytes.subarray(offset + 4, offset + 8));
+    const dataStart = offset + 8;
+    const dataEnd = dataStart + length;
+    if (dataEnd + 4 > bytes.length) {
+      break;
+    }
+    const data = bytes.subarray(dataStart, dataEnd);
+    if (type === 'tEXt') {
+      const entry = parseTextChunk(data);
+      if (entry) {
+        chunks.push(entry);
+      }
+    } else if (type === 'iTXt') {
+      const entry = parseIntlTextChunk(data);
+      if (entry) {
+        chunks.push(entry);
+      }
+    }
+    offset = dataEnd + 4;
+  }
+  return chunks;
+}
+
+function parseTextChunk(data: Uint8Array): { key: string; value: string } | null {
+  const nullIndex = data.indexOf(0);
+  if (nullIndex < 0) {
+    return null;
+  }
+  const key = bytesToString(data.subarray(0, nullIndex)).trim();
+  const value = bytesToString(data.subarray(nullIndex + 1)).trim();
+  if (!key || !value) {
+    return null;
+  }
+  return { key, value };
+}
+
+function parseIntlTextChunk(data: Uint8Array): { key: string; value: string } | null {
+  const nullIndex = data.indexOf(0);
+  if (nullIndex < 0 || nullIndex + 2 >= data.length) {
+    return null;
+  }
+  const key = bytesToString(data.subarray(0, nullIndex)).trim();
+  const compressed = data[nullIndex + 1] === 1;
+  let cursor = nullIndex + 2;
+  const langEnd = data.indexOf(0, cursor);
+  if (langEnd < 0) {
+    return null;
+  }
+  cursor = langEnd + 1;
+  const translatedEnd = data.indexOf(0, cursor);
+  if (translatedEnd < 0) {
+    return null;
+  }
+  cursor = translatedEnd + 1;
+  if (compressed) {
+    return null;
+  }
+  const value = bytesToString(data.subarray(cursor)).trim();
+  if (!key || !value) {
+    return null;
+  }
+  return { key, value };
+}
+
+function parseCardPayload(value: string): any | null {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+  const direct = parseJsonSafe(trimmed);
+  if (direct) {
+    return direct;
+  }
+  if (!isLikelyBase64(trimmed)) {
+    return null;
+  }
+  const decoded = decodeBase64Text(trimmed);
+  if (!decoded) {
+    return null;
+  }
+  return parseJsonSafe(decoded);
+}
+
+function decodeBase64Text(value: string): string | null {
+  try {
+    const binary = atob(value);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return new TextDecoder().decode(bytes);
+  } catch {
+    return null;
+  }
+}
+
+function isLikelyBase64(value: string): boolean {
+  if (value.length < 16 || value.length % 4 !== 0) {
+    return false;
+  }
+  return /^[A-Za-z0-9+/=]+$/.test(value);
+}
+
+function readUint32BE(bytes: Uint8Array, offset: number): number {
+  return (
+    (bytes[offset] << 24) |
+    (bytes[offset + 1] << 16) |
+    (bytes[offset + 2] << 8) |
+    bytes[offset + 3]
+  ) >>> 0;
+}
+
+function bytesToString(bytes: Uint8Array): string {
+  return new TextDecoder().decode(bytes);
 }
 
 async function getFullCharacterData(card: CardHubItem): Promise<SillyTavern.v1CharData | null> {
@@ -663,6 +1155,80 @@ async function getFullCharacterData(card: CardHubItem): Promise<SillyTavern.v1Ch
   return fallback ?? data;
 }
 
+function extractCardProfile(data: any): ManageProfile | null {
+  if (!data) {
+    return null;
+  }
+  const profile: ManageProfile = {
+    description: pickString(data?.description, data?.data?.description),
+    personality: pickString(data?.personality, data?.data?.personality),
+    scenario: pickString(data?.scenario, data?.data?.scenario),
+    creatorNotes: pickString(
+      data?.creatorcomment,
+      data?.data?.creatorcomment,
+      data?.creator_notes,
+      data?.data?.creator_notes,
+    ),
+    systemPrompt: pickString(data?.system_prompt, data?.data?.system_prompt),
+    postHistory: pickString(
+      data?.post_history_instructions,
+      data?.data?.post_history_instructions,
+    ),
+    creator: pickString(data?.creator, data?.data?.creator),
+  };
+  const book = data?.character_book ?? data?.data?.character_book;
+  if (book) {
+    profile.worldBookName = pickString(book?.name);
+    profile.worldBookCount = Array.isArray(book?.entries) ? book.entries.length : undefined;
+  }
+  const hasValue =
+    Boolean(profile.description) ||
+    Boolean(profile.personality) ||
+    Boolean(profile.scenario) ||
+    Boolean(profile.creatorNotes) ||
+    Boolean(profile.systemPrompt) ||
+    Boolean(profile.postHistory) ||
+    Boolean(profile.creator) ||
+    Boolean(profile.worldBookName) ||
+    typeof profile.worldBookCount === 'number';
+  return hasValue ? profile : null;
+}
+
+function pickString(...values: unknown[]): string {
+  for (const value of values) {
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (trimmed) {
+        return trimmed;
+      }
+    }
+  }
+  return '';
+}
+
+function extractOpeningSummary(data: any): ManageOpeningSummary | null {
+  if (!data) {
+    return null;
+  }
+  const first = typeof data?.first_mes === 'string' ? data.first_mes : data?.data?.first_mes;
+  const firstCount = typeof first === 'string' && first.trim() ? 1 : 0;
+  const alt =
+    data?.alternate_greetings ??
+    data?.data?.alternate_greetings ??
+    data?.extensions?.alternate_greetings ??
+    data?.data?.extensions?.alternate_greetings;
+  let alternate = 0;
+  if (Array.isArray(alt)) {
+    alternate = alt.filter(item => typeof item === 'string' && item.trim()).length;
+  } else if (typeof alt === 'string' && alt.trim()) {
+    alternate = 1;
+  }
+  return {
+    total: firstCount + alternate,
+    alternate,
+  };
+}
+
 function extractOpeningMessages(data: any): string[] {
   if (!data) {
     return [];
@@ -695,6 +1261,151 @@ function normalizeBriefMessage(value: string): string {
     .replace(/<[^>]+>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function formatMaybeTimestamp(value: unknown): string {
+  if (typeof value === 'number' && !Number.isNaN(value)) {
+    const ms = value < 1e12 ? value * 1000 : value;
+    return new Date(ms).toLocaleString('zh-CN', { hour12: false });
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (trimmed) {
+      return trimmed;
+    }
+  }
+  return '';
+}
+
+function extractChatLatestLabel(entry: any): string {
+  const candidates = [
+    entry?.last_message_time,
+    entry?.last_message_date,
+    entry?.update_time,
+    entry?.last_modified,
+    entry?.create_date,
+    entry?.timestamp,
+    entry?.time,
+  ];
+  for (const value of candidates) {
+    const label = formatMaybeTimestamp(value);
+    if (label) {
+      return label;
+    }
+  }
+  const fallback = pickString(entry?.file_name, entry?.file_id);
+  if (!fallback) {
+    return '';
+  }
+  return fallback.replace(/\.jsonl$/i, '');
+}
+
+function formatChatTitle(entry: any): string {
+  const label = extractChatLatestLabel(entry);
+  return label || '聊天记录';
+}
+
+function formatChatFileLabel(entry: any): string {
+  const raw = pickString(entry?.file_name, entry?.file_id);
+  if (!raw) {
+    return '';
+  }
+  return raw.replace(/\.jsonl$/i, '');
+}
+
+function extractChatKeywords(value: string, max = 3): string[] {
+  const normalized = normalizeBriefMessage(value);
+  if (!normalized) {
+    return [];
+  }
+  const keywords = new Set<string>();
+  const stopWords = new Set([
+    'the',
+    'and',
+    'you',
+    'your',
+    'are',
+    'this',
+    'that',
+    'with',
+    'have',
+    'not',
+    'for',
+    'from',
+    'what',
+    'why',
+    'when',
+    'where',
+    'then',
+    'into',
+    'out',
+    'here',
+    'there',
+    '这个',
+    '那个',
+    '我们',
+    '你们',
+    '他们',
+    '她们',
+    '因为',
+    '但是',
+    '然后',
+    '如果',
+    '可以',
+    '没有',
+    '不是',
+    '已经',
+    '现在',
+    '一个',
+    '一些',
+    '还有',
+    '所以',
+    '这种',
+  ]);
+  const bracketMatches = normalized.match(/\[[^\]]{2,16}\]/g) ?? [];
+  for (const match of bracketMatches) {
+    const cleaned = match.slice(1, -1).trim();
+    if (cleaned) {
+      keywords.add(cleaned);
+    }
+    if (keywords.size >= max) {
+      return Array.from(keywords).slice(0, max);
+    }
+  }
+  const wordMatches = normalized.match(/[\u4e00-\u9fa5]{2,}|[A-Za-z0-9]{3,}/g) ?? [];
+  for (const word of wordMatches) {
+    const lower = word.toLowerCase();
+    if (stopWords.has(word) || stopWords.has(lower)) {
+      continue;
+    }
+    keywords.add(word);
+    if (keywords.size >= max) {
+      break;
+    }
+  }
+  return Array.from(keywords).slice(0, max);
+}
+
+function previewDetailText(text: string, maxLines: number, maxChars: number): string {
+  const trimmed = text.replace(/\r/g, '').trim();
+  if (!trimmed) {
+    return '';
+  }
+  const lines = extractContentLines(trimmed);
+  const source = lines.length ? lines : chunkText(normalizeBriefMessage(trimmed), 60);
+  let preview = source.slice(0, maxLines).join('\n').trim();
+  if (!preview) {
+    return '';
+  }
+  const truncated = preview.length > maxChars;
+  if (truncated) {
+    preview = preview.slice(0, maxChars).trim();
+  }
+  const hasMore = truncated || source.length > maxLines || trimmed.length > preview.length;
+  if (hasMore && !preview.endsWith('…')) {
+    preview = `${preview}…`;
+  }
+  return preview;
 }
 
 function previewOpenings(openings: string[], maxItems: number): string[] {
@@ -762,19 +1473,29 @@ function chunkText(text: string, size: number): string[] {
   return chunks;
 }
 
-async function resolveRecentChats(card: CardHubItem): Promise<Array<{ name: string; mes: string; file: string }>> {
+async function resolveRecentChats(card: CardHubItem): Promise<ManageChatData> {
   if (card.origin !== 'tavern') {
-    return [];
+    return { list: [], summary: null };
   }
   const brief = await TavernHelper.getChatHistoryBrief(card.avatar ?? card.name, true);
   if (!Array.isArray(brief) || !brief.length) {
-    return [];
+    return { list: [], summary: { total: 0, latest: '' } };
   }
-  return brief.slice(0, 3).map((entry: any) => ({
-    name: entry?.file_name ?? entry?.file_id ?? '聊天记录',
+  const list = brief.slice(0, 3).map((entry: any) => ({
+    name: formatChatTitle(entry),
+    label: formatChatFileLabel(entry),
     file: String(entry?.file_name ?? entry?.file_id ?? ''),
     mes: normalizeBriefMessage(String(entry?.mes ?? '')).slice(0, 120),
+    keywords: extractChatKeywords(String(entry?.mes ?? '')),
   }));
+  const latest = extractChatLatestLabel(brief[0]);
+  return {
+    list,
+    summary: {
+      total: brief.length,
+      latest,
+    },
+  };
 }
 
 async function openLatestChat() {
@@ -785,52 +1506,38 @@ async function openLatestChat() {
   await openChat(manageChats.value[0]);
 }
 
+async function openNewChat() {
+  const selection = await selectManageCharacter({ ensureSelected: true });
+  if (!selection) {
+    return;
+  }
+  try {
+    await triggerSlash('/newchat');
+    closeManage();
+    close();
+  } catch (error) {
+    console.warn('[CardHub] 新聊天失败', error);
+    toastr.error('无法创建新聊天');
+  }
+}
+
 async function openChat(chat: { file: string }) {
   const file = chat.file;
   if (!file) {
     toastr.warning('未找到聊天文件');
     return;
   }
-  let st: typeof SillyTavern | undefined;
-  try {
-    st = window.parent?.SillyTavern;
-  } catch {
-    st = undefined;
+  const selection = await selectManageCharacter({ ensureSelected: true });
+  if (!selection) {
+    return;
   }
-  st ??= SillyTavern;
-  const ctx = typeof st?.getContext === 'function' ? st.getContext() : null;
+  const { ctx, st } = selection;
   const target = normalizeChatId(file);
-  const list = ctx?.characters ?? st?.characters ?? [];
-  const idx = manageCard.value && Array.isArray(list) ? findCharacterIndex(list, manageCard.value) : -1;
   const opener =
     (ctx && typeof ctx.openCharacterChat === 'function' ? ctx.openCharacterChat : null) ??
     (st && typeof st.openCharacterChat === 'function' ? st.openCharacterChat : null);
   if (!opener) {
     toastr.error('无法打开聊天：缺少接口');
-    return;
-  }
-  if (idx < 0) {
-    toastr.warning('未找到角色索引，请先手动切到该角色后再试');
-    return;
-  }
-  if (typeof ctx?.getCharacters === 'function') {
-    try {
-      await ctx.getCharacters();
-    } catch (error) {
-      console.warn('[CardHub] 刷新角色列表失败', error);
-    }
-  }
-  const selector =
-    (ctx && typeof ctx.selectCharacterById === 'function' ? ctx.selectCharacterById : null) ??
-    (st && typeof st.selectCharacterById === 'function' ? st.selectCharacterById : null);
-  if (selector) {
-    try {
-      await selector(idx, { switchMenu: false });
-    } catch (error) {
-      console.warn('[CardHub] 切换角色失败', error);
-    }
-  } else {
-    toastr.warning('无法切换角色，请先手动切到该角色后再试');
     return;
   }
   try {
@@ -843,11 +1550,81 @@ async function openChat(chat: { file: string }) {
   const opened = await waitForChatOpen(target, ctx, st, 6000);
   if (opened) {
     closeManage();
-    closePreview();
     close();
     return;
   }
   toastr.warning('未能打开聊天，可能需要先手动切到该角色');
+}
+
+async function selectManageCharacter(
+  options: { ensureSelected?: boolean } = {},
+): Promise<{ ctx: any; st: typeof SillyTavern | undefined; idx: number } | null> {
+  let st: typeof SillyTavern | undefined;
+  try {
+    st = window.parent?.SillyTavern;
+  } catch {
+    st = undefined;
+  }
+  st ??= SillyTavern;
+  const ctx = typeof st?.getContext === 'function' ? st.getContext() : null;
+  if (typeof ctx?.getCharacters === 'function') {
+    try {
+      await ctx.getCharacters();
+    } catch (error) {
+      console.warn('[CardHub] 刷新角色列表失败', error);
+    }
+  }
+  const list = ctx?.characters ?? st?.characters ?? [];
+  const idx = manageCard.value && Array.isArray(list) ? findCharacterIndex(list, manageCard.value) : -1;
+  if (idx < 0) {
+    toastr.warning('未找到角色索引，请先手动切到该角色后再试');
+    return null;
+  }
+  const selector =
+    (ctx && typeof ctx.selectCharacterById === 'function' ? ctx.selectCharacterById : null) ??
+    (st && typeof st.selectCharacterById === 'function' ? st.selectCharacterById : null);
+  if (!selector) {
+    toastr.warning('无法切换角色，请先手动切到该角色后再试');
+    return null;
+  }
+  try {
+    await selector(idx, { switchMenu: false });
+  } catch (error) {
+    console.warn('[CardHub] 切换角色失败', error);
+  }
+  const selected = await waitForCharacterSelection(idx, ctx, st, 3000);
+  if (options.ensureSelected && !selected) {
+    toastr.warning('角色切换未完成，请稍后再试');
+    return null;
+  }
+  return { ctx, st, idx };
+}
+
+async function waitForCharacterSelection(
+  idx: number,
+  ctx: any,
+  st: typeof SillyTavern | undefined,
+  timeoutMs: number,
+): Promise<boolean> {
+  const target = String(idx);
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const current = getCurrentCharacterId(ctx, st);
+    if (current === target) {
+      return true;
+    }
+    await sleep(80);
+  }
+  return false;
+}
+
+function getCurrentCharacterId(ctx: any, st: typeof SillyTavern | undefined): string {
+  const value = ctx?.characterId ?? st?.characterId ?? '';
+  return value === undefined || value === null ? '' : String(value);
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function findCharacterIndex(list: SillyTavern.v1CharData[], card: CardHubItem): number {
@@ -884,7 +1661,13 @@ async function waitForChatOpen(
 
 async function manageDelete(card: CardHubItem) {
   if (card.origin === 'library') {
-    if (!window.confirm(`确认永久删除「${card.name}」？此操作不可恢复。`)) {
+    const confirmDelete = await openConfirm({
+      title: '删除角色',
+      message: `确认永久删除「${card.name}」？此操作不可恢复。`,
+      confirmLabel: '删除',
+      cancelLabel: '取消',
+    });
+    if (confirmDelete !== 'confirm') {
       return;
     }
     setLibrary(removeFromLibrary(card.id));
@@ -892,13 +1675,29 @@ async function manageDelete(card: CardHubItem) {
     return;
   }
 
-  if (!window.confirm(`确定要删除「${card.name}」吗？`)) {
+  const confirmDelete = await openConfirm({
+    title: '删除角色',
+    message: `确定要删除「${card.name}」吗？`,
+    confirmLabel: '继续',
+    cancelLabel: '取消',
+  });
+  if (confirmDelete !== 'confirm') {
     return;
   }
-  const moveToLibraryChoice = window.confirm(
-    `删除「${card.name}」：\n点击“确定”=移到私有库\n点击“取消”=永久删除`,
-  );
-  if (moveToLibraryChoice) {
+  const deleteChoice = await openConfirm({
+    title: '删除方式',
+    message:
+      `删除「${card.name}」：\n` +
+      `- 移到私有库：可在私有库中找回\n` +
+      `- 永久删除：不可恢复`,
+    confirmLabel: '移到私有库',
+    altLabel: '永久删除',
+    cancelLabel: '取消',
+  });
+  if (deleteChoice === 'cancel') {
+    return;
+  }
+  if (deleteChoice === 'confirm') {
     await moveToLibrary(card);
     const deleted = await deleteFromTavern(card, false);
     if (!deleted) {
@@ -909,7 +1708,13 @@ async function manageDelete(card: CardHubItem) {
     setCharacters(characters);
     return;
   }
-  if (!window.confirm(`确认永久删除「${card.name}」？此操作不可恢复。`)) {
+  const confirmPermanent = await openConfirm({
+    title: '永久删除',
+    message: `确认永久删除「${card.name}」？此操作不可恢复。`,
+    confirmLabel: '永久删除',
+    cancelLabel: '取消',
+  });
+  if (confirmPermanent !== 'confirm') {
     return;
   }
   const deleted = await deleteFromTavern(card, true);
@@ -1017,6 +1822,8 @@ function close() {
   font-family: "ZCOOL XiaoWei", "STSong", "Songti SC", "SimSun", serif;
   color: #1b1b1b;
   display: none;
+  align-items: center;
+  justify-content: center;
 }
 
 .cardhub-root.open {
@@ -1028,8 +1835,14 @@ function close() {
 .cardhub-backdrop {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at top, rgba(255, 248, 236, 0.9), rgba(36, 30, 24, 0.85));
+  background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(6px);
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.cardhub-root.open .cardhub-backdrop {
+  opacity: 1;
 }
 
 .cardhub-panel {
@@ -1043,6 +1856,14 @@ function close() {
   flex-direction: column;
   overflow: hidden;
   z-index: 1;
+  opacity: 0;
+  transform: translateY(8px) scale(0.985);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.cardhub-root.open .cardhub-panel {
+  opacity: 1;
+  transform: translateY(0) scale(1);
 }
 
 .cardhub-header {
@@ -1080,16 +1901,21 @@ function close() {
   line-height: 34px;
   text-align: center;
   cursor: pointer;
+  transition: background-color 160ms ease, transform 120ms ease;
 }
 
 .cardhub-close:hover {
   background: rgba(43, 32, 24, 0.2);
 }
 
+.cardhub-close:active {
+  transform: scale(0.96);
+}
+
 .cardhub-toolbar {
   display: flex;
-  gap: 10px;
-  padding: 16px 24px;
+  gap: 8px;
+  padding: 12px 20px;
   flex-wrap: wrap;
 }
 
@@ -1098,24 +1924,40 @@ function close() {
   min-width: 180px;
   border-radius: 999px;
   border: 1px solid rgba(86, 59, 44, 0.2);
-  padding: 8px 14px;
+  padding: 6px 12px;
   background: #fffaf4;
 }
 
 .cardhub-button {
   border: none;
-  padding: 8px 16px;
+  padding: 6px 14px;
   border-radius: 999px;
   background: #d46b3d;
   color: #fff;
   cursor: pointer;
   font-size: 12px;
+  transition: background-color 160ms ease, transform 120ms ease, box-shadow 160ms ease;
+}
+
+.cardhub-button:hover {
+  background: #c55f36;
+  box-shadow: 0 6px 14px rgba(43, 32, 24, 0.18);
+}
+
+.cardhub-button:active {
+  transform: translateY(1px);
 }
 
 .cardhub-button.is-ghost {
   background: transparent;
   color: #6a3f2a;
   border: 1px solid rgba(106, 63, 42, 0.4);
+}
+
+.cardhub-button.is-ghost:hover {
+  background: rgba(106, 63, 42, 0.08);
+  border-color: rgba(106, 63, 42, 0.6);
+  box-shadow: none;
 }
 
 .cardhub-import-input {
@@ -1144,6 +1986,13 @@ function close() {
   gap: 8px;
 }
 
+.cardhub-divider {
+  height: 1px;
+  width: 100%;
+  background: rgba(86, 59, 44, 0.15);
+  margin: 8px 0;
+}
+
 .cardhub-section-title {
   font-size: 12px;
   color: #7d5b46;
@@ -1159,11 +2008,17 @@ function close() {
   padding: 8px 10px;
   cursor: pointer;
   font-size: 12px;
+  transition: background-color 160ms ease, color 160ms ease, transform 120ms ease;
 }
 
 .cardhub-chip.is-active {
   background: #2b2018;
   color: #fff5ea;
+}
+
+.cardhub-chip:not(.is-active):hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-1px);
 }
 
 .cardhub-placeholder {
@@ -1185,6 +2040,7 @@ function close() {
   font-size: 12px;
   color: #6a3f2a;
   cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, transform 120ms ease;
 }
 
 .cardhub-tag-filter__chip.is-active {
@@ -1193,13 +2049,72 @@ function close() {
   border-color: transparent;
 }
 
+.cardhub-tag-filter__chip:not(.is-active):hover {
+  border-color: rgba(106, 63, 42, 0.45);
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-1px);
+}
+
 .cardhub-chip--clear {
   margin-top: 8px;
 }
 
-.cardhub-content {
-  padding: 20px;
-  overflow: auto;
+  .cardhub-content {
+    padding: 20px;
+    overflow: auto;
+    flex: 1;
+    min-height: 0;
+  }
+
+.cardhub-grid-wrap {
+  display: grid;
+  gap: 12px;
+}
+
+.cardhub-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cardhub-pagination__status {
+  font-size: 12px;
+  color: #7d5b46;
+}
+
+.cardhub-pagination__actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-right: auto;
+}
+
+.cardhub-pagination__button {
+  border: 1px solid rgba(106, 63, 42, 0.35);
+  background: rgba(255, 255, 255, 0.85);
+  color: #6a3f2a;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease, transform 120ms ease;
+}
+
+.cardhub-pagination__button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.cardhub-pagination__button:not(:disabled):hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(106, 63, 42, 0.6);
+  transform: translateY(-1px);
+}
+
+.cardhub-pagination__button:not(:disabled):active {
+  transform: translateY(0);
 }
 
 .cardhub-loading,
@@ -1213,6 +2128,7 @@ function close() {
   display: grid;
   gap: 14px;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  justify-items: center;
 }
 
 .cardhub-card {
@@ -1225,6 +2141,19 @@ function close() {
   align-items: center;
   border: 1px solid rgba(86, 59, 44, 0.15);
   cursor: pointer;
+  transition: transform 140ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  width: 100%;
+  max-width: 260px;
+}
+
+.cardhub-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(86, 59, 44, 0.25);
+  box-shadow: 0 12px 26px rgba(43, 32, 24, 0.16);
+}
+
+.cardhub-card:active {
+  transform: translateY(0);
 }
 
 .cardhub-card__avatar {
@@ -1272,6 +2201,13 @@ function close() {
   font-size: 11px;
   color: #6a3f2a;
   cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease, transform 120ms ease;
+}
+
+.cardhub-tag:hover {
+  background: #fffaf4;
+  border-color: rgba(106, 63, 42, 0.5);
+  transform: translateY(-1px);
 }
 
 .cardhub-tag__remove {
@@ -1311,6 +2247,7 @@ function close() {
   border-radius: 12px;
   font-size: 12px;
   cursor: pointer;
+  transition: transform 120ms ease, box-shadow 160ms ease, background-color 160ms ease;
 }
 
 .cardhub-card__actions {
@@ -1324,6 +2261,15 @@ function close() {
 .cardhub-card__action.is-secondary {
   background: #d9c6b6;
   color: #3b2a20;
+}
+
+.cardhub-card__action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(43, 32, 24, 0.15);
+}
+
+.cardhub-card__action:active {
+  transform: translateY(0);
 }
 
 .cardhub-preview {
@@ -1359,6 +2305,15 @@ function close() {
   color: #3b2a20;
   font-size: 18px;
   cursor: pointer;
+  transition: background-color 160ms ease, transform 120ms ease;
+}
+
+.cardhub-preview__close:hover {
+  background: rgba(43, 32, 24, 0.25);
+}
+
+.cardhub-preview__close:active {
+  transform: scale(0.96);
 }
 
 .cardhub-preview__avatar {
@@ -1467,9 +2422,72 @@ function close() {
   gap: 6px;
 }
 
+.cardhub-manage__overview {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.cardhub-manage__overview-card {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(106, 63, 42, 0.2);
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: grid;
+  gap: 4px;
+}
+
+.cardhub-manage__overview-label {
+  font-size: 10px;
+  color: #7d5b46;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.cardhub-manage__overview-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #3b2a20;
+}
+
+.cardhub-manage__overview-hint {
+  font-size: 11px;
+  color: #7d5b46;
+}
+
 .cardhub-manage__section {
   display: grid;
   gap: 8px;
+}
+
+.cardhub-manage__details {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.cardhub-manage__detail {
+  background: #fffaf4;
+  border: 1px solid rgba(106, 63, 42, 0.2);
+  border-radius: 16px;
+  padding: 12px 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.cardhub-manage__detail-label {
+  font-size: 11px;
+  color: #7d5b46;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.cardhub-manage__detail-content {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #3b2a20;
+  white-space: pre-wrap;
 }
 
 .cardhub-manage__label {
@@ -1483,19 +2501,48 @@ function close() {
   letter-spacing: 1px;
 }
 
-.cardhub-manage__jump {
-  border: 1px solid rgba(106, 63, 42, 0.35);
-  background: transparent;
-  color: #6a3f2a;
-  border-radius: 999px;
-  padding: 4px 10px;
-  font-size: 11px;
+.cardhub-manage__btn {
+  border: none;
+  border-radius: 12px;
+  padding: 6px 12px;
+  font-size: 12px;
   cursor: pointer;
   text-transform: none;
+  transition: background-color 160ms ease, transform 120ms ease, box-shadow 160ms ease;
 }
 
-.cardhub-manage__jump:hover {
-  background: rgba(106, 63, 42, 0.1);
+.cardhub-manage__btn.is-primary {
+  background: #2b2018;
+  color: #fff5ea;
+}
+
+.cardhub-manage__btn.is-secondary {
+  background: #d9c6b6;
+  color: #3b2a20;
+}
+
+.cardhub-manage__jump-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.cardhub-manage__btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(43, 32, 24, 0.15);
+}
+
+.cardhub-manage__btn.is-primary:hover {
+  background: #241a14;
+}
+
+.cardhub-manage__btn.is-secondary:hover {
+  background: #d1bca8;
+}
+
+.cardhub-manage__btn:active {
+  transform: translateY(0);
 }
 
 .cardhub-manage__content {
@@ -1539,11 +2586,37 @@ function close() {
   background: rgba(106, 63, 42, 0.08);
 }
 
+.cardhub-manage__chat-main {
+  display: grid;
+  gap: 4px;
+}
+
 .cardhub-manage__chat-name {
   flex: 0 0 auto;
   font-weight: 600;
   color: #6a3f2a;
   word-break: break-word;
+}
+
+.cardhub-manage__chat-label {
+  font-size: 11px;
+  color: #9a7a63;
+  word-break: break-word;
+}
+
+.cardhub-manage__chat-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.cardhub-manage__chat-tag {
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(106, 63, 42, 0.2);
+  background: rgba(255, 255, 255, 0.75);
+  font-size: 10px;
+  color: #6a3f2a;
 }
 
 .cardhub-manage__chat-text {
@@ -1565,123 +2638,446 @@ function close() {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
+
+.cardhub-confirm {
+  position: absolute;
+  inset: 0;
+  background: rgba(24, 16, 10, 0.55);
+  backdrop-filter: blur(6px);
+  display: grid;
+  place-items: center;
+  z-index: 100002;
+}
+
+.cardhub-confirm__panel {
+  width: min(460px, 92vw);
+  background: #fff6ea;
+  border-radius: 22px;
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.25);
+  padding: 18px 20px;
+  display: grid;
+  gap: 12px;
+}
+
+.cardhub-confirm__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2b2018;
+}
+
+.cardhub-confirm__message {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #4a2a1f;
+  white-space: pre-wrap;
+}
+
+.cardhub-confirm__actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.cardhub-confirm__button {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 160ms ease, background-color 160ms ease, border-color 160ms ease;
+}
+
+.cardhub-confirm__button.is-confirm {
+  background: #d46b3d;
+  color: #fff;
+}
+
+.cardhub-confirm__button.is-cancel {
+  background: transparent;
+  color: #6a3f2a;
+  border: 1px solid rgba(106, 63, 42, 0.4);
+}
+
+.cardhub-confirm__button.is-danger {
+  background: #b6452a;
+  color: #fff;
+}
+
+.cardhub-confirm__button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(43, 32, 24, 0.18);
+}
+
+.cardhub-confirm__button:active {
+  transform: translateY(0);
+}
+
+.cardhub-button:focus-visible,
+.cardhub-chip:focus-visible,
+.cardhub-tag-filter__chip:focus-visible,
+.cardhub-tag:focus-visible,
+.cardhub-card__action:focus-visible,
+.cardhub-pagination__button:focus-visible,
+.cardhub-manage__btn:focus-visible,
+.cardhub-close:focus-visible,
+.cardhub-preview__close:focus-visible,
+.cardhub-confirm__button:focus-visible {
+  outline: 2px solid rgba(212, 107, 61, 0.6);
+  outline-offset: 2px;
+}
 @media (max-width: 720px) {
+  .cardhub-root {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 99999 !important;
+    display: none;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 16px !important;
+    box-sizing: border-box !important;
+    overflow-y: auto !important;
+  }
+
+  .cardhub-root.open {
+    display: flex !important;
+  }
+
+  .cardhub-backdrop {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 99998 !important;
+    background: rgba(0, 0, 0, 0.4) !important;
+    backdrop-filter: blur(8px) !important;
+  }
+
+  .cardhub-panel {
+    position: relative !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    border-radius: 24px !important;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    z-index: 99999 !important;
+    overflow: hidden !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  }
+
+  .cardhub-header {
+    flex-shrink: 0;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(86, 59, 44, 0.12);
+  }
+
+  .cardhub-title__main {
+    font-size: 20px;
+  }
+
+  .cardhub-title__sub {
+    font-size: 11px;
+  }
+
+  .cardhub-close {
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+    line-height: 28px;
+  }
+
+  .cardhub-toolbar {
+    flex-shrink: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 14px;
+  }
+
+  .cardhub-search {
+    width: 100%;
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+
+  .cardhub-button {
+    flex: 1;
+    min-width: 0;
+    font-size: 11px;
+    padding: 6px 10px;
+  }
 
   .cardhub-body {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
   }
 
   .cardhub-sidebar {
-    flex-direction: column;
+    flex-shrink: 0;
     border-right: none;
-    border-bottom: 1px solid rgba(86, 59, 44, 0.15);
-    gap: 8px;
+    border-bottom: 1px solid rgba(86, 59, 44, 0.12);
+    padding: 10px 14px;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .cardhub-section-title {
+    font-size: 10px;
+    margin-bottom: 6px;
+  }
+
+  .cardhub-divider {
+    margin: 6px 0;
   }
 
   .cardhub-chip-row,
   .cardhub-tag-filter {
-    flex-wrap: nowrap;
-    overflow-x: auto;
+    display: flex;
+    flex-wrap: wrap;
+    overflow: visible;
+    gap: 6px;
     padding-bottom: 4px;
   }
 
   .cardhub-chip-row::-webkit-scrollbar,
   .cardhub-tag-filter::-webkit-scrollbar {
-    height: 6px;
+    height: 4px;
   }
 
   .cardhub-chip-row::-webkit-scrollbar-thumb,
   .cardhub-tag-filter::-webkit-scrollbar-thumb {
-    background: rgba(106, 63, 42, 0.2);
+    background: rgba(106, 63, 42, 0.15);
     border-radius: 999px;
   }
 
-  .cardhub-panel {
-    width: min(98vw, 520px);
-    max-height: 96vh;
+  .cardhub-chip {
+    font-size: 11px;
+    padding: 5px 10px;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
-  .cardhub-header {
+  .cardhub-tag-filter__chip {
+    font-size: 10px;
+    padding: 4px 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .cardhub-content {
+    flex: 1;
+    min-height: 0;
+    overflow: visible;
+    padding: 12px;
+  }
+
+  .cardhub-pagination {
+    align-items: flex-start;
+  }
+
+  .cardhub-pagination__actions {
+    width: 100%;
+  }
+
+  .cardhub-pagination__button {
+    flex: 1;
+    text-align: center;
+  }
+
+  .cardhub-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    justify-content: center;
+    justify-items: center;
+  }
+
+  .cardhub-card {
+    display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    padding: 12px 14px;
-  }
-
-  .cardhub-toolbar {
-    display: grid;
-    grid-template-columns: 1fr auto auto auto;
-    gap: 8px;
-    padding: 10px 14px 12px;
-  }
-
-  .cardhub-search {
+    gap: 10px;
+    padding: 10px;
+    border-radius: 14px;
+    min-width: 0;
     width: 100%;
-    grid-column: 1 / -1;
+    max-width: none;
   }
 
-  .cardhub-button {
-    width: 100%;
+  .cardhub-card__avatar {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 10px;
   }
 
-  .cardhub-button.is-ghost {
-    grid-column: span 1;
+  .cardhub-card__info {
+    flex: 1;
+    min-width: 0;
   }
 
-  .cardhub-tag-filter__chip,
+  .cardhub-card__name {
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .cardhub-card__meta {
+    font-size: 10px;
+    gap: 6px;
+  }
+
+  .cardhub-card__tags {
+    margin-top: 4px;
+    gap: 4px;
+  }
+
   .cardhub-tag {
+    font-size: 9px;
+    padding: 3px 6px;
+  }
+
+  .cardhub-card__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .cardhub-card__action {
+    padding: 5px 10px;
+    font-size: 10px;
+    border-radius: 8px;
+  }
+
+  .cardhub-preview,
+  .cardhub-manage {
+    position: absolute !important;
+    inset: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 16px !important;
+    box-sizing: border-box !important;
+    overflow-y: auto !important;
+  }
+
+  .cardhub-preview__panel,
+  .cardhub-manage__panel {
+    width: calc(100vw - 32px) !important;
+    max-width: 360px !important;
+    max-height: calc(100vh - 32px) !important;
+    max-height: calc(100dvh - 32px) !important;
+    border-radius: 18px !important;
+    padding: 16px !important;
+    overflow: auto !important;
+  }
+
+  .cardhub-preview__avatar {
+    height: 180px;
+    border-radius: 14px;
+  }
+
+  .cardhub-preview__name {
+    font-size: 16px;
+  }
+
+  .cardhub-preview__meta {
+    font-size: 11px;
+  }
+
+  .cardhub-preview__tag {
     font-size: 10px;
     padding: 4px 8px;
   }
 
-  .cardhub-card {
-    grid-template-columns: 1fr;
-  }
-
-  .cardhub-card__action {
-    grid-column: auto;
-  }
-  .cardhub-manage__panel {
-    width: min(96vw, 560px);
-    max-height: 90vh;
+  .cardhub-preview__actions {
+    gap: 8px;
   }
 
   .cardhub-manage__top {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .cardhub-manage__media {
+    width: 120px;
+    margin: 0 auto;
+  }
+
+  .cardhub-manage__overview {
+    grid-template-columns: 1fr;
+  }
+
+  .cardhub-manage__overview-value {
+    font-size: 12px;
+  }
+
+  .cardhub-manage__overview-hint {
+    font-size: 10px;
+  }
+
+  .cardhub-manage__label {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 10px;
+  }
+
+  .cardhub-manage__details {
+    grid-template-columns: 1fr;
+  }
+
+  .cardhub-manage__detail-label {
+    font-size: 10px;
+  }
+
+  .cardhub-manage__detail-content {
+    font-size: 11px;
+  }
+
+  .cardhub-manage__btn {
+    width: 100%;
+    text-align: center;
+    font-size: 10px;
+  }
+
+  .cardhub-manage__jump-row {
+    width: 100%;
+  }
+
+  .cardhub-manage__content {
+    font-size: 11px;
+    padding: 10px;
+  }
+
+  .cardhub-manage__chat-row {
+    grid-template-columns: 1fr;
+    gap: 3px;
+    font-size: 11px;
+  }
+
+  .cardhub-manage__chat-label {
+    font-size: 10px;
+  }
+
+  .cardhub-manage__chat-tag {
+    font-size: 9px;
+  }
+
+  .cardhub-manage__chat-text {
+    -webkit-line-clamp: 2;
   }
 
   .cardhub-manage__actions {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
   }
 }
 </style>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

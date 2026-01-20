@@ -83,7 +83,10 @@ export function getAllTagsFromContext(): string[] {
   return ctx.tags.map(tag => tag.name).filter(Boolean);
 }
 
-export function getTagsForAvatar(avatar: string | null | undefined): string[] {
+export function getTagsForAvatar(tagKey: string | null | undefined): string[] {
+  if (!tagKey) {
+    return [];
+  }
   const ctx = getContext();
   if (!ctx || !ctx.tagMap || !Array.isArray(ctx.tags)) {
     return [];
@@ -94,8 +97,7 @@ export function getTagsForAvatar(avatar: string | null | undefined): string[] {
       tagIdToName.set(tag.id, tag.name);
     }
   });
-  const avatarKey = avatar ?? 'null';
-  const ids = ctx.tagMap[avatarKey] ?? [];
+  const ids = ctx.tagMap[tagKey] ?? [];
   return ids.map(id => tagIdToName.get(id)).filter(Boolean) as string[];
 }
 
@@ -104,7 +106,7 @@ export function getMergedTags(target: CardHubItem): string[] {
     return target.tags ?? [];
   }
   const direct = target.tags ?? [];
-  const mapped = getTagsForAvatar(target.avatar);
+  const mapped = getTagsForAvatar(target.tagKey ?? target.avatar);
   return Array.from(new Set([...direct, ...mapped]));
 }
 
@@ -128,8 +130,10 @@ export function updateCharacterTags(target: CardHubItem, nextTags: string[]): st
 
   ensureTagStore(ctx);
   const tagIds = cleaned.map(tag => ensureTag(ctx, tag).id);
-  const avatarKey = character.avatar ?? 'null';
-  ctx.tagMap![avatarKey] = tagIds;
+  const tagKey = target.tagKey ?? character.avatar ?? null;
+  if (tagKey) {
+    ctx.tagMap![tagKey] = tagIds;
+  }
 
   ctx.saveSettingsDebounced?.();
 

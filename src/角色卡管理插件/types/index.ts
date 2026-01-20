@@ -8,6 +8,8 @@ export type CardHubItem = {
   avatar: string | null;
   tags: string[];
   origin: CardOrigin;
+  tagKey?: string;
+  fingerprint?: string;
   rawType?: 'png' | 'json';
   raw?: string;
 };

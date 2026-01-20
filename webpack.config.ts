@@ -409,11 +409,14 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
       extensions: ['.ts', '.js', '.tsx', '.jsx', '.css'],
       plugins: [
         new TsconfigPathsPlugin({
-          extensions: ['.ts', '.js', '.tsx', '.jsx'],
+          extensions: ['.ts', '.js', '.tsx', '.jsx', '.css'],
           configFile: path.join(import.meta.dirname, 'tsconfig.json'),
         }),
       ],
-      alias: {},
+      alias: {
+        '@util': path.join(import.meta.dirname, 'util'),
+        '@': path.join(import.meta.dirname, 'src'),
+      },
     },
     plugins: (entry.html === undefined
       ? [new MiniCssExtractPlugin()]

@@ -54,22 +54,87 @@ function normalizeName(fileName: string): string {
   return fileName.replace(/\.(png|json)$/i, '');
 }
 
+function hashString(value: string): string {
+  let hash = 5381;
+  for (let i = 0; i < value.length; i += 1) {
+    hash = (hash * 33) ^ value.charCodeAt(i);
+  }
+  return (hash >>> 0).toString(16);
+}
+
+function stableStringify(value: unknown): string {
+  if (value === null || typeof value !== 'object') {
+    return JSON.stringify(value);
+  }
+  if (Array.isArray(value)) {
+    return `[${value.map(item => stableStringify(item)).join(',')}]`;
+  }
+  const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) =>
+    a.localeCompare(b),
+  );
+  return `{${entries
+    .map(([key, val]) => `${JSON.stringify(key)}:${stableStringify(val)}`)
+    .join(',')}}`;
+}
+
+function buildFingerprint(rawType: CardHubItem['rawType'], raw: string): string {
+  let source = raw;
+  if (rawType === 'json') {
+    const trimmed = raw.trim();
+    try {
+      source = stableStringify(JSON.parse(trimmed));
+    } catch {
+      source = trimmed;
+    }
+  }
+  return `${rawType}:${hashString(source)}`;
+}
+
+function ensureFingerprint(entry: CardHubItem): string | null {
+  if (entry.fingerprint) {
+    return entry.fingerprint;
+  }
+  if (!entry.rawType || !entry.raw) {
+    return null;
+  }
+  const fingerprint = buildFingerprint(entry.rawType, entry.raw);
+  entry.fingerprint = fingerprint;
+  return fingerprint;
+}
+
 export function loadLibrary(): CardHubItem[] {
   return readLibrary().entries;
 }
 
-export async function addToLibrary(files: FileList | File[]): Promise<CardHubItem[]> {
+export async function addToLibrary(
+  files: FileList | File[],
+  existingEntries?: CardHubItem[],
+): Promise<CardHubItem[]> {
   const list = Array.from(files);
   if (!list.length) {
     return loadLibrary();
   }
-  const current = loadLibrary();
+  const current = Array.isArray(existingEntries) && existingEntries.length
+    ? existingEntries
+    : loadLibrary();
+  const fingerprints = new Set<string>();
+  current.forEach(entry => {
+    const fingerprint = ensureFingerprint(entry);
+    if (fingerprint) {
+      fingerprints.add(fingerprint);
+    }
+  });
   const nextEntries: CardHubItem[] = [];
 
   for (const file of list) {
     const name = normalizeName(file.name);
     if (file.name.toLowerCase().endsWith('.png')) {
       const dataUrl = await readFileAsDataUrl(file);
+      const fingerprint = buildFingerprint('png', dataUrl);
+      if (fingerprints.has(fingerprint)) {
+        continue;
+      }
+      fingerprints.add(fingerprint);
       nextEntries.push({
         id: uuidv4(),
         name,
@@ -78,6 +143,7 @@ export async function addToLibrary(files: FileList | File[]): Promise<CardHubIte
         origin: 'library',
         rawType: 'png',
         raw: dataUrl,
+        fingerprint,
       });
     } else if (file.name.toLowerCase().endsWith('.json')) {
       const text = await readFileAsText(file);
@@ -88,6 +154,11 @@ export async function addToLibrary(files: FileList | File[]): Promise<CardHubIte
       } catch {
         // ignore invalid json name parsing
       }
+      const fingerprint = buildFingerprint('json', text);
+      if (fingerprints.has(fingerprint)) {
+        continue;
+      }
+      fingerprints.add(fingerprint);
       nextEntries.push({
         id: uuidv4(),
         name: parsedName,
@@ -96,6 +167,7 @@ export async function addToLibrary(files: FileList | File[]): Promise<CardHubIte
         origin: 'library',
         rawType: 'json',
         raw: text,
+        fingerprint,
       });
     }
   }
@@ -123,6 +195,4 @@ export function removeFromLibrary(entryId: string): CardHubItem[] {
   writeLibrary(updated);
   return updated;
 }
-
-
 
