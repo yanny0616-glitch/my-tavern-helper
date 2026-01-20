@@ -8,6 +8,9 @@
           <span class="cardhub-title__sub">角色卡管理器</span>
         </div>
         <div class="cardhub-actions">
+          <button class="cardhub-theme-trigger" type="button" aria-label="配色" @click="openThemeDialog">
+            <i class="fa-solid fa-palette" aria-hidden="true"></i>
+          </button>
           <button class="cardhub-close" type="button" aria-label="关闭" @click="close">
             <span aria-hidden="true">×</span>
           </button>
@@ -56,6 +59,50 @@
               @click="statusFilter = 'unimported'"
             >
               未导入
+            </button>
+            <button
+              class="cardhub-chip"
+              :class="{ 'is-active': favoritesOnly }"
+              type="button"
+              @click="favoritesOnly = !favoritesOnly"
+            >
+              收藏
+            </button>
+          </div>
+          <div class="cardhub-divider" />
+          <div class="cardhub-section-title">排序</div>
+          <div class="cardhub-chip-row">
+            <button
+              class="cardhub-chip"
+              :class="{ 'is-active': sortKey === 'recent' }"
+              type="button"
+              @click="sortKey = 'recent'"
+            >
+              最近聊天
+            </button>
+            <button
+              class="cardhub-chip"
+              :class="{ 'is-active': sortKey === 'name' }"
+              type="button"
+              @click="sortKey = 'name'"
+            >
+              名称
+            </button>
+            <button
+              class="cardhub-chip"
+              :class="{ 'is-active': sortKey === 'tags' }"
+              type="button"
+              @click="sortKey = 'tags'"
+            >
+              标签数量
+            </button>
+            <button
+              class="cardhub-chip"
+              :class="{ 'is-active': sortKey === 'imported' }"
+              type="button"
+              @click="sortKey = 'imported'"
+            >
+              导入时间
             </button>
           </div>
           <div class="cardhub-divider" />
@@ -117,7 +164,18 @@
                   <span>{{ character.name.slice(0, 1) || '?' }}</span>
                 </div>
                 <div class="cardhub-card__info">
-                  <div class="cardhub-card__name">{{ character.name }}</div>
+                  <div class="cardhub-card__head">
+                    <div class="cardhub-card__name">{{ character.name }}</div>
+                    <button
+                      class="cardhub-fav"
+                      :class="{ 'is-active': isFavorite(character.id) }"
+                      type="button"
+                      aria-label="收藏"
+                      @click.stop="toggleFavorite(character)"
+                    >
+                    <i class="fa-solid fa-star" aria-hidden="true"></i>
+                    </button>
+                  </div>
                   <div class="cardhub-card__meta">
                     <span>{{ character.origin === 'tavern' ? '已导入' : '未导入' }}</span>
                     <span>{{ displayTags(character).length }} 标签</span>
@@ -275,11 +333,6 @@
                 <div v-if="msg.label && msg.label !== msg.name" class="cardhub-manage__chat-label">
                   {{ msg.label }}
                 </div>
-                <div v-if="msg.keywords.length" class="cardhub-manage__chat-tags">
-                  <span v-for="keyword in msg.keywords" :key="keyword" class="cardhub-manage__chat-tag">
-                    {{ keyword }}
-                  </span>
-                </div>
               </div>
               <span class="cardhub-manage__chat-text">{{ msg.mes }}</span>
             </div>
@@ -333,14 +386,177 @@
         </div>
       </div>
     </div>
+
+    <div v-if="exportDialogOpen" class="cardhub-export" @click.self="closeExportDialog">
+      <div class="cardhub-export__panel" role="dialog" aria-label="批量导出">
+        <div class="cardhub-export__header">
+          <div>
+            <div class="cardhub-export__title">批量导出</div>
+            <div class="cardhub-export__subtitle">
+              已选 {{ exportSelectedItems.length }} / {{ exportVisibleCandidates.length }}
+            </div>
+          </div>
+          <button class="cardhub-preview__close" type="button" @click="closeExportDialog">×</button>
+        </div>
+        <div class="cardhub-export__filters">
+          <input
+            v-model="exportSearch"
+            class="cardhub-export__search"
+            type="search"
+            placeholder="搜索角色名或标签"
+          />
+          <div class="cardhub-export__filter-row">
+            <button
+              class="cardhub-export__chip"
+              :class="{ 'is-active': exportStatusFilter === 'all' }"
+              type="button"
+              @click="exportStatusFilter = 'all'"
+            >
+              全部
+            </button>
+            <button
+              class="cardhub-export__chip"
+              :class="{ 'is-active': exportStatusFilter === 'imported' }"
+              type="button"
+              @click="exportStatusFilter = 'imported'"
+            >
+              已导入
+            </button>
+            <button
+              class="cardhub-export__chip"
+              :class="{ 'is-active': exportStatusFilter === 'unimported' }"
+              type="button"
+              @click="exportStatusFilter = 'unimported'"
+            >
+              未导入
+            </button>
+          </div>
+          <div class="cardhub-export__filter-row">
+            <button
+              v-for="tag in exportAllTags"
+              :key="tag"
+              class="cardhub-export__chip"
+              :class="{ 'is-active': exportTagFilters.includes(tag) }"
+              type="button"
+              @click="toggleExportTagFilter(tag)"
+            >
+              {{ tag }}
+            </button>
+            <button
+              v-if="exportTagFilters.length"
+              class="cardhub-export__chip cardhub-export__chip--clear"
+              type="button"
+              @click="clearExportTagFilter"
+            >
+              清空标签
+            </button>
+          </div>
+        </div>
+        <div class="cardhub-export__toolbar">
+          <button class="cardhub-export__btn is-secondary" type="button" @click="selectAllExport">全选</button>
+          <button class="cardhub-export__btn is-secondary" type="button" @click="clearExportSelection">清空</button>
+          <div class="cardhub-export__spacer"></div>
+          <button class="cardhub-export__btn is-secondary" type="button" @click="closeExportDialog">取消</button>
+          <button class="cardhub-export__btn is-primary" type="button" @click="confirmExportSelected">导出已选</button>
+        </div>
+        <div class="cardhub-export__list">
+          <label v-for="item in exportVisibleCandidates" :key="item.id" class="cardhub-export__item">
+            <input
+              class="cardhub-export__checkbox"
+              type="checkbox"
+              :checked="isExportSelected(item.id)"
+              @change="toggleExportSelection(item.id)"
+            />
+            <div class="cardhub-export__main">
+              <div class="cardhub-export__name">{{ item.name }}</div>
+              <div class="cardhub-export__meta">
+                <span>{{ item.origin === 'tavern' ? '已导入' : '未导入' }}</span>
+                <span>{{ displayTags(item).length }} 标签</span>
+              </div>
+              <div v-if="displayTags(item).length" class="cardhub-export__tags">
+                <span v-for="tag in displayTags(item).slice(0, 3)" :key="tag" class="cardhub-export__tag">
+                  {{ tag }}
+                </span>
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="themeDialogOpen" class="cardhub-theme" @click.self="closeThemeDialog">
+      <div class="cardhub-theme__panel" role="dialog" aria-label="配色设置">
+        <div class="cardhub-theme__header">
+          <div>
+            <div class="cardhub-theme__title">配色设置</div>
+            <div class="cardhub-theme__subtitle">修改后可直接预览，保存到全局</div>
+          </div>
+          <button class="cardhub-preview__close" type="button" @click="closeThemeDialog">×</button>
+        </div>
+        <div class="cardhub-theme__grid">
+          <label class="cardhub-theme__field">
+            <span>背景渐变 1</span>
+            <input v-model="themeDraft.bgStart" type="color" />
+          </label>
+          <label class="cardhub-theme__field">
+            <span>背景渐变 2</span>
+            <input v-model="themeDraft.bgEnd" type="color" />
+          </label>
+          <label class="cardhub-theme__field">
+            <span>卡片/面板底色</span>
+            <input v-model="themeDraft.surface" type="color" />
+          </label>
+          <label class="cardhub-theme__field">
+            <span>浅色底</span>
+            <input v-model="themeDraft.surfaceAlt" type="color" />
+          </label>
+          <label class="cardhub-theme__field">
+            <span>主文本</span>
+            <input v-model="themeDraft.text" type="color" />
+          </label>
+          <label class="cardhub-theme__field">
+            <span>次级文本</span>
+            <input v-model="themeDraft.textMuted" type="color" />
+          </label>
+          <label class="cardhub-theme__field">
+            <span>强调色</span>
+            <input v-model="themeDraft.accent" type="color" />
+          </label>
+          <label class="cardhub-theme__field">
+            <span>强调深色</span>
+            <input v-model="themeDraft.accentStrong" type="color" />
+          </label>
+          <label class="cardhub-theme__field">
+            <span>边框</span>
+            <input v-model="themeDraft.border" type="color" />
+          </label>
+        </div>
+        <div class="cardhub-theme__presets">
+          <button
+            v-for="preset in themePresets"
+            :key="preset.name"
+            class="cardhub-theme__preset"
+            type="button"
+            @click="applyThemePreset(preset)"
+          >
+            {{ preset.name }}
+          </button>
+        </div>
+        <div class="cardhub-theme__actions">
+          <button class="cardhub-theme__btn is-secondary" type="button" @click="resetThemeDraft">恢复默认</button>
+          <div class="cardhub-theme__spacer"></div>
+          <button class="cardhub-theme__btn is-secondary" type="button" @click="closeThemeDialog">取消</button>
+          <button class="cardhub-theme__btn is-primary" type="button" @click="saveThemeDraft">保存</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, reactive, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 import { cardHubState as state, setCharacters, setLibrary, setLoading, setOpen } from '../state/store';
 import { fetchCharacterSummaries } from '../services/characterSource';
-import { regexFromString } from './util/common';
 import type { CardHubItem } from '../types';
 import { addToLibrary, loadLibrary, removeFromLibrary, updateLibraryTags } from '../services/libraryService';
 import { getMergedTags, updateCharacterTags } from '../services/tagService';
@@ -359,7 +575,6 @@ type ManageChatEntry = {
   label?: string;
   mes: string;
   file: string;
-  keywords: string[];
 };
 
 const manageChats = ref<ManageChatEntry[]>([]);
@@ -422,9 +637,211 @@ const confirmState = reactive({
 });
 
 const allCards = computed(() => [...state.characters, ...state.library]);
+const mergedTagsMap = computed(() => {
+  const map = new Map<string, string[]>();
+  allCards.value.forEach(card => {
+    map.set(card.id, getMergedTags(card));
+  });
+  return map;
+});
 const manageProfile = ref<ManageProfile | null>(null);
 const manageOpeningSummary = ref<ManageOpeningSummary | null>(null);
 const manageChatSummary = ref<ManageChatSummary | null>(null);
+const exportDialogOpen = ref(false);
+const exportSelectedIds = ref<string[]>([]);
+const exportCandidates = computed(() => [...allCards.value]);
+const exportSearch = ref('');
+const exportStatusFilter = ref<'all' | 'imported' | 'unimported'>('all');
+const exportTagFilters = ref<string[]>([]);
+const exportAllTags = computed(() => {
+  const tagSet = new Set<string>();
+  exportCandidates.value.forEach(card => {
+    (mergedTagsMap.value.get(card.id) ?? getMergedTags(card)).forEach(tag => tagSet.add(tag));
+  });
+  exportTagFilters.value.forEach(tag => tagSet.add(tag));
+  return Array.from(tagSet).sort((a, b) => a.localeCompare(b, 'zh-CN'));
+});
+const exportVisibleCandidates = computed(() => {
+  let list = exportCandidates.value;
+  if (exportStatusFilter.value === 'imported') {
+    list = list.filter(item => item.origin === 'tavern');
+  } else if (exportStatusFilter.value === 'unimported') {
+    list = list.filter(item => item.origin === 'library');
+  }
+  if (exportTagFilters.value.length) {
+    list = list.filter(card =>
+      exportTagFilters.value.some(tag => (mergedTagsMap.value.get(card.id) ?? getMergedTags(card)).includes(tag)),
+    );
+  }
+  const keyword = exportSearch.value.trim().toLowerCase();
+  if (!keyword) {
+    return list;
+  }
+  return list.filter(card => {
+    if (card.name.toLowerCase().includes(keyword)) {
+      return true;
+    }
+    const tags = mergedTagsMap.value.get(card.id) ?? getMergedTags(card);
+    return tags.some(tag => tag.toLowerCase().includes(keyword));
+  });
+});
+const exportSelectedSet = computed(() => new Set(exportSelectedIds.value));
+const exportSelectedItems = computed(() =>
+  exportCandidates.value.filter(item => exportSelectedSet.value.has(item.id)),
+);
+
+const FAVORITES_KEY = 'cardhub_favorites';
+const favoriteIds = ref<string[]>([]);
+const favoriteSet = computed(() => new Set(favoriteIds.value));
+const sortKey = ref<'recent' | 'name' | 'tags' | 'imported'>('recent');
+const favoritesOnly = ref(false);
+const LAST_CHAT_CACHE_KEY = 'cardhub_last_chat_cache';
+const lastChatCache = ref<Record<string, number>>({});
+const IMPORT_CACHE_KEY = 'cardhub_import_cache';
+const importCache = ref<Record<string, number>>({});
+
+type CardHubTheme = {
+  bgStart: string;
+  bgEnd: string;
+  surface: string;
+  surfaceAlt: string;
+  text: string;
+  textMuted: string;
+  accent: string;
+  accentStrong: string;
+  border: string;
+};
+
+const THEME_KEY = 'cardhub_theme';
+const defaultTheme: CardHubTheme = {
+  bgStart: '#f6f8fb',
+  bgEnd: '#e6ebf2',
+  surface: '#fdfdfe',
+  surfaceAlt: '#f1f4f9',
+  text: '#1b1e22',
+  textMuted: '#6b7480',
+  accent: '#7fb3e1',
+  accentStrong: '#243a52',
+  border: '#d5dde8',
+};
+
+const themeDialogOpen = ref(false);
+const themeCurrent = ref<CardHubTheme>({ ...defaultTheme });
+const themeDraft = reactive<CardHubTheme>({ ...defaultTheme });
+const themePresets = [
+  {
+    name: '晨雾',
+    value: {
+      bgStart: '#f6f8fb',
+      bgEnd: '#e6ebf2',
+      surface: '#fdfdfe',
+      surfaceAlt: '#f1f4f9',
+      text: '#1b1e22',
+      textMuted: '#6b7480',
+      accent: '#7fb3e1',
+      accentStrong: '#243a52',
+      border: '#d5dde8',
+    },
+  },
+  {
+    name: '白天',
+    value: {
+      bgStart: '#fdfaf4',
+      bgEnd: '#f2ebe1',
+      surface: '#fffefb',
+      surfaceAlt: '#f7efe6',
+      text: '#1d1a17',
+      textMuted: '#7a6f63',
+      accent: '#e3a981',
+      accentStrong: '#3f2c22',
+      border: '#e4d7c8',
+    },
+  },
+  {
+    name: '夜晚',
+    value: {
+      bgStart: '#14181d',
+      bgEnd: '#0d1116',
+      surface: '#1e242b',
+      surfaceAlt: '#242b34',
+      text: '#eef2f7',
+      textMuted: '#b2bdc9',
+      accent: '#6fa2d1',
+      accentStrong: '#d7e6f4',
+      border: '#36414c',
+    },
+  },
+  {
+    name: '茶棕',
+    value: {
+      bgStart: '#f7f1e7',
+      bgEnd: '#e6d8c6',
+      surface: '#fcf6ee',
+      surfaceAlt: '#f2e4d6',
+      text: '#2a1f18',
+      textMuted: '#8a6d5a',
+      accent: '#c47b52',
+      accentStrong: '#3e2a22',
+      border: '#ddc7b4',
+    },
+  },
+  {
+    name: '赤陶',
+    value: {
+      bgStart: '#fbf1ea',
+      bgEnd: '#ecd5c8',
+      surface: '#fff7f1',
+      surfaceAlt: '#f4e1d6',
+      text: '#2d2018',
+      textMuted: '#8b6a5a',
+      accent: '#d17a4f',
+      accentStrong: '#4c2d21',
+      border: '#e3c3b3',
+    },
+  },
+  {
+    name: '薄荷',
+    value: {
+      bgStart: '#f2fbf7',
+      bgEnd: '#dcefe7',
+      surface: '#f9fffd',
+      surfaceAlt: '#e8f4f0',
+      text: '#1a2a26',
+      textMuted: '#5f7a73',
+      accent: '#60b6a4',
+      accentStrong: '#1f4c43',
+      border: '#c5ddd5',
+    },
+  },
+  {
+    name: '海盐',
+    value: {
+      bgStart: '#f3f8fb',
+      bgEnd: '#d9e7f3',
+      surface: '#f9fcff',
+      surfaceAlt: '#e9f2f9',
+      text: '#1b2530',
+      textMuted: '#5f7388',
+      accent: '#5da3cf',
+      accentStrong: '#1f3e57',
+      border: '#c8d9e7',
+    },
+  },
+  {
+    name: '石墨',
+    value: {
+      bgStart: '#2a2d33',
+      bgEnd: '#1e2126',
+      surface: '#333741',
+      surfaceAlt: '#3b404b',
+      text: '#f3f5f8',
+      textMuted: '#c1c7d0',
+      accent: '#9aa6b2',
+      accentStrong: '#e0e5ea',
+      border: '#4b5261',
+    },
+  },
+] as const;
 const manageDetails = computed(() => {
   const profile = manageProfile.value;
   if (!profile) {
@@ -499,15 +916,21 @@ const manageOverview = computed(() => {
 });
 
 const filteredCharacters = computed(() => {
-  const list = applyStatusFilter(allCards.value);
-  const keyword = state.search.trim();
+  const list = applyFavoriteFilter(applyStatusFilter(allCards.value));
+  const keyword = state.search.trim().toLowerCase();
   if (!keyword) {
-    return applyTagFilter(list);
+    return sortCards(applyTagFilter(list));
   }
-  const matcher = regexFromString(keyword) ?? new RegExp(_.escapeRegExp(keyword), 'i');
-  return applyTagFilter(list).filter(character => {
-    return matcher.test(character.name) || character.tags.some(tag => matcher.test(tag));
-  });
+  return sortCards(
+    applyTagFilter(list).filter(character => {
+      const name = character.name.toLowerCase();
+      if (name.includes(keyword)) {
+        return true;
+      }
+      const tags = mergedTagsMap.value.get(character.id) ?? getMergedTags(character);
+      return tags.some(tag => tag.toLowerCase().includes(keyword));
+    }),
+  );
 });
 
 const totalPages = computed(() => {
@@ -523,7 +946,7 @@ const pagedCharacters = computed(() => {
 const allTags = computed(() => {
   const tagSet = new Set<string>();
   allCards.value.forEach(character => {
-    getMergedTags(character).forEach(tag => tagSet.add(tag));
+    (mergedTagsMap.value.get(character.id) ?? getMergedTags(character)).forEach(tag => tagSet.add(tag));
   });
   selectedTags.value.forEach(tag => tagSet.add(tag));
   return Array.from(tagSet).sort((a, b) => a.localeCompare(b, 'zh-CN'));
@@ -549,7 +972,158 @@ function avatarStyle(character: CardHubItem): Record<string, string> {
 }
 
 function displayTags(character: CardHubItem): string[] {
-  return getMergedTags(character);
+  return mergedTagsMap.value.get(character.id) ?? getMergedTags(character);
+}
+
+function applyFavoriteFilter(list: CardHubItem[]): CardHubItem[] {
+  if (!favoritesOnly.value) {
+    return list;
+  }
+  return list.filter(item => favoriteSet.value.has(item.id));
+}
+
+function getFavoriteList(): string[] {
+  const vars = TavernHelper.getVariables({ type: 'global' }) as Record<string, unknown>;
+  const raw = vars?.[FAVORITES_KEY];
+  return Array.isArray(raw) ? raw.filter(item => typeof item === 'string') : [];
+}
+
+function saveFavoriteList(list: string[]) {
+  const vars = TavernHelper.getVariables({ type: 'global' }) as Record<string, unknown>;
+  TavernHelper.replaceVariables({ type: 'global' }, { ...vars, [FAVORITES_KEY]: list });
+}
+
+function loadLastChatCache(): Record<string, number> {
+  const vars = TavernHelper.getVariables({ type: 'global' }) as Record<string, unknown>;
+  const raw = vars?.[LAST_CHAT_CACHE_KEY];
+  if (!raw || typeof raw !== 'object') {
+    return {};
+  }
+  const entries = Object.entries(raw as Record<string, unknown>).filter(
+    ([, value]) => typeof value === 'number' && !Number.isNaN(value),
+  );
+  return Object.fromEntries(entries) as Record<string, number>;
+}
+
+function saveLastChatCache(cache: Record<string, number>) {
+  const vars = TavernHelper.getVariables({ type: 'global' }) as Record<string, unknown>;
+  TavernHelper.replaceVariables({ type: 'global' }, { ...vars, [LAST_CHAT_CACHE_KEY]: cache });
+}
+
+function loadImportCache(): Record<string, number> {
+  const vars = TavernHelper.getVariables({ type: 'global' }) as Record<string, unknown>;
+  const raw = vars?.[IMPORT_CACHE_KEY];
+  if (!raw || typeof raw !== 'object') {
+    return {};
+  }
+  const entries = Object.entries(raw as Record<string, unknown>).filter(
+    ([, value]) => typeof value === 'number' && !Number.isNaN(value),
+  );
+  return Object.fromEntries(entries) as Record<string, number>;
+}
+
+function saveImportCache(cache: Record<string, number>) {
+  const vars = TavernHelper.getVariables({ type: 'global' }) as Record<string, unknown>;
+  TavernHelper.replaceVariables({ type: 'global' }, { ...vars, [IMPORT_CACHE_KEY]: cache });
+}
+
+function getChatCacheKey(card: CardHubItem): string | null {
+  if (card.origin !== 'tavern') {
+    return null;
+  }
+  if (card.avatar) {
+    return `avatar:${card.avatar}`;
+  }
+  if (card.name) {
+    return `name:${card.name}`;
+  }
+  return null;
+}
+
+function getImportAt(card: CardHubItem): number {
+  if (typeof card.createdAt === 'number' && card.createdAt > 0) {
+    return card.createdAt;
+  }
+  const key = getChatCacheKey(card);
+  return key ? importCache.value[key] ?? 0 : 0;
+}
+
+function getLastChatAt(card: CardHubItem): number {
+  if (typeof card.lastChatAt === 'number' && card.lastChatAt > 0) {
+    return card.lastChatAt;
+  }
+  const key = getChatCacheKey(card);
+  return key ? lastChatCache.value[key] ?? 0 : 0;
+}
+
+function updateLastChatCache(key: string, timestamp: number) {
+  const next = { ...lastChatCache.value, [key]: timestamp };
+  lastChatCache.value = next;
+  saveLastChatCache(next);
+}
+
+function updateImportCache(next: Record<string, number>) {
+  importCache.value = next;
+  saveImportCache(next);
+}
+
+function isFavorite(id: string): boolean {
+  return favoriteSet.value.has(id);
+}
+
+function toggleFavorite(card: CardHubItem) {
+  if (favoriteSet.value.has(card.id)) {
+    favoriteIds.value = favoriteIds.value.filter(item => item !== card.id);
+  } else {
+    favoriteIds.value = [...favoriteIds.value, card.id];
+  }
+  saveFavoriteList(favoriteIds.value);
+}
+
+function sortCards(list: CardHubItem[]): CardHubItem[] {
+  const withScore = list.map(item => {
+    const tags = mergedTagsMap.value.get(item.id) ?? getMergedTags(item);
+    return {
+      item,
+      tagCount: tags.length,
+    };
+  });
+  const byName = (a: string, b: string) => a.localeCompare(b, 'zh-CN');
+
+  return withScore
+    .sort((lhs, rhs) => {
+      const a = lhs.item;
+      const b = rhs.item;
+      if (sortKey.value === 'name') {
+        return byName(a.name, b.name);
+      }
+      if (sortKey.value === 'tags') {
+        if (rhs.tagCount !== lhs.tagCount) {
+          return rhs.tagCount - lhs.tagCount;
+        }
+        return byName(a.name, b.name);
+      }
+      if (sortKey.value === 'imported') {
+        const aTime = getImportAt(a);
+        const bTime = getImportAt(b);
+        if (bTime !== aTime) {
+          return bTime - aTime;
+        }
+        return byName(a.name, b.name);
+      }
+      const aTime = getLastChatAt(a);
+      const bTime = getLastChatAt(b);
+      if (bTime !== aTime) {
+        return bTime - aTime;
+      }
+      const aCreated = a.createdAt ?? 0;
+      const bCreated = b.createdAt ?? 0;
+      if (bCreated !== aCreated) {
+        return bCreated - aCreated;
+      }
+      return byName(a.name, b.name);
+    })
+    .map(entry => entry.item);
 }
 
 const manageAvatarUrl = computed(() => {
@@ -573,7 +1147,9 @@ function applyTagFilter(list: CardHubItem[]): CardHubItem[] {
   if (!selectedTags.value.length) {
     return list;
   }
-  return list.filter(character => selectedTags.value.some(tag => getMergedTags(character).includes(tag)));
+  return list.filter(character =>
+    selectedTags.value.some(tag => (mergedTagsMap.value.get(character.id) ?? getMergedTags(character)).includes(tag)),
+  );
 }
 
 function toggleTagFilter(tag: string) {
@@ -588,7 +1164,204 @@ function clearTagFilter() {
   selectedTags.value = [];
 }
 
-watch([() => state.search, statusFilter, () => selectedTags.value.join('|')], () => {
+function hexToRgb(value: string): string {
+  const hex = value.replace('#', '');
+  if (hex.length !== 6) {
+    return '0, 0, 0';
+  }
+  const r = Number.parseInt(hex.slice(0, 2), 16);
+  const g = Number.parseInt(hex.slice(2, 4), 16);
+  const b = Number.parseInt(hex.slice(4, 6), 16);
+  return `${r}, ${g}, ${b}`;
+}
+
+function contrastTextColor(value: string): string {
+  const rgb = hexToRgb(value).split(',').map(part => Number(part.trim()));
+  if (rgb.length !== 3) {
+    return '#1b1b1b';
+  }
+  const [r, g, b] = rgb.map(channel => channel / 255);
+  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return luminance > 0.6 ? '#1b1b1b' : '#ffffff';
+}
+
+function normalizeTheme(raw: unknown): CardHubTheme {
+  if (!raw || typeof raw !== 'object') {
+    return { ...defaultTheme };
+  }
+  const data = raw as Record<string, string>;
+  const pick = (key: keyof CardHubTheme) => {
+    const value = data[key];
+    return /^#[0-9a-f]{6}$/i.test(value) ? value : defaultTheme[key];
+  };
+  return {
+    bgStart: pick('bgStart'),
+    bgEnd: pick('bgEnd'),
+    surface: pick('surface'),
+    surfaceAlt: pick('surfaceAlt'),
+    text: pick('text'),
+    textMuted: pick('textMuted'),
+    accent: pick('accent'),
+    accentStrong: pick('accentStrong'),
+    border: pick('border'),
+  };
+}
+
+function getCardHubRoot(): HTMLElement | null {
+  try {
+    return (window.parent?.document ?? document).querySelector<HTMLElement>('.cardhub-root');
+  } catch {
+    return document.querySelector<HTMLElement>('.cardhub-root');
+  }
+}
+
+let themeFrame = 0;
+let themeTimer: number | null = null;
+function scheduleThemeApply(theme: CardHubTheme) {
+  if (themeFrame) {
+    cancelAnimationFrame(themeFrame);
+    themeFrame = 0;
+  }
+  if (themeTimer) {
+    window.clearTimeout(themeTimer);
+  }
+  themeTimer = window.setTimeout(() => {
+    themeTimer = null;
+    themeFrame = requestAnimationFrame(() => {
+      themeFrame = 0;
+      applyTheme(theme);
+    });
+  }, 80);
+}
+
+function applyTheme(theme: CardHubTheme) {
+  const root = getCardHubRoot();
+  if (!root) {
+    return;
+  }
+  root.style.setProperty('--cardhub-bg-start', theme.bgStart);
+  root.style.setProperty('--cardhub-bg-end', theme.bgEnd);
+  root.style.setProperty('--cardhub-surface', theme.surface);
+  root.style.setProperty('--cardhub-surface-alt', theme.surfaceAlt);
+  root.style.setProperty('--cardhub-text', theme.text);
+  root.style.setProperty('--cardhub-text-muted', theme.textMuted);
+  root.style.setProperty('--cardhub-accent', theme.accent);
+  root.style.setProperty('--cardhub-accent-strong', theme.accentStrong);
+  root.style.setProperty('--cardhub-border', theme.border);
+  root.style.setProperty('--cardhub-surface-rgb', hexToRgb(theme.surface));
+  root.style.setProperty('--cardhub-surface-alt-rgb', hexToRgb(theme.surfaceAlt));
+  root.style.setProperty('--cardhub-border-rgb', hexToRgb(theme.border));
+  root.style.setProperty('--cardhub-accent-rgb', hexToRgb(theme.accent));
+  root.style.setProperty('--cardhub-accent-strong-rgb', hexToRgb(theme.accentStrong));
+  root.style.setProperty('--cardhub-accent-text', contrastTextColor(theme.accent));
+  root.style.setProperty('--cardhub-accent-strong-text', contrastTextColor(theme.accentStrong));
+}
+
+function loadThemeFromGlobal(): CardHubTheme {
+  const vars = TavernHelper.getVariables({ type: 'global' }) as Record<string, unknown>;
+  return normalizeTheme(vars?.[THEME_KEY]);
+}
+
+function saveThemeToGlobal(theme: CardHubTheme) {
+  const vars = TavernHelper.getVariables({ type: 'global' }) as Record<string, unknown>;
+  TavernHelper.replaceVariables({ type: 'global' }, { ...vars, [THEME_KEY]: theme });
+}
+
+function openThemeDialog() {
+  const current = themeCurrent.value;
+  Object.assign(themeDraft, current);
+  themeDialogOpen.value = true;
+  nextTick(() => scheduleThemeApply(current));
+}
+
+function closeThemeDialog() {
+  themeDialogOpen.value = false;
+  Object.assign(themeDraft, themeCurrent.value);
+  scheduleThemeApply(themeCurrent.value);
+}
+
+function resetThemeDraft() {
+  Object.assign(themeDraft, defaultTheme);
+}
+
+function saveThemeDraft() {
+  themeCurrent.value = { ...themeDraft };
+  saveThemeToGlobal(themeCurrent.value);
+  scheduleThemeApply(themeCurrent.value);
+  themeDialogOpen.value = false;
+}
+
+function applyThemePreset(preset: { name: string; value: CardHubTheme }) {
+  Object.assign(themeDraft, preset.value);
+}
+function toggleExportTagFilter(tag: string) {
+  if (exportTagFilters.value.includes(tag)) {
+    exportTagFilters.value = exportTagFilters.value.filter(item => item !== tag);
+  } else {
+    exportTagFilters.value = [...exportTagFilters.value, tag];
+  }
+}
+
+function clearExportTagFilter() {
+  exportTagFilters.value = [];
+}
+
+function openExportDialog() {
+  if (!exportVisibleCandidates.value.length) {
+    toastr.warning('当前没有可导出的角色卡');
+    return;
+  }
+  exportSelectedIds.value = exportVisibleCandidates.value.map(item => item.id);
+  exportDialogOpen.value = true;
+}
+
+watch(
+  themeDraft,
+  value => {
+    if (themeDialogOpen.value) {
+      scheduleThemeApply({ ...(value as CardHubTheme) });
+    }
+  },
+  { deep: true },
+);
+
+onMounted(() => {
+  const theme = loadThemeFromGlobal();
+  themeCurrent.value = theme;
+  Object.assign(themeDraft, theme);
+  nextTick(() => scheduleThemeApply(theme));
+  favoriteIds.value = getFavoriteList();
+  lastChatCache.value = loadLastChatCache();
+  importCache.value = loadImportCache();
+  void warmRecentChatCache(allCards.value);
+  warmImportCache(allCards.value);
+});
+
+function closeExportDialog() {
+  exportDialogOpen.value = false;
+}
+
+function isExportSelected(id: string): boolean {
+  return exportSelectedSet.value.has(id);
+}
+
+function toggleExportSelection(id: string) {
+  if (exportSelectedSet.value.has(id)) {
+    exportSelectedIds.value = exportSelectedIds.value.filter(item => item !== id);
+  } else {
+    exportSelectedIds.value = [...exportSelectedIds.value, id];
+  }
+}
+
+function selectAllExport() {
+  exportSelectedIds.value = exportCandidates.value.map(item => item.id);
+}
+
+function clearExportSelection() {
+  exportSelectedIds.value = [];
+}
+
+watch([() => state.search, statusFilter, () => selectedTags.value.join('|'), sortKey, favoritesOnly], () => {
   currentPage.value = 1;
 });
 
@@ -598,6 +1371,15 @@ watch([filteredCharacters, totalPages], () => {
   }
   if (currentPage.value < 1) {
     currentPage.value = 1;
+  }
+});
+
+watch([sortKey, allCards], () => {
+  if (sortKey.value === 'recent') {
+    void warmRecentChatCache(allCards.value);
+  }
+  if (sortKey.value === 'imported') {
+    warmImportCache(allCards.value);
   }
 });
 
@@ -715,9 +1497,13 @@ async function handleImportFiles(event: Event) {
 }
 
 async function exportSelected() {
-  const list = filteredCharacters.value;
+  openExportDialog();
+}
+
+async function confirmExportSelected() {
+  const list = exportSelectedItems.value;
   if (!list.length) {
-    toastr.warning('当前没有可导出的角色卡');
+    toastr.warning('请选择要导出的角色卡');
     return;
   }
   const tagLabel = selectedTags.value.length ? selectedTags.value.join('、') : '无';
@@ -739,7 +1525,12 @@ async function exportSelected() {
   if (result !== 'confirm') {
     return;
   }
-  list.forEach(item => exportCard(item));
+  exportDialogOpen.value = false;
+  for (const item of list) {
+    await exportCard(item);
+    await sleep(120);
+  }
+  toastr.success(`批量导出完成，共 ${list.length} 张`);
 }
 
 async function handleCardAction(card: CardHubItem) {
@@ -1235,6 +2026,64 @@ function formatMaybeTimestamp(value: unknown): string {
   return '';
 }
 
+function parseTimestampFromText(raw: string): number | null {
+  const text = raw.replace(/\.jsonl$/i, '').trim();
+  const pattern =
+    /(\d{4})[./-](\d{1,2})[./-](\d{1,2})(?:[ T_@-]*(\d{1,2})[:：](\d{1,2})(?:[:：](\d{1,2}))?)?/;
+  const match = text.match(pattern);
+  if (!match) {
+    return null;
+  }
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const hour = match[4] ? Number(match[4]) : 0;
+  const minute = match[5] ? Number(match[5]) : 0;
+  const second = match[6] ? Number(match[6]) : 0;
+  if (!year || !month || !day) {
+    return null;
+  }
+  const date = new Date(year, month - 1, day, hour, minute, second);
+  const time = date.getTime();
+  return Number.isNaN(time) ? null : time;
+}
+
+function coerceTimestamp(value: unknown): number | null {
+  if (typeof value === 'number' && !Number.isNaN(value)) {
+    return value < 1e12 ? value * 1000 : value;
+  }
+  if (typeof value === 'string') {
+    const parsed = Date.parse(value);
+    if (!Number.isNaN(parsed)) {
+      return parsed;
+    }
+  }
+  return null;
+}
+
+function extractChatLatestTimestamp(entry: any): number | null {
+  const candidates = [
+    entry?.last_message_time,
+    entry?.last_message_date,
+    entry?.update_time,
+    entry?.last_modified,
+    entry?.create_date,
+    entry?.timestamp,
+    entry?.time,
+  ];
+  for (const value of candidates) {
+    const parsed = coerceTimestamp(value);
+    if (parsed) {
+      return parsed;
+    }
+  }
+  const fallback = pickString(entry?.file_name, entry?.file_id);
+  if (fallback) {
+    return parseTimestampFromText(fallback);
+  }
+  return null;
+}
+
 function extractChatLatestLabel(entry: any): string {
   const candidates = [
     entry?.last_message_time,
@@ -1258,6 +2107,65 @@ function extractChatLatestLabel(entry: any): string {
   return fallback.replace(/\.jsonl$/i, '');
 }
 
+let chatCacheToken = 0;
+async function warmRecentChatCache(cards: CardHubItem[]) {
+  if (sortKey.value !== 'recent') {
+    return;
+  }
+  const token = ++chatCacheToken;
+  for (const card of cards) {
+    if (token !== chatCacheToken || sortKey.value !== 'recent') {
+      return;
+    }
+    if (card.origin !== 'tavern') {
+      continue;
+    }
+    if (typeof card.lastChatAt === 'number' && card.lastChatAt > 0) {
+      continue;
+    }
+    const key = getChatCacheKey(card);
+    if (!key || lastChatCache.value[key]) {
+      continue;
+    }
+    let brief: unknown = null;
+    try {
+      brief = await TavernHelper.getChatHistoryBrief(card.avatar ?? card.name, true);
+    } catch (error) {
+      console.warn('[CardHub] 读取聊天简报失败', error);
+    }
+    if (Array.isArray(brief) && brief.length) {
+      const timestamp = extractChatLatestTimestamp(brief[0]) ?? 0;
+      if (timestamp > 0) {
+        updateLastChatCache(key, timestamp);
+      }
+    }
+    await sleep(60);
+  }
+}
+
+function warmImportCache(cards: CardHubItem[]) {
+  const next = { ...importCache.value };
+  let changed = false;
+  const now = Date.now();
+  cards.forEach((card, index) => {
+    if (card.origin !== 'tavern') {
+      return;
+    }
+    if (typeof card.createdAt === 'number' && card.createdAt > 0) {
+      return;
+    }
+    const key = getChatCacheKey(card);
+    if (!key || next[key]) {
+      return;
+    }
+    next[key] = now - (cards.length - 1 - index) * 1000;
+    changed = true;
+  });
+  if (changed) {
+    updateImportCache(next);
+  }
+}
+
 function formatChatTitle(entry: any): string {
   const label = extractChatLatestLabel(entry);
   return label || '聊天记录';
@@ -1269,79 +2177,6 @@ function formatChatFileLabel(entry: any): string {
     return '';
   }
   return raw.replace(/\.jsonl$/i, '');
-}
-
-function extractChatKeywords(value: string, max = 3): string[] {
-  const normalized = normalizeBriefMessage(value);
-  if (!normalized) {
-    return [];
-  }
-  const keywords = new Set<string>();
-  const stopWords = new Set([
-    'the',
-    'and',
-    'you',
-    'your',
-    'are',
-    'this',
-    'that',
-    'with',
-    'have',
-    'not',
-    'for',
-    'from',
-    'what',
-    'why',
-    'when',
-    'where',
-    'then',
-    'into',
-    'out',
-    'here',
-    'there',
-    '这个',
-    '那个',
-    '我们',
-    '你们',
-    '他们',
-    '她们',
-    '因为',
-    '但是',
-    '然后',
-    '如果',
-    '可以',
-    '没有',
-    '不是',
-    '已经',
-    '现在',
-    '一个',
-    '一些',
-    '还有',
-    '所以',
-    '这种',
-  ]);
-  const bracketMatches = normalized.match(/\[[^\]]{2,16}\]/g) ?? [];
-  for (const match of bracketMatches) {
-    const cleaned = match.slice(1, -1).trim();
-    if (cleaned) {
-      keywords.add(cleaned);
-    }
-    if (keywords.size >= max) {
-      return Array.from(keywords).slice(0, max);
-    }
-  }
-  const wordMatches = normalized.match(/[\u4e00-\u9fa5]{2,}|[A-Za-z0-9]{3,}/g) ?? [];
-  for (const word of wordMatches) {
-    const lower = word.toLowerCase();
-    if (stopWords.has(word) || stopWords.has(lower)) {
-      continue;
-    }
-    keywords.add(word);
-    if (keywords.size >= max) {
-      break;
-    }
-  }
-  return Array.from(keywords).slice(0, max);
 }
 
 function previewDetailText(text: string, maxLines: number, maxChars: number): string {
@@ -1444,7 +2279,6 @@ async function resolveRecentChats(card: CardHubItem): Promise<ManageChatData> {
     label: formatChatFileLabel(entry),
     file: String(entry?.file_name ?? entry?.file_id ?? ''),
     mes: normalizeBriefMessage(String(entry?.mes ?? '')).slice(0, 120),
-    keywords: extractChatKeywords(String(entry?.mes ?? '')),
   }));
   const latest = extractChatLatestLabel(brief[0]);
   return {
@@ -2584,20 +3418,6 @@ function close() {
   word-break: break-word;
 }
 
-.cardhub-manage__chat-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.cardhub-manage__chat-tag {
-  padding: 2px 6px;
-  border-radius: 999px;
-  border: 1px solid rgba(106, 63, 42, 0.2);
-  background: rgba(255, 255, 255, 0.75);
-  font-size: 10px;
-  color: #6a3f2a;
-}
 
 .cardhub-manage__chat-text {
   color: #3b2a20;
@@ -2697,6 +3517,144 @@ function close() {
   transform: translateY(0);
 }
 
+.cardhub-export {
+  position: absolute;
+  inset: 0;
+  background: rgba(24, 16, 10, 0.55);
+  backdrop-filter: blur(6px);
+  display: grid;
+  place-items: center;
+  z-index: 100003;
+}
+
+.cardhub-export__panel {
+  width: min(720px, 92vw);
+  max-height: 86vh;
+  background: #fff6ea;
+  border-radius: 22px;
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.25);
+  padding: 18px 20px;
+  display: grid;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.cardhub-export__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cardhub-export__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2b2018;
+}
+
+.cardhub-export__subtitle {
+  font-size: 12px;
+  color: #7d5b46;
+}
+
+.cardhub-export__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cardhub-export__spacer {
+  flex: 1;
+}
+
+.cardhub-export__btn {
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.cardhub-export__btn.is-primary {
+  background: #d46b3d;
+  color: #fff;
+}
+
+.cardhub-export__btn.is-secondary {
+  background: transparent;
+  color: #6a3f2a;
+  border: 1px solid rgba(106, 63, 42, 0.4);
+}
+
+.cardhub-export__btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(43, 32, 24, 0.18);
+}
+
+.cardhub-export__list {
+  display: grid;
+  gap: 8px;
+  overflow: auto;
+  padding-right: 4px;
+  max-height: 58vh;
+}
+
+.cardhub-export__item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid rgba(106, 63, 42, 0.2);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+}
+
+.cardhub-export__item:hover {
+  border-color: rgba(106, 63, 42, 0.4);
+}
+
+.cardhub-export__checkbox {
+  width: 16px;
+  height: 16px;
+}
+
+.cardhub-export__main {
+  display: grid;
+  gap: 4px;
+}
+
+.cardhub-export__name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #3b2a20;
+}
+
+.cardhub-export__meta {
+  display: flex;
+  gap: 10px;
+  font-size: 11px;
+  color: #7d5b46;
+}
+
+.cardhub-export__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cardhub-export__tag {
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(106, 63, 42, 0.2);
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 10px;
+  color: #6a3f2a;
+}
+
 .cardhub-button:focus-visible,
 .cardhub-chip:focus-visible,
 .cardhub-tag-filter__chip:focus-visible,
@@ -2706,7 +3664,8 @@ function close() {
 .cardhub-manage__btn:focus-visible,
 .cardhub-close:focus-visible,
 .cardhub-preview__close:focus-visible,
-.cardhub-confirm__button:focus-visible {
+.cardhub-confirm__button:focus-visible,
+.cardhub-export__btn:focus-visible {
   outline: 2px solid rgba(212, 107, 61, 0.6);
   outline-offset: 2px;
 }
@@ -3053,10 +4012,6 @@ function close() {
     font-size: 10px;
   }
 
-  .cardhub-manage__chat-tag {
-    font-size: 9px;
-  }
-
   .cardhub-manage__chat-text {
     -webkit-line-clamp: 2;
   }
@@ -3064,6 +4019,56 @@ function close() {
   .cardhub-manage__actions {
     grid-template-columns: 1fr 1fr;
     gap: 8px;
+  }
+
+  .cardhub-export {
+    position: absolute !important;
+    inset: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 16px !important;
+    box-sizing: border-box !important;
+  }
+
+  .cardhub-export__panel {
+    width: calc(100vw - 32px) !important;
+    max-width: 360px !important;
+    max-height: calc(100vh - 32px) !important;
+    max-height: calc(100dvh - 32px) !important;
+    border-radius: 18px !important;
+    padding: 16px !important;
+  }
+
+  .cardhub-export__toolbar {
+    gap: 6px;
+  }
+
+  .cardhub-export__btn {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+
+  .cardhub-export__list {
+    max-height: 48vh;
+  }
+
+  .cardhub-export__item {
+    grid-template-columns: auto 1fr;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+
+  .cardhub-export__name {
+    font-size: 12px;
+  }
+
+  .cardhub-export__meta {
+    font-size: 10px;
+  }
+
+  .cardhub-export__tag {
+    font-size: 9px;
   }
 }
 </style>

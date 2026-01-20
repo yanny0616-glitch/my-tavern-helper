@@ -12,4 +12,6 @@ export type CardHubItem = {
   fingerprint?: string;
   rawType?: 'png' | 'json';
   raw?: string;
+  createdAt?: number;
+  lastChatAt?: number;
 };

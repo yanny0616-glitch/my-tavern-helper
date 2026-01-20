@@ -99,7 +99,23 @@ function ensureFingerprint(entry: CardHubItem): string | null {
 }
 
 export function loadLibrary(): CardHubItem[] {
-  return readLibrary().entries;
+  const stored = readLibrary().entries;
+  let changed = false;
+  const now = Date.now();
+  const entries = stored.map((entry, index) => {
+    if (typeof entry.createdAt === 'number') {
+      return entry;
+    }
+    changed = true;
+    return {
+      ...entry,
+      createdAt: now - (stored.length - 1 - index) * 1000,
+    };
+  });
+  if (changed) {
+    writeLibrary(entries);
+  }
+  return entries;
 }
 
 export async function addToLibrary(files: FileList | File[], existingEntries?: CardHubItem[]): Promise<CardHubItem[]> {
@@ -135,6 +151,7 @@ export async function addToLibrary(files: FileList | File[], existingEntries?: C
         rawType: 'png',
         raw: dataUrl,
         fingerprint,
+        createdAt: Date.now(),
       });
     } else if (file.name.toLowerCase().endsWith('.json')) {
       const text = await readFileAsText(file);
@@ -159,6 +176,7 @@ export async function addToLibrary(files: FileList | File[], existingEntries?: C
         rawType: 'json',
         raw: text,
         fingerprint,
+        createdAt: Date.now(),
       });
     }
   }
