@@ -828,9 +828,7 @@ function textToHtml(text: string): string {
 }
 
 function stripCodeFences(text: string): string {
-  return text
-    .replace(/^\s*```[a-zA-Z0-9_-]*\s*$/gm, '')
-    .replace(/^\s*```\s*$/gm, '');
+  return text.replace(/^\s*```[a-zA-Z0-9_-]*\s*$/gm, '').replace(/^\s*```\s*$/gm, '');
 }
 
 function extractContentLines(text: string): string[] {

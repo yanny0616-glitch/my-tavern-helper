@@ -1,10 +1,7 @@
 import { computed, ref, type ComputedRef } from 'vue';
 import type { CardHubItem } from '../../types';
 
-export function useTagFilters(
-  allCards: ComputedRef<CardHubItem[]>,
-  getTags: (card: CardHubItem) => string[],
-) {
+export function useTagFilters(allCards: ComputedRef<CardHubItem[]>, getTags: (card: CardHubItem) => string[]) {
   const selectedTags = ref<string[]>([]);
 
   const allTags = computed(() => {

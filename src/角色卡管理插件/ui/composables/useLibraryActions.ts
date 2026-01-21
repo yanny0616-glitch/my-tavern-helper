@@ -74,7 +74,9 @@ export function useLibraryActions(options: LibraryActionOptions) {
     });
   });
   const exportSelectedSet = computed(() => new Set(exportSelectedIds.value));
-  const exportSelectedItems = computed(() => exportCandidates.value.filter(item => exportSelectedSet.value.has(item.id)));
+  const exportSelectedItems = computed(() =>
+    exportCandidates.value.filter(item => exportSelectedSet.value.has(item.id)),
+  );
 
   function openExportDialog() {
     exportDialogOpen.value = true;
@@ -184,7 +186,9 @@ export function useLibraryActions(options: LibraryActionOptions) {
     const importedCard = matchedByAvatar ?? matchedByName ?? null;
     if (importedCard) {
       options.setLibrary(options.removeFromLibrary(card.id));
-      const rawTags = card.tags?.length ? card.tags : options.extractCardTagsFromData(options.parseLibraryCardData(card));
+      const rawTags = card.tags?.length
+        ? card.tags
+        : options.extractCardTagsFromData(options.parseLibraryCardData(card));
       if (rawTags.length) {
         const cleanedTags = options.updateCharacterTags(importedCard, rawTags);
         importedCard.tags = cleanedTags;
@@ -241,11 +245,7 @@ export function useLibraryActions(options: LibraryActionOptions) {
     }
     const tagLabel = options.selectedTags.value.length ? options.selectedTags.value.join('、') : '无';
     const statusLabel =
-      options.statusFilter.value === 'all'
-        ? '全部'
-        : options.statusFilter.value === 'imported'
-          ? '已导入'
-          : '未导入';
+      options.statusFilter.value === 'all' ? '全部' : options.statusFilter.value === 'imported' ? '已导入' : '未导入';
     const searchLabel = options.stateSearch.value.trim() || '无';
     const message =
       `将导出 ${list.length} 张角色卡。\n` +

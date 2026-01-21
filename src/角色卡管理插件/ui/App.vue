@@ -576,7 +576,13 @@ import { computed, nextTick, onMounted, reactive, ref, toRef, watch } from 'vue'
 import { cardHubState as state, setCharacters, setLibrary, setLoading, setOpen } from '../state/store';
 import { fetchCharacterSummaries } from '../services/characterSource';
 import type { CardHubItem } from '../types';
-import { addToLibrary, loadLibrary, removeFromLibrary, updateLibraryNote, updateLibraryTags } from '../services/libraryService';
+import {
+  addToLibrary,
+  loadLibrary,
+  removeFromLibrary,
+  updateLibraryNote,
+  updateLibraryTags,
+} from '../services/libraryService';
 import { getMergedTags, updateCharacterTags } from '../services/tagService';
 import ManageModal from './components/ManageModal.vue';
 import { useBatchTags } from './composables/useBatchTags';
@@ -897,7 +903,6 @@ const pagedCharacters = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value;
   return filteredCharacters.value.slice(start, start + pageSize.value);
 });
-
 
 function avatarUrl(character: CardHubItem, useFull = false): string | null {
   const avatar = character.avatar;
@@ -1309,7 +1314,6 @@ function closeExportDialog() {
   exportDialogOpen.value = false;
 }
 
-
 watch([() => state.search, statusFilter, () => selectedTags.value.join('|'), sortKey, favoritesOnly], () => {
   currentPage.value = 1;
 });
@@ -1417,7 +1421,6 @@ function resolveConfirm(result: ConfirmResult) {
     resolver(result);
   }
 }
-
 
 function applyTagUpdate(character: CardHubItem, nextTags: string[]) {
   if (isLibraryItem(character)) {
@@ -1888,5 +1891,3 @@ function close() {
   setOpen(false);
 }
 </script>
-
-

@@ -7,12 +7,7 @@
         <div class="cardhub-manage__detail-content">
           {{ detail.preview }}
         </div>
-        <button
-          v-if="detail.hasMore"
-          class="cardhub-manage__detail-toggle"
-          type="button"
-          @click="openDetail(detail)"
-        >
+        <button v-if="detail.hasMore" class="cardhub-manage__detail-toggle" type="button" @click="openDetail(detail)">
           查看
         </button>
       </div>
@@ -35,9 +30,7 @@
             <div class="cardhub-manage__opening-body">
               {{ item.preview }}
             </div>
-            <button class="cardhub-manage__opening-toggle" type="button" @click="openOpening(item)">
-              查看
-            </button>
+            <button class="cardhub-manage__opening-toggle" type="button" @click="openOpening(item)">查看</button>
           </div>
         </div>
       </template>
@@ -186,5 +179,4 @@ watch(
 function toggleOpenings() {
   showAllOpenings.value = !showAllOpenings.value;
 }
-
 </script>
