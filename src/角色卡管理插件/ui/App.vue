@@ -454,7 +454,12 @@
         </div>
         <div v-else class="cardhub-tag-manager__section cardhub-tag-manager__batch">
           <div class="cardhub-batch__filters">
-            <input v-model="batchTagSearch" class="cardhub-batch__search" type="search" placeholder="搜索角色名或标签" />
+            <input
+              v-model="batchTagSearch"
+              class="cardhub-batch__search"
+              type="search"
+              placeholder="搜索角色名或标签"
+            />
             <div class="cardhub-batch__hint">提示：可先在主界面筛选，再切换到批量标签。</div>
           </div>
           <div class="cardhub-batch__field">
@@ -482,9 +487,7 @@
             <button class="cardhub-batch__btn is-ghost" type="button" @click="applyBatchTags('remove')">
               移除标签
             </button>
-            <button class="cardhub-batch__btn is-primary" type="button" @click="applyBatchTags('add')">
-              添加标签
-            </button>
+            <button class="cardhub-batch__btn is-primary" type="button" @click="applyBatchTags('add')">添加标签</button>
           </div>
           <div class="cardhub-batch__list">
             <label v-for="item in batchTagVisibleCandidates" :key="item.id" class="cardhub-batch__item">
@@ -603,7 +606,6 @@
         </div>
       </div>
     </div>
-
 
     <div v-if="themeDialogOpen" class="cardhub-theme" @click.self="closeThemeDialog">
       <div class="cardhub-theme__panel" role="dialog" aria-label="配色设置">
@@ -1876,11 +1878,7 @@ async function importLibraryCard(card: CardHubItem) {
   delete (headers as Record<string, string>)['Content-Type'];
 
   const beforeCharacters = await fetchCharacterSummaries();
-  const beforeAvatarKeys = new Set(
-    beforeCharacters
-      .map(item => normalizeAvatarKey(item.avatar ?? ''))
-      .filter(Boolean),
-  );
+  const beforeAvatarKeys = new Set(beforeCharacters.map(item => normalizeAvatarKey(item.avatar ?? '')).filter(Boolean));
 
   if (card.rawType === 'png') {
     const blob = await dataUrlToBlob(card.raw);
@@ -2307,7 +2305,10 @@ function extractCardTagsFromData(data: any): string[] {
   if (!Array.isArray(tags)) {
     return [];
   }
-  return tags.filter(tag => typeof tag === 'string').map(tag => tag.trim()).filter(Boolean);
+  return tags
+    .filter(tag => typeof tag === 'string')
+    .map(tag => tag.trim())
+    .filter(Boolean);
 }
 
 function pickString(...values: unknown[]): string {

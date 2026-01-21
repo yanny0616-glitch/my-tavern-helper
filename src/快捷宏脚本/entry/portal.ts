@@ -43,8 +43,26 @@ const SCRIPT_OPTION: VariableOption = { type: 'script', script_id: getScriptId()
 const MANAGE_BUTTON_NAME = '管理快捷语句';
 
 const DEFAULT_MACROS: Macro[] = [
-  { id: '', name: '问候', content: '你好！', send: false, append: false, newline: true, scope: 'global', characterId: '' },
-  { id: '', name: '继续', content: '继续。', send: true, append: false, newline: true, scope: 'global', characterId: '' },
+  {
+    id: '',
+    name: '问候',
+    content: '你好！',
+    send: false,
+    append: false,
+    newline: true,
+    scope: 'global',
+    characterId: '',
+  },
+  {
+    id: '',
+    name: '继续',
+    content: '继续。',
+    send: true,
+    append: false,
+    newline: true,
+    scope: 'global',
+    characterId: '',
+  },
 ];
 
 const DEFAULT_THEME: Theme = ThemeSchema.parse({});
@@ -736,10 +754,7 @@ function createMacroManager(getSettings: () => Settings, onSave: (next: Settings
     if ($mount) {
       return;
     }
-    $style = $('<style>')
-      .attr('data-macro-style', getScriptId())
-      .text(buildStyleText())
-      .appendTo('head');
+    $style = $('<style>').attr('data-macro-style', getScriptId()).text(buildStyleText()).appendTo('head');
     $mount = createScriptIdDiv().addClass('macro-mount').appendTo('body');
     app = createApp(App);
     const currentCharacterLabel = computed(() => getCurrentCharacterLabel());

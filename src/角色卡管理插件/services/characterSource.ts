@@ -60,7 +60,7 @@ export async function fetchCharacterSummaries(): Promise<CardHubItem[]> {
     }
 
     const hasTagKey = Boolean(ctx?.tagMap && Object.prototype.hasOwnProperty.call(ctx.tagMap, tagKey));
-    const mappedIds = hasTagKey ? ctx!.tagMap![tagKey] ?? [] : [];
+    const mappedIds = hasTagKey ? (ctx!.tagMap![tagKey] ?? []) : [];
     const mappedTags = mappedIds.map(id => tagIdToName.get(id)).filter(Boolean) as string[];
     const tags = hasTagKey ? mappedTags : directTags;
     const baseId = avatarKey ? `avatar:${avatarKey}` : `name:${name}::${stamp}`;

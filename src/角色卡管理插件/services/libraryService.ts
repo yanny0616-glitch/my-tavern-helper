@@ -121,7 +121,10 @@ function extractCardTagsFromData(data: any): string[] {
   if (!Array.isArray(tags)) {
     return [];
   }
-  return tags.filter(tag => typeof tag === 'string').map(tag => tag.trim()).filter(Boolean);
+  return tags
+    .filter(tag => typeof tag === 'string')
+    .map(tag => tag.trim())
+    .filter(Boolean);
 }
 
 function dataUrlToBytes(dataUrl: string): Uint8Array | null {

@@ -68,11 +68,7 @@
 
           <div v-if="selectedMacro" class="macro-field">
             <label>内容</label>
-            <textarea
-              class="macro-textarea"
-              v-model="selectedMacro.content"
-              placeholder="输入要插入的文本"
-            ></textarea>
+            <textarea class="macro-textarea" v-model="selectedMacro.content" placeholder="输入要插入的文本"></textarea>
           </div>
 
           <div v-if="selectedMacro" class="macro-field">
@@ -107,7 +103,6 @@
               下移
             </button>
           </div>
-
         </main>
       </div>
 
