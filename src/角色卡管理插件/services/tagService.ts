@@ -73,14 +73,6 @@ function findCharacter(ctx: TagStore, target: CardHubItem) {
   return ctx.characters.find(character => character.name === target.name) ?? null;
 }
 
-export function getAllTagsFromContext(): string[] {
-  const ctx = getContext();
-  if (!ctx || !Array.isArray(ctx.tags)) {
-    return [];
-  }
-  return ctx.tags.map(tag => tag.name).filter(Boolean);
-}
-
 function getTagMapEntry(tagKey: string | null | undefined): { hasKey: boolean; tags: string[] } {
   if (!tagKey) {
     return { hasKey: false, tags: [] };
@@ -102,10 +94,6 @@ function getTagMapEntry(tagKey: string | null | undefined): { hasKey: boolean; t
   const ids = ctx.tagMap[tagKey] ?? [];
   const tags = ids.map(id => tagIdToName.get(id)).filter(Boolean) as string[];
   return { hasKey: true, tags };
-}
-
-export function getTagsForAvatar(tagKey: string | null | undefined): string[] {
-  return getTagMapEntry(tagKey).tags;
 }
 
 export function getMergedTags(target: CardHubItem): string[] {

@@ -335,6 +335,7 @@ export function loadLibrary(): CardHubItem[] {
       ...entry,
       origin: entry.origin ?? 'library',
       tags: Array.isArray(entry.tags) ? entry.tags : [],
+      note: typeof entry.note === 'string' ? entry.note : '',
     };
     if (!normalized.tagsEdited && !normalized.tags.length && normalized.raw && normalized.rawType) {
       const rawTags =
@@ -391,6 +392,7 @@ export async function addToLibrary(files: FileList | File[], existingEntries?: C
         avatar: dataUrl,
         tags: parsedTags,
         origin: 'library',
+        note: '',
         importFileName: file.name,
         rawType: 'png',
         raw: dataUrl,
@@ -418,6 +420,7 @@ export async function addToLibrary(files: FileList | File[], existingEntries?: C
         avatar: null,
         tags: parsedTags,
         origin: 'library',
+        note: '',
         importFileName: file.name,
         rawType: 'json',
         raw: text,
@@ -439,6 +442,18 @@ export function updateLibraryTags(entryId: string, tags: string[], existingEntri
       return entry;
     }
     return { ...entry, tags, tagsEdited: true };
+  });
+  writeLibrary(updated);
+  return updated;
+}
+
+export function updateLibraryNote(entryId: string, note: string, existingEntries?: CardHubItem[]): CardHubItem[] {
+  const current = Array.isArray(existingEntries) && existingEntries.length ? existingEntries : loadLibrary();
+  const updated = current.map(entry => {
+    if (entry.id !== entryId) {
+      return entry;
+    }
+    return { ...entry, note };
   });
   writeLibrary(updated);
   return updated;
