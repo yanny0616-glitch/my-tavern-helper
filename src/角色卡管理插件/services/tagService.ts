@@ -143,6 +143,8 @@ export function updateCharacterTags(target: CardHubItem, nextTags: string[]): st
   }
 
   ctx.saveSettingsDebounced?.();
+  const st = window.parent?.SillyTavern ?? SillyTavern;
+  st?.saveSettingsDebounced?.();
 
   return cleaned;
 }
