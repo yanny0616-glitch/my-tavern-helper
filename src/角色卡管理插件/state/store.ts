@@ -39,5 +39,9 @@ export function setCharacters(characters: CardHubItem[]) {
 }
 
 export function setLibrary(library: CardHubItem[]) {
-  cardHubState.library = library;
+  cardHubState.library = library.map(entry => ({
+    ...entry,
+    origin: entry.origin ?? 'library',
+    tags: Array.isArray(entry.tags) ? entry.tags : [],
+  }));
 }

@@ -81,13 +81,17 @@ export function getAllTagsFromContext(): string[] {
   return ctx.tags.map(tag => tag.name).filter(Boolean);
 }
 
-export function getTagsForAvatar(tagKey: string | null | undefined): string[] {
+function getTagMapEntry(tagKey: string | null | undefined): { hasKey: boolean; tags: string[] } {
   if (!tagKey) {
-    return [];
+    return { hasKey: false, tags: [] };
   }
   const ctx = getContext();
   if (!ctx || !ctx.tagMap || !Array.isArray(ctx.tags)) {
-    return [];
+    return { hasKey: false, tags: [] };
+  }
+  const hasKey = Object.prototype.hasOwnProperty.call(ctx.tagMap, tagKey);
+  if (!hasKey) {
+    return { hasKey: false, tags: [] };
   }
   const tagIdToName = new Map<string, string>();
   ctx.tags.forEach(tag => {
@@ -96,16 +100,23 @@ export function getTagsForAvatar(tagKey: string | null | undefined): string[] {
     }
   });
   const ids = ctx.tagMap[tagKey] ?? [];
-  return ids.map(id => tagIdToName.get(id)).filter(Boolean) as string[];
+  const tags = ids.map(id => tagIdToName.get(id)).filter(Boolean) as string[];
+  return { hasKey: true, tags };
+}
+
+export function getTagsForAvatar(tagKey: string | null | undefined): string[] {
+  return getTagMapEntry(tagKey).tags;
 }
 
 export function getMergedTags(target: CardHubItem): string[] {
   if (target.origin === 'library') {
     return target.tags ?? [];
   }
-  const direct = target.tags ?? [];
-  const mapped = getTagsForAvatar(target.tagKey ?? target.avatar);
-  return Array.from(new Set([...direct, ...mapped]));
+  const entry = getTagMapEntry(target.tagKey ?? target.avatar);
+  if (entry.hasKey) {
+    return entry.tags;
+  }
+  return target.tags ?? [];
 }
 
 export function updateCharacterTags(target: CardHubItem, nextTags: string[]): string[] {

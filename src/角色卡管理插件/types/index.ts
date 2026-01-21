@@ -10,6 +10,8 @@ export type CardHubItem = {
   origin: CardOrigin;
   tagKey?: string;
   fingerprint?: string;
+  importFileName?: string;
+  tagsEdited?: boolean;
   rawType?: 'png' | 'json';
   raw?: string;
   createdAt?: number;

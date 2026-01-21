@@ -22,7 +22,6 @@
         <button class="cardhub-button" type="button" @click="refresh">刷新</button>
         <button class="cardhub-button is-ghost" type="button" @click="triggerImport">导入</button>
         <button class="cardhub-button is-ghost" type="button" @click="exportSelected">批量导出</button>
-        <button class="cardhub-button is-ghost" type="button" @click="openBatchTagDialog">批量标签</button>
         <input
           ref="importInput"
           class="cardhub-import-input"
@@ -132,6 +131,9 @@
             @click="clearTagFilter"
           >
             清空标签
+          </button>
+          <button class="cardhub-chip cardhub-chip--more" type="button" @click="openTagManager('filter')">
+            标签管理
           </button>
         </div>
 
@@ -392,6 +394,124 @@
       </div>
     </div>
 
+    <div v-if="tagManagerOpen" class="cardhub-tag-manager" @click.self="closeTagManager">
+      <div class="cardhub-tag-manager__panel" role="dialog" aria-label="标签管理">
+        <div class="cardhub-tag-manager__header">
+          <div>
+            <div class="cardhub-tag-manager__title">标签管理</div>
+            <div v-if="tagManagerTab === 'filter'" class="cardhub-tag-manager__subtitle">
+              已选 {{ selectedTags.length }} / {{ allTags.length }}
+            </div>
+            <div v-else class="cardhub-tag-manager__subtitle">
+              已选 {{ batchTagSelectedIds.length }} / {{ batchTagVisibleCandidates.length }}
+            </div>
+          </div>
+          <button class="cardhub-preview__close" type="button" @click="closeTagManager">×</button>
+        </div>
+        <div class="cardhub-tag-manager__tabs">
+          <button
+            class="cardhub-tag-manager__tab"
+            :class="{ 'is-active': tagManagerTab === 'filter' }"
+            type="button"
+            @click="openTagManager('filter')"
+          >
+            标签筛选
+          </button>
+          <button
+            class="cardhub-tag-manager__tab"
+            :class="{ 'is-active': tagManagerTab === 'batch' }"
+            type="button"
+            @click="openTagManager('batch')"
+          >
+            批量标签
+          </button>
+        </div>
+        <div v-if="tagManagerTab === 'filter'" class="cardhub-tag-manager__section">
+          <div class="cardhub-tag-manager__actions">
+            <button
+              class="cardhub-tag-manager__btn is-secondary"
+              type="button"
+              :disabled="!selectedTags.length"
+              @click="clearTagFilter"
+            >
+              清空
+            </button>
+            <div class="cardhub-tag-manager__spacer"></div>
+            <button class="cardhub-tag-manager__btn is-primary" type="button" @click="closeTagManager">完成</button>
+          </div>
+          <div class="cardhub-tag-manager__list">
+            <button
+              v-for="tag in allTags"
+              :key="tag"
+              class="cardhub-tag-manager__chip"
+              :class="{ 'is-active': selectedTags.includes(tag) }"
+              type="button"
+              @click="toggleTagFilter(tag)"
+            >
+              {{ tag }}
+            </button>
+          </div>
+        </div>
+        <div v-else class="cardhub-tag-manager__section cardhub-tag-manager__batch">
+          <div class="cardhub-batch__filters">
+            <input v-model="batchTagSearch" class="cardhub-batch__search" type="search" placeholder="搜索角色名或标签" />
+            <div class="cardhub-batch__hint">提示：可先在主界面筛选，再切换到批量标签。</div>
+          </div>
+          <div class="cardhub-batch__field">
+            <input v-model="batchTagInput" type="text" placeholder="输入标签，逗号/换行分隔" />
+          </div>
+          <div v-if="batchTagSuggestions.length" class="cardhub-batch__suggestions">
+            <span class="cardhub-batch__suggest-title">已有标签</span>
+            <div class="cardhub-batch__suggest-row">
+              <button
+                v-for="tag in batchTagSuggestions"
+                :key="tag"
+                class="cardhub-batch__chip"
+                :class="{ 'is-active': batchTagSelectedTags.includes(tag) }"
+                type="button"
+                @click="toggleBatchTagSuggestion(tag)"
+              >
+                {{ tag }}
+              </button>
+            </div>
+          </div>
+          <div class="cardhub-batch__toolbar">
+            <button class="cardhub-batch__btn is-secondary" type="button" @click="selectAllBatchTags">全选</button>
+            <button class="cardhub-batch__btn is-secondary" type="button" @click="clearBatchTagSelection">清空</button>
+            <div class="cardhub-batch__spacer"></div>
+            <button class="cardhub-batch__btn is-ghost" type="button" @click="applyBatchTags('remove')">
+              移除标签
+            </button>
+            <button class="cardhub-batch__btn is-primary" type="button" @click="applyBatchTags('add')">
+              添加标签
+            </button>
+          </div>
+          <div class="cardhub-batch__list">
+            <label v-for="item in batchTagVisibleCandidates" :key="item.id" class="cardhub-batch__item">
+              <input
+                class="cardhub-batch__checkbox"
+                type="checkbox"
+                :checked="batchTagSelectedSet.has(item.id)"
+                @change="toggleBatchTagSelection(item.id)"
+              />
+              <div class="cardhub-batch__main">
+                <div class="cardhub-batch__name">{{ item.name }}</div>
+                <div class="cardhub-batch__meta">
+                  <span>{{ item.origin === 'tavern' ? '已导入' : '未导入' }}</span>
+                  <span>{{ displayTags(item).length }} 标签</span>
+                </div>
+                <div v-if="displayTags(item).length" class="cardhub-batch__tags">
+                  <span v-for="tag in displayTags(item).slice(0, 3)" :key="tag" class="cardhub-batch__tag">
+                    {{ tag }}
+                  </span>
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div v-if="exportDialogOpen" class="cardhub-export" @click.self="closeExportDialog">
       <div class="cardhub-export__panel" role="dialog" aria-label="批量导出">
         <div class="cardhub-export__header">
@@ -484,71 +604,6 @@
       </div>
     </div>
 
-    <div v-if="batchTagDialogOpen" class="cardhub-batch" @click.self="closeBatchTagDialog">
-      <div class="cardhub-batch__panel" role="dialog" aria-label="批量标签">
-        <div class="cardhub-batch__header">
-          <div>
-            <div class="cardhub-batch__title">批量标签</div>
-            <div class="cardhub-batch__subtitle">
-              已选 {{ batchTagSelectedIds.length }} / {{ batchTagVisibleCandidates.length }}
-            </div>
-          </div>
-          <button class="cardhub-preview__close" type="button" @click="closeBatchTagDialog">×</button>
-        </div>
-        <div class="cardhub-batch__filters">
-          <input v-model="batchTagSearch" class="cardhub-batch__search" type="search" placeholder="搜索角色名或标签" />
-          <div class="cardhub-batch__hint">提示：可先在主界面筛选，再打开批量标签。</div>
-        </div>
-        <div class="cardhub-batch__field">
-          <input v-model="batchTagInput" type="text" placeholder="输入标签，逗号/换行分隔" />
-        </div>
-        <div v-if="batchTagSuggestions.length" class="cardhub-batch__suggestions">
-          <span class="cardhub-batch__suggest-title">已有标签</span>
-          <div class="cardhub-batch__suggest-row">
-            <button
-              v-for="tag in batchTagSuggestions"
-              :key="tag"
-              class="cardhub-batch__chip"
-              :class="{ 'is-active': batchTagSelectedTags.includes(tag) }"
-              type="button"
-              @click="toggleBatchTagSuggestion(tag)"
-            >
-              {{ tag }}
-            </button>
-          </div>
-        </div>
-        <div class="cardhub-batch__toolbar">
-          <button class="cardhub-batch__btn is-secondary" type="button" @click="selectAllBatchTags">全选</button>
-          <button class="cardhub-batch__btn is-secondary" type="button" @click="clearBatchTagSelection">清空</button>
-          <div class="cardhub-batch__spacer"></div>
-          <button class="cardhub-batch__btn is-secondary" type="button" @click="closeBatchTagDialog">取消</button>
-          <button class="cardhub-batch__btn is-ghost" type="button" @click="applyBatchTags('remove')">移除标签</button>
-          <button class="cardhub-batch__btn is-primary" type="button" @click="applyBatchTags('add')">添加标签</button>
-        </div>
-        <div class="cardhub-batch__list">
-          <label v-for="item in batchTagVisibleCandidates" :key="item.id" class="cardhub-batch__item">
-            <input
-              class="cardhub-batch__checkbox"
-              type="checkbox"
-              :checked="batchTagSelectedSet.has(item.id)"
-              @change="toggleBatchTagSelection(item.id)"
-            />
-            <div class="cardhub-batch__main">
-              <div class="cardhub-batch__name">{{ item.name }}</div>
-              <div class="cardhub-batch__meta">
-                <span>{{ item.origin === 'tavern' ? '已导入' : '未导入' }}</span>
-                <span>{{ displayTags(item).length }} 标签</span>
-              </div>
-              <div v-if="displayTags(item).length" class="cardhub-batch__tags">
-                <span v-for="tag in displayTags(item).slice(0, 3)" :key="tag" class="cardhub-batch__tag">
-                  {{ tag }}
-                </span>
-              </div>
-            </div>
-          </label>
-        </div>
-      </div>
-    </div>
 
     <div v-if="themeDialogOpen" class="cardhub-theme" @click.self="closeThemeDialog">
       <div class="cardhub-theme__panel" role="dialog" aria-label="配色设置">
@@ -628,6 +683,8 @@ import { addToLibrary, loadLibrary, removeFromLibrary, updateLibraryTags } from 
 import { getMergedTags, updateCharacterTags } from '../services/tagService';
 
 const selectedTags = ref<string[]>([]);
+const tagManagerOpen = ref(false);
+const tagManagerTab = ref<'filter' | 'batch'>('filter');
 const activeTagKey = ref<string | null>(null);
 const tagInput = ref('');
 const statusFilter = ref<'all' | 'imported' | 'unimported'>('all');
@@ -719,7 +776,6 @@ const exportCandidates = computed(() => [...allCards.value]);
 const exportSearch = ref('');
 const exportStatusFilter = ref<'all' | 'imported' | 'unimported'>('all');
 const exportTagFilters = ref<string[]>([]);
-const batchTagDialogOpen = ref(false);
 const batchTagSelectedIds = ref<string[]>([]);
 const batchTagSearch = ref('');
 const batchTagInput = ref('');
@@ -949,24 +1005,26 @@ const themePresets = [
   },
 ] as const;
 const manageDetails = computed(() => {
-  const profile = manageProfile.value;
-  if (!profile) {
-    return [] as ManageDetail[];
-  }
   const details: ManageDetail[] = [];
+  const profile = manageProfile.value;
+  if (manageCard.value?.origin === 'library' && manageCard.value.importFileName) {
+    details.push({ label: '导入文件名', value: manageCard.value.importFileName });
+  }
   const pushDetail = (label: string, value: string, maxChars = 240) => {
     const preview = previewDetailText(value, 3, maxChars);
     if (preview) {
       details.push({ label, value: preview });
     }
   };
-  pushDetail('角色描述', profile.description ?? '');
-  pushDetail('性格', profile.personality ?? '');
-  pushDetail('场景', profile.scenario ?? '');
-  pushDetail('创作者备注', profile.creatorNotes ?? '');
-  pushDetail('系统提示', profile.systemPrompt ?? '', 200);
-  pushDetail('历史指令', profile.postHistory ?? '', 200);
-  pushDetail('作者', profile.creator ?? '', 80);
+  if (profile) {
+    pushDetail('角色描述', profile.description ?? '');
+    pushDetail('性格', profile.personality ?? '');
+    pushDetail('场景', profile.scenario ?? '');
+    pushDetail('创作者备注', profile.creatorNotes ?? '');
+    pushDetail('系统提示', profile.systemPrompt ?? '', 200);
+    pushDetail('历史指令', profile.postHistory ?? '', 200);
+    pushDetail('作者', profile.creator ?? '', 80);
+  }
   return details;
 });
 
@@ -1266,12 +1324,19 @@ const manageAvatarUrl = computed(() => {
   return avatarUrl(manageCard.value, true);
 });
 
+function isLibraryItem(item: CardHubItem): boolean {
+  if (item.origin === 'library' || Boolean(item.rawType)) {
+    return true;
+  }
+  return state.library.some(entry => entry.id === item.id);
+}
+
 function applyStatusFilter(list: CardHubItem[]): CardHubItem[] {
   if (statusFilter.value === 'imported') {
-    return list.filter(item => item.origin === 'tavern');
+    return list.filter(item => !isLibraryItem(item));
   }
   if (statusFilter.value === 'unimported') {
-    return list.filter(item => item.origin === 'library');
+    return list.filter(item => isLibraryItem(item));
   }
   return list;
 }
@@ -1295,6 +1360,25 @@ function toggleTagFilter(tag: string) {
 
 function clearTagFilter() {
   selectedTags.value = [];
+}
+
+function openTagManager(tab: 'filter' | 'batch' = 'filter') {
+  if (tab === 'batch') {
+    if (!batchTagVisibleCandidates.value.length) {
+      toastr.warning('当前没有可操作的角色卡');
+      return;
+    }
+    batchTagInput.value = '';
+    batchTagSearch.value = '';
+    batchTagSelectedTags.value = [];
+    batchTagSelectedIds.value = batchTagVisibleCandidates.value.map(item => item.id);
+  }
+  tagManagerTab.value = tab;
+  tagManagerOpen.value = true;
+}
+
+function closeTagManager() {
+  tagManagerOpen.value = false;
 }
 
 function hexToRgb(value: string): string {
@@ -1474,22 +1558,6 @@ onMounted(() => {
 
 function closeExportDialog() {
   exportDialogOpen.value = false;
-}
-
-function openBatchTagDialog() {
-  if (!batchTagVisibleCandidates.value.length) {
-    toastr.warning('当前没有可操作的角色卡');
-    return;
-  }
-  batchTagInput.value = '';
-  batchTagSearch.value = '';
-  batchTagSelectedTags.value = [];
-  batchTagSelectedIds.value = batchTagVisibleCandidates.value.map(item => item.id);
-  batchTagDialogOpen.value = true;
-}
-
-function closeBatchTagDialog() {
-  batchTagDialogOpen.value = false;
 }
 
 function toggleBatchTagSelection(id: string) {
@@ -1724,8 +1792,8 @@ function cancelTagEdit() {
 }
 
 function applyTagUpdate(character: CardHubItem, nextTags: string[]) {
-  if (character.origin === 'library') {
-    const updatedLibrary = updateLibraryTags(character.id, nextTags);
+  if (isLibraryItem(character)) {
+    const updatedLibrary = updateLibraryTags(character.id, nextTags, state.library);
     setLibrary(updatedLibrary);
   } else {
     const next = updateCharacterTags(character, nextTags);
@@ -1807,6 +1875,13 @@ async function importLibraryCard(card: CardHubItem) {
   const headers = (SillyTavern?.getRequestHeaders ? SillyTavern.getRequestHeaders() : {}) as Record<string, string>;
   delete (headers as Record<string, string>)['Content-Type'];
 
+  const beforeCharacters = await fetchCharacterSummaries();
+  const beforeAvatarKeys = new Set(
+    beforeCharacters
+      .map(item => normalizeAvatarKey(item.avatar ?? ''))
+      .filter(Boolean),
+  );
+
   if (card.rawType === 'png') {
     const blob = await dataUrlToBlob(card.raw);
     await TavernHelper.importRawCharacter(card.name, blob);
@@ -1824,10 +1899,41 @@ async function importLibraryCard(card: CardHubItem) {
     });
   }
 
-  setLibrary(removeFromLibrary(card.id));
   const characters = await fetchCharacterSummaries();
+  const expectedNames = new Set([card.name]);
+  if (card.rawType === 'json') {
+    try {
+      const parsed = JSON.parse(card.raw) as { name?: string; data?: { name?: string } };
+      if (parsed?.name) {
+        expectedNames.add(parsed.name);
+      }
+      if (parsed?.data?.name) {
+        expectedNames.add(parsed.data.name);
+      }
+    } catch {
+      // ignore invalid json name parsing
+    }
+  }
+  const matchedByAvatar = characters.find(item => {
+    const avatarKey = normalizeAvatarKey(item.avatar ?? '');
+    return avatarKey && !beforeAvatarKeys.has(avatarKey);
+  });
+  const matchedByName = characters.find(item =>
+    Array.from(expectedNames).some(name => normalizeNameKey(item.name) === normalizeNameKey(name)),
+  );
+  const importedCard = matchedByAvatar ?? matchedByName ?? null;
+  if (importedCard) {
+    setLibrary(removeFromLibrary(card.id));
+    const rawTags = card.tags?.length ? card.tags : extractCardTagsFromData(parseLibraryCardData(card));
+    if (rawTags.length) {
+      const cleanedTags = updateCharacterTags(importedCard, rawTags);
+      importedCard.tags = cleanedTags;
+    }
+    toastr.success(`已导入 ${card.name}`);
+  } else {
+    toastr.warning(`导入完成但未在角色列表中找到「${card.name}」，已保留未导入记录`);
+  }
   setCharacters(characters);
-  toastr.success(`已导入 ${card.name}`);
 }
 
 async function exportCard(card: CardHubItem) {
@@ -2194,6 +2300,14 @@ function extractCardProfile(data: any): ManageProfile | null {
     Boolean(profile.worldBookName) ||
     typeof profile.worldBookCount === 'number';
   return hasValue ? profile : null;
+}
+
+function extractCardTagsFromData(data: any): string[] {
+  const tags = data?.tags ?? data?.data?.tags;
+  if (!Array.isArray(tags)) {
+    return [];
+  }
+  return tags.filter(tag => typeof tag === 'string').map(tag => tag.trim()).filter(Boolean);
 }
 
 function pickString(...values: unknown[]): string {
@@ -2822,6 +2936,28 @@ async function deleteFromTavern(card: CardHubItem, deleteChats: boolean): Promis
   }
   st ??= SillyTavern;
   const ctx = typeof st?.getContext === 'function' ? st.getContext() : null;
+  const list = ctx?.characters ?? st?.characters ?? [];
+  const targetIdx = findCharacterIndex(list, card);
+  const currentId = getCurrentCharacterId(ctx, st);
+  const deletingActive = targetIdx >= 0 && currentId && String(targetIdx) === String(currentId);
+  if (deletingActive) {
+    if (list.length > 1) {
+      const nextIdx = targetIdx === 0 ? 1 : 0;
+      const selector =
+        (ctx && typeof ctx.selectCharacterById === 'function' ? ctx.selectCharacterById : null) ??
+        (st && typeof st.selectCharacterById === 'function' ? st.selectCharacterById : null);
+      if (selector) {
+        try {
+          await selector(nextIdx, { switchMenu: false });
+          await waitForCharacterSelection(nextIdx, ctx, st, 3000);
+        } catch (error) {
+          console.warn('[CardHub] 删除前切换角色失败', error);
+        }
+      }
+    } else {
+      toastr.warning('当前角色为唯一角色，删除后酒馆可能需要刷新');
+    }
+  }
   const headers = (ctx?.getRequestHeaders ? ctx.getRequestHeaders() : st?.getRequestHeaders?.()) as
     | Record<string, string>
     | undefined;
@@ -2837,6 +2973,11 @@ async function deleteFromTavern(card: CardHubItem, deleteChats: boolean): Promis
     cache: 'no-cache',
   });
   if (response.ok) {
+    try {
+      await triggerSlash('/closechat');
+    } catch (error) {
+      console.warn('[CardHub] 关闭聊天失败', error);
+    }
     return true;
   }
   const detail = await response.text();
@@ -3047,6 +3188,8 @@ function close() {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  overflow: auto;
+  min-height: 0;
 }
 
 .cardhub-chip-row {
@@ -3133,6 +3276,10 @@ function close() {
 
 .cardhub-chip--clear {
   margin-top: 8px;
+}
+
+.cardhub-chip--more {
+  margin-top: 4px;
 }
 
 .cardhub-content {
@@ -3255,9 +3402,24 @@ function close() {
   display: none;
 }
 
+.cardhub-card__info {
+  min-width: 0;
+}
+
+.cardhub-card__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .cardhub-card__name {
   font-size: 14px;
   font-weight: 600;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .cardhub-card__meta {
@@ -3305,6 +3467,11 @@ function close() {
   border-style: dashed;
 }
 
+.cardhub-tag-edit {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .cardhub-tag-input {
   border: 1px dashed rgba(106, 63, 42, 0.5);
   background: #fffaf4;
@@ -3312,6 +3479,7 @@ function close() {
   padding: 4px 10px;
   font-size: 11px;
   min-width: 80px;
+  max-width: 100%;
   color: #6a3f2a;
   outline: none;
   height: 24px;
@@ -3725,13 +3893,13 @@ function close() {
 }
 
 .cardhub-confirm {
-  position: absolute;
+  position: fixed;
   inset: 0;
   background: rgba(24, 16, 10, 0.55);
   backdrop-filter: blur(6px);
   display: grid;
   place-items: center;
-  z-index: 100002;
+  z-index: 200000;
 }
 
 .cardhub-confirm__panel {
@@ -3802,6 +3970,176 @@ function close() {
   transform: translateY(0);
 }
 
+.cardhub-tag-manager {
+  position: absolute;
+  inset: 0;
+  background: rgba(24, 16, 10, 0.55);
+  backdrop-filter: blur(6px);
+  display: grid;
+  place-items: center;
+  z-index: 100003;
+}
+
+.cardhub-tag-manager__panel {
+  width: min(700px, 92vw);
+  max-height: 82vh;
+  background: #fff6ea;
+  border-radius: 22px;
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.25);
+  padding: 18px 20px;
+  display: grid;
+  gap: 12px;
+  overflow: hidden;
+  grid-template-rows: auto auto 1fr;
+  position: relative;
+}
+
+.cardhub-theme__panel {
+  position: relative;
+}
+
+.cardhub-tag-manager__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cardhub-tag-manager__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2b2018;
+}
+
+.cardhub-tag-manager__subtitle {
+  font-size: 12px;
+  color: #7d5b46;
+}
+
+.cardhub-tag-manager__tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.cardhub-tag-manager__tab {
+  border: 1px solid rgba(106, 63, 42, 0.25);
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #6a3f2a;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 120ms ease;
+}
+
+.cardhub-tag-manager__tab.is-active {
+  background: #2b2018;
+  color: #fff5ea;
+  border-color: transparent;
+}
+
+.cardhub-tag-manager__tab:not(.is-active):hover {
+  background: rgba(255, 255, 255, 1);
+  transform: translateY(-1px);
+}
+
+.cardhub-tag-manager__section {
+  display: grid;
+  gap: 12px;
+  min-height: 0;
+}
+
+.cardhub-tag-manager__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cardhub-tag-manager__spacer {
+  flex: 1;
+}
+
+.cardhub-tag-manager__btn {
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+.cardhub-tag-manager__btn.is-primary {
+  background: #2b2018;
+  color: #fff5ea;
+}
+
+.cardhub-tag-manager__btn.is-secondary {
+  background: transparent;
+  color: #6a3f2a;
+  border: 1px solid rgba(106, 63, 42, 0.4);
+}
+
+.cardhub-tag-manager__btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.cardhub-tag-manager__btn:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(43, 32, 24, 0.18);
+}
+
+.cardhub-tag-manager__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.cardhub-tag-manager__chip {
+  border: 1px solid rgba(106, 63, 42, 0.25);
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: #6a3f2a;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease,
+    transform 120ms ease;
+}
+
+.cardhub-tag-manager__chip.is-active {
+  background: #2b2018;
+  color: #fff5ea;
+  border-color: transparent;
+}
+
+.cardhub-tag-manager__chip:hover {
+  transform: translateY(-1px);
+}
+
+.cardhub-tag-manager__batch {
+  display: grid;
+  grid-template-rows: auto auto auto auto 1fr;
+  min-height: 0;
+}
+
+.cardhub-tag-manager__batch .cardhub-batch__list {
+  max-height: none;
+  min-height: 0;
+  overflow: auto;
+}
+
 .cardhub-export {
   position: absolute;
   inset: 0;
@@ -3822,6 +4160,7 @@ function close() {
   display: grid;
   gap: 12px;
   overflow: hidden;
+  position: relative;
 }
 
 .cardhub-export__header {
@@ -3953,7 +4292,9 @@ function close() {
 .cardhub-close:focus-visible,
 .cardhub-preview__close:focus-visible,
 .cardhub-confirm__button:focus-visible,
-.cardhub-export__btn:focus-visible {
+.cardhub-export__btn:focus-visible,
+.cardhub-tag-manager__btn:focus-visible,
+.cardhub-tag-manager__tab:focus-visible {
   outline: 2px solid rgba(212, 107, 61, 0.6);
   outline-offset: 2px;
 }
@@ -4052,6 +4393,9 @@ function close() {
     flex: 1;
     min-height: 0;
     overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: env(safe-area-inset-bottom);
+    scroll-padding-bottom: env(safe-area-inset-bottom);
   }
 
   .cardhub-sidebar {
@@ -4116,6 +4460,7 @@ function close() {
     min-height: 0;
     overflow: visible;
     padding: 12px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
   }
 
   .cardhub-pagination {
@@ -4383,6 +4728,40 @@ function close() {
 
   .cardhub-export__tag {
     font-size: 9px;
+  }
+
+  .cardhub-tag-manager {
+    position: absolute !important;
+    inset: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 16px !important;
+    box-sizing: border-box !important;
+  }
+
+  .cardhub-tag-manager__panel {
+    width: calc(100vw - 32px) !important;
+    max-width: 360px !important;
+    max-height: calc(100vh - 32px) !important;
+    max-height: calc(100dvh - 32px) !important;
+    border-radius: 18px !important;
+    padding: 16px !important;
+  }
+
+  .cardhub-tag-manager__tab {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+
+  .cardhub-tag-manager__btn {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+
+  .cardhub-tag-manager__chip {
+    font-size: 10px;
+    padding: 5px 9px;
   }
 }
 </style>

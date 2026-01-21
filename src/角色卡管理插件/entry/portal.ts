@@ -33,6 +33,8 @@ function ensureMounted() {
         width: 100vw;
         height: 100vh;
         min-height: 100vh;
+        height: 100dvh;
+        min-height: 100dvh;
         z-index: 9999;
         font-family: "ZCOOL XiaoWei", "STSong", "Songti SC", "SimSun", serif;
         color: var(--cardhub-text, #1b1b1b);
@@ -263,6 +265,8 @@ function ensureMounted() {
         display: flex;
         flex-direction: column;
         gap: 12px;
+        overflow: auto;
+        min-height: 0;
       }
 
       .cardhub-chip-row {
@@ -347,6 +351,10 @@ function ensureMounted() {
 
       .cardhub-chip--clear {
         margin-top: 8px;
+      }
+
+      .cardhub-chip--more {
+        margin-top: 4px;
       }
 
       .cardhub-filter-row {
@@ -475,9 +483,18 @@ function ensureMounted() {
         display: none;
       }
 
+      .cardhub-card__info {
+        min-width: 0;
+      }
+
       .cardhub-card__name {
         font-size: 14px;
         font-weight: 600;
+        min-width: 0;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       .cardhub-card__head {
@@ -569,6 +586,7 @@ function ensureMounted() {
         padding: 4px 10px;
         font-size: 11px;
         min-width: 80px;
+        max-width: 100%;
         color: var(--cardhub-text);
         outline: none;
         height: 24px;
@@ -579,6 +597,8 @@ function ensureMounted() {
         display: inline-flex;
         align-items: center;
         gap: 6px;
+        min-width: 0;
+        max-width: 100%;
       }
 
       .cardhub-tag-confirm {
@@ -1017,7 +1037,7 @@ function ensureMounted() {
         backdrop-filter: blur(6px);
         display: grid;
         place-items: center;
-        z-index: 100010;
+        z-index: 200000;
       }
 
       .cardhub-confirm__panel {
@@ -1083,6 +1103,161 @@ function ensureMounted() {
         transform: translateY(0);
       }
 
+      .cardhub-tag-manager {
+        position: fixed;
+        inset: 0;
+        background: rgba(24, 16, 10, 0.55);
+        backdrop-filter: blur(6px);
+        display: grid;
+        place-items: center;
+        z-index: 100011;
+      }
+
+      .cardhub-tag-manager__panel {
+        width: min(700px, 92vw);
+        max-height: 82vh;
+        background: var(--cardhub-surface-alt);
+        border-radius: 22px;
+        box-shadow: var(--cardhub-shadow-strong);
+        padding: 18px 20px;
+        display: grid;
+        gap: 12px;
+        overflow: hidden;
+        grid-template-rows: auto auto 1fr;
+        position: relative;
+      }
+
+      .cardhub-tag-manager__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .cardhub-tag-manager__title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--cardhub-text);
+      }
+
+      .cardhub-tag-manager__subtitle {
+        font-size: 12px;
+        color: var(--cardhub-text-muted);
+      }
+
+      .cardhub-tag-manager__tabs {
+        display: flex;
+        gap: 8px;
+      }
+
+      .cardhub-tag-manager__tab {
+        border: 1px solid rgba(var(--cardhub-border-rgb), 0.6);
+        background: rgba(var(--cardhub-surface-rgb), 0.9);
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 12px;
+        color: var(--cardhub-text);
+        cursor: pointer;
+        transition: background-color 160ms ease, border-color 160ms ease, transform 120ms ease;
+      }
+
+      .cardhub-tag-manager__tab.is-active {
+        background: var(--cardhub-accent-strong);
+        color: var(--cardhub-accent-strong-text);
+        border-color: transparent;
+      }
+
+      .cardhub-tag-manager__tab:not(.is-active):hover {
+        transform: translateY(-1px);
+      }
+
+      .cardhub-tag-manager__section {
+        display: grid;
+        gap: 12px;
+        min-height: 0;
+      }
+
+      .cardhub-tag-manager__actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .cardhub-tag-manager__spacer {
+        flex: 1;
+      }
+
+      .cardhub-tag-manager__btn {
+        border: none;
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: transform 120ms ease, box-shadow 160ms ease, background-color 160ms ease;
+      }
+
+      .cardhub-tag-manager__btn.is-primary {
+        background: var(--cardhub-accent-strong);
+        color: var(--cardhub-accent-strong-text);
+      }
+
+      .cardhub-tag-manager__btn.is-secondary {
+        background: transparent;
+        color: var(--cardhub-text-muted);
+        border: 1px solid rgba(var(--cardhub-border-rgb), 0.6);
+      }
+
+      .cardhub-tag-manager__btn:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+
+      .cardhub-tag-manager__btn:not(:disabled):hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 14px rgba(43, 32, 24, 0.18);
+      }
+
+      .cardhub-tag-manager__list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        overflow: auto;
+        padding-right: 4px;
+      }
+
+      .cardhub-tag-manager__chip {
+        border: 1px solid rgba(var(--cardhub-border-rgb), 0.5);
+        background: rgba(var(--cardhub-surface-rgb), 0.9);
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: 12px;
+        color: var(--cardhub-text);
+        cursor: pointer;
+        transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, transform 120ms ease;
+      }
+
+      .cardhub-tag-manager__chip.is-active {
+        background: var(--cardhub-accent-strong);
+        color: var(--cardhub-accent-strong-text);
+        border-color: transparent;
+      }
+
+      .cardhub-tag-manager__chip:hover {
+        transform: translateY(-1px);
+      }
+
+      .cardhub-tag-manager__batch {
+        display: grid;
+        grid-template-rows: auto auto auto auto 1fr;
+        min-height: 0;
+      }
+
+      .cardhub-tag-manager__batch .cardhub-batch__list {
+        max-height: none;
+        min-height: 0;
+        overflow: auto;
+      }
+
       .cardhub-export {
         position: fixed;
         inset: 0;
@@ -1104,6 +1279,7 @@ function ensureMounted() {
         gap: 12px;
         overflow: hidden;
         margin: auto;
+        position: relative;
       }
 
       .cardhub-export__header {
@@ -1488,6 +1664,7 @@ function ensureMounted() {
         gap: 14px;
         overflow: auto;
         margin: auto;
+        position: relative;
       }
 
       .cardhub-theme__header {
@@ -1605,6 +1782,8 @@ function ensureMounted() {
       .cardhub-confirm__button:focus-visible,
       .cardhub-export__btn:focus-visible,
       .cardhub-batch__btn:focus-visible,
+      .cardhub-tag-manager__btn:focus-visible,
+      .cardhub-tag-manager__tab:focus-visible,
       .cardhub-theme__btn:focus-visible {
         outline: 2px solid rgba(var(--cardhub-accent-rgb), 0.6);
         outline-offset: 2px;
@@ -1643,6 +1822,8 @@ function ensureMounted() {
           width: 100vw !important;
           height: 100vh !important;
           min-height: 100vh !important;
+          height: 100dvh !important;
+          min-height: 100dvh !important;
         }
 
         .cardhub-root.open {
@@ -1745,6 +1926,9 @@ function ensureMounted() {
           flex: 1;
           min-height: 0;
           overflow: auto;
+          -webkit-overflow-scrolling: touch;
+          padding-bottom: env(safe-area-inset-bottom);
+          scroll-padding-bottom: env(safe-area-inset-bottom);
         }
 
         .cardhub-sidebar {
@@ -1837,6 +2021,7 @@ function ensureMounted() {
           min-height: 0;
           overflow: visible;
           padding: 10px;
+          padding-bottom: calc(10px + env(safe-area-inset-bottom));
         }
 
         .cardhub-pagination {
@@ -2138,6 +2323,41 @@ function ensureMounted() {
           font-size: 9px;
         }
 
+        .cardhub-tag-manager {
+          position: fixed !important;
+          inset: 0 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          padding: 16px !important;
+          box-sizing: border-box !important;
+        }
+
+        .cardhub-tag-manager__panel {
+          width: calc(100vw - 32px) !important;
+          max-width: 360px !important;
+          max-height: calc(100vh - 32px) !important;
+          max-height: calc(100dvh - 32px) !important;
+          border-radius: 18px !important;
+          padding: 16px !important;
+        }
+
+        .cardhub-tag-manager__tab {
+          font-size: 11px;
+          padding: 5px 10px;
+        }
+
+        .cardhub-tag-manager__btn {
+          font-size: 11px;
+          padding: 6px 10px;
+          height: 28px;
+        }
+
+        .cardhub-tag-manager__chip {
+          font-size: 10px;
+          padding: 5px 9px;
+        }
+
         .cardhub-batch {
           position: fixed !important;
           inset: 0 !important;
@@ -2180,6 +2400,10 @@ function ensureMounted() {
 
         .cardhub-batch__list {
           max-height: 40vh;
+        }
+
+        .cardhub-tag-manager__batch .cardhub-batch__list {
+          max-height: none;
         }
 
         .cardhub-batch__name {
