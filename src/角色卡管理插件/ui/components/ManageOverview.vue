@@ -17,21 +17,21 @@
         </span>
       </div>
       <div class="cardhub-manage__overview">
-      <div v-for="item in manageOverview" :key="item.label" class="cardhub-manage__overview-card">
-        <div class="cardhub-manage__overview-label">{{ item.label }}</div>
-        <div class="cardhub-manage__overview-value">{{ item.value }}</div>
-        <div v-if="item.hint" class="cardhub-manage__overview-hint">{{ item.hint }}</div>
-        <button
-          v-if="item.label === '世界书' && worldbookAvailable"
-          class="cardhub-manage__overview-action"
-          type="button"
-          @click="openWorldbookList"
-        >
-          查看
-        </button>
+        <div v-for="item in manageOverview" :key="item.label" class="cardhub-manage__overview-card">
+          <div class="cardhub-manage__overview-label">{{ item.label }}</div>
+          <div class="cardhub-manage__overview-value">{{ item.value }}</div>
+          <div v-if="item.hint" class="cardhub-manage__overview-hint">{{ item.hint }}</div>
+          <button
+            v-if="item.label === '世界书' && worldbookAvailable"
+            class="cardhub-manage__overview-action"
+            type="button"
+            @click="openWorldbookList"
+          >
+            查看
+          </button>
+        </div>
       </div>
     </div>
-  </div>
     <div class="cardhub-manage__media">
       <img v-if="manageAvatarUrl" :src="manageAvatarUrl" alt="" />
     </div>

@@ -73,12 +73,7 @@
       </div>
       <div v-else class="cardhub-manage__empty">暂无开场白</div>
       <div v-if="openingTotalPages > 1" class="cardhub-manage__pager">
-        <button
-          class="cardhub-manage__pager-btn"
-          type="button"
-          :disabled="openingPage <= 1"
-          @click="prevOpeningPage"
-        >
+        <button class="cardhub-manage__pager-btn" type="button" :disabled="openingPage <= 1" @click="prevOpeningPage">
           上一页
         </button>
         <span class="cardhub-manage__pager-status">{{ openingPage }} / {{ openingTotalPages }}</span>
