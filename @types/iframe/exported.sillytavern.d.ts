@@ -373,6 +373,25 @@ declare namespace SillyTavern {
     /** The type of the input (default is checkbox) */
     type?: string;
   };
+
+  type ContextTag = {
+    id?: string;
+    name?: string;
+  };
+
+  type Context = {
+    characters?: v1CharData[];
+    tags?: ContextTag[];
+    tagMap?: Record<string, string[]>;
+    characterId?: string | number;
+    getCharacters?: () => Promise<void>;
+    selectCharacterById?: (character_id: number, options?: { switchMenu?: boolean }) => Promise<void>;
+    openCharacterChat?: (character_id: number, options?: { switchMenu?: boolean }) => Promise<void>;
+    unshallowCharacter?: (character_id: number) => Promise<void>;
+    getCharacterCardFields?: (args: { chid: number }) => Promise<Partial<v1CharData> & Record<string, any>>;
+    getRequestHeaders?: () => Record<string, string>;
+    saveSettingsDebounced?: () => Promise<void> | void;
+  };
 }
 
 /**
@@ -395,6 +414,7 @@ declare const SillyTavern: {
     'Content-Type': string;
     'X-CSRF-TOKEN': string;
   };
+  readonly getContext?: () => SillyTavern.Context;
   readonly reloadCurrentChat: () => Promise<void>;
   readonly renameChat: (old_name: string, new_name: string) => Promise<void>;
   readonly saveSettingsDebounced: () => Promise<void>;
@@ -684,3 +704,7 @@ declare const SillyTavern: {
     ignore: any;
   };
 };
+
+interface Window {
+  SillyTavern?: typeof SillyTavern;
+}

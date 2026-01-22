@@ -17,24 +17,17 @@
   <div class="cardhub-manage__section">
     <div class="cardhub-manage__label">
       <span>开场白</span>
-      <button v-if="openingItems.length" class="cardhub-manage__toggle" type="button" @click="toggleOpenings">
-        {{ showAllOpenings ? '收起列表' : `展开列表（${openingItems.length}）` }}
+      <button v-if="openingItems.length" class="cardhub-manage__toggle" type="button" @click="openOpeningList">
+        查看列表（{{ openingItems.length }}）
       </button>
     </div>
     <div class="cardhub-manage__content">
-      <template v-if="openingItems.length">
-        <div v-if="!showAllOpenings" class="cardhub-manage__empty">点击“展开列表”查看开场白</div>
-        <div v-else>
-          <div v-for="item in openingItems" :key="item.id" class="cardhub-manage__opening">
-            <div class="cardhub-manage__opening-title">开场白 {{ item.id + 1 }}</div>
-            <div class="cardhub-manage__opening-body">
-              {{ item.preview }}
-            </div>
-            <button class="cardhub-manage__opening-toggle" type="button" @click="openOpening(item)">查看</button>
-          </div>
-        </div>
-      </template>
-      <template v-else>暂无开场白</template>
+      <div v-if="openingSummary.hasData" class="cardhub-manage__opening-meta">
+        <span class="cardhub-manage__opening-meta-value">{{ openingSummary.value }}</span>
+        <span v-if="openingSummary.hint" class="cardhub-manage__opening-meta-hint">{{ openingSummary.hint }}</span>
+      </div>
+      <div v-if="!openingItems.length" class="cardhub-manage__empty">暂无开场白</div>
+      <div v-else class="cardhub-manage__empty">点击“查看列表”浏览开场白</div>
     </div>
   </div>
   <div class="cardhub-manage__section">
@@ -123,7 +116,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
 import type { CardHubItem } from '../../types';
 
 type ManageDetail = {
@@ -146,18 +138,25 @@ type OpeningItem = {
   html: string;
 };
 
-const props = defineProps<{
+type OpeningSummary = {
+  value: string;
+  hint: string;
+  hasData: boolean;
+};
+
+defineProps<{
   manageCard: CardHubItem;
   manageDetails: ManageDetail[];
   manageDetailsHint: string;
   openingItems: OpeningItem[];
+  openingSummary: OpeningSummary;
   manageChats: ManageChatEntry[];
   pagedChats: ManageChatEntry[];
   chatPage: number;
   chatTotalPages: number;
   manageChatHint: string;
   openDetail: (detail: ManageDetail) => void;
-  openOpening: (item: OpeningItem) => void;
+  openOpeningList: () => void;
   openLatestChat: () => void;
   openNewChat: () => void;
   openChat: (entry: ManageChatEntry) => void;
@@ -166,17 +165,4 @@ const props = defineProps<{
   handleCardAction: (card: CardHubItem) => void;
   manageDelete: (card: CardHubItem) => void;
 }>();
-
-const showAllOpenings = ref(false);
-
-watch(
-  () => [props.manageDetails, props.openingItems],
-  () => {
-    showAllOpenings.value = false;
-  },
-);
-
-function toggleOpenings() {
-  showAllOpenings.value = !showAllOpenings.value;
-}
 </script>

@@ -170,10 +170,14 @@
       }
 
       .cardhub-button {
-        border: none;
+        border: 1px solid rgba(var(--cardhub-accent-rgb), 0.6);
         padding: 6px 14px;
         border-radius: 999px;
-        background: var(--cardhub-accent);
+        background: linear-gradient(
+          135deg,
+          rgba(var(--cardhub-accent-rgb), 0.95) 0%,
+          rgba(var(--cardhub-accent-rgb), 0.75) 100%
+        );
         color: var(--cardhub-accent-text);
         cursor: pointer;
         font-size: 12px;
@@ -182,13 +186,21 @@
         align-items: center;
         justify-content: center;
         transition: background-color 160ms ease, transform 120ms ease, box-shadow 160ms ease, color 160ms ease;
-        box-shadow: 0 6px 16px rgba(var(--cardhub-accent-rgb), 0.2);
+        box-shadow:
+          0 8px 18px rgba(var(--cardhub-accent-rgb), 0.25),
+          inset 0 1px 0 rgba(255, 255, 255, 0.55);
       }
 
       .cardhub-button:hover {
-        background: rgba(var(--cardhub-accent-rgb), 0.85);
+        background: linear-gradient(
+          135deg,
+          rgba(var(--cardhub-accent-rgb), 0.98) 0%,
+          rgba(var(--cardhub-accent-rgb), 0.82) 100%
+        );
         color: var(--cardhub-accent-text);
-        box-shadow: 0 8px 18px rgba(var(--cardhub-accent-rgb), 0.3);
+        box-shadow:
+          0 10px 22px rgba(var(--cardhub-accent-rgb), 0.3),
+          inset 0 1px 0 rgba(255, 255, 255, 0.65);
       }
 
       .cardhub-button:active {
@@ -196,10 +208,10 @@
       }
 
       .cardhub-button.is-ghost {
-        background: rgba(var(--cardhub-surface-rgb), 0.75);
-        color: var(--cardhub-text-muted);
-        border: 1px solid rgba(var(--cardhub-border-rgb), 0.6);
-        box-shadow: none;
+        background: rgba(var(--cardhub-surface-rgb), 0.92);
+        color: var(--cardhub-text);
+        border: 1px solid rgba(var(--cardhub-border-rgb), 0.75);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
       }
 
       .cardhub-button.is-ghost:hover {
@@ -248,17 +260,37 @@
       }
 
       .cardhub-divider {
-        height: 1px;
+        height: 2px;
         width: 100%;
-        background: rgba(var(--cardhub-border-rgb), 0.6);
+        background: linear-gradient(
+          90deg,
+          rgba(var(--cardhub-border-rgb), 0) 0%,
+          rgba(var(--cardhub-border-rgb), 0.7) 50%,
+          rgba(var(--cardhub-border-rgb), 0) 100%
+        );
         margin: 8px 0;
       }
 
       .cardhub-section-title {
+        display: flex;
+        align-items: center;
+        gap: 6px;
         font-size: 12px;
         color: var(--cardhub-text);
         text-transform: uppercase;
         letter-spacing: 1px;
+        font-weight: 600;
+      }
+
+      .cardhub-section-title::before {
+        content: "";
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(var(--cardhub-accent-rgb), 0.6);
+        box-shadow:
+          0 0 0 2px rgba(var(--cardhub-accent-rgb), 0.2),
+          0 4px 8px rgba(43, 32, 24, 0.12);
       }
 
       .cardhub-chip {
@@ -293,6 +325,11 @@
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
+        padding: 10px;
+        border-radius: 16px;
+        border: 1px solid rgba(var(--cardhub-border-rgb), 0.55);
+        background: rgba(var(--cardhub-surface-rgb), 0.85);
+        box-shadow: 0 10px 18px rgba(43, 32, 24, 0.08);
       }
 
       .cardhub-tag-filter__chip {
@@ -322,10 +359,33 @@
 
       .cardhub-chip--clear {
         margin-top: 8px;
+        border: 1px solid rgba(var(--cardhub-border-rgb), 0.65);
+        background: rgba(var(--cardhub-surface-alt-rgb), 0.85);
+        color: var(--cardhub-text-muted);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
       }
 
       .cardhub-chip--more {
         margin-top: 4px;
+        border: 1px solid rgba(var(--cardhub-accent-rgb), 0.45);
+        background: linear-gradient(
+          135deg,
+          rgba(var(--cardhub-accent-rgb), 0.2) 0%,
+          rgba(var(--cardhub-surface-alt-rgb), 0.95) 100%
+        );
+        color: var(--cardhub-accent-strong);
+        box-shadow:
+          0 8px 16px rgba(var(--cardhub-accent-rgb), 0.18),
+          inset 0 1px 0 rgba(255, 255, 255, 0.6);
+      }
+
+      .cardhub-chip--more:hover {
+        background: linear-gradient(
+          135deg,
+          rgba(var(--cardhub-accent-rgb), 0.28) 0%,
+          rgba(var(--cardhub-surface-alt-rgb), 0.98) 100%
+        );
+        border-color: rgba(var(--cardhub-accent-rgb), 0.6);
       }
 
       .cardhub-filter-row {
@@ -336,11 +396,17 @@
       .cardhub-filter-block {
         display: grid;
         gap: 8px;
+        padding: 10px 12px;
+        border-radius: 16px;
+        border: 1px solid rgba(var(--cardhub-border-rgb), 0.6);
+        background: rgba(var(--cardhub-surface-rgb), 0.85);
+        box-shadow: 0 10px 18px rgba(43, 32, 24, 0.08);
       }
 
       .cardhub-filter-block + .cardhub-filter-block {
-        padding-top: 12px;
-        border-top: 1px dashed rgba(var(--cardhub-border-rgb), 0.6);
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px dashed rgba(var(--cardhub-border-rgb), 0.35);
       }
 
       .cardhub-content {
@@ -611,7 +677,11 @@
         grid-column: span 2;
         margin-top: 10px;
         border: none;
-        background: var(--cardhub-accent-strong);
+        background: linear-gradient(
+          135deg,
+          rgba(var(--cardhub-accent-strong-rgb), 0.98) 0%,
+          rgba(var(--cardhub-accent-strong-rgb), 0.78) 100%
+        );
         color: var(--cardhub-accent-strong-text);
         padding: 6px 12px;
         border-radius: 12px;
@@ -620,7 +690,7 @@
         transition: transform 120ms ease, box-shadow 160ms ease, background-color 160ms ease;
         box-shadow:
           0 10px 22px rgba(43, 32, 24, 0.22),
-          0 0 0 1px rgba(var(--cardhub-border-rgb), 0.45);
+          0 0 0 1px rgba(var(--cardhub-accent-strong-rgb), 0.35);
       }
 
       .cardhub-card__actions {
@@ -632,8 +702,9 @@
       }
 
       .cardhub-card__action.is-secondary {
-        background: rgba(var(--cardhub-surface-alt-rgb), 0.95);
+        background: rgba(var(--cardhub-surface-alt-rgb), 0.98);
         color: var(--cardhub-text);
+        border: 1px solid rgba(var(--cardhub-border-rgb), 0.6);
         box-shadow:
           0 10px 20px rgba(43, 32, 24, 0.16),
           0 0 0 1px rgba(var(--cardhub-border-rgb), 0.55);
@@ -807,6 +878,16 @@
         color: var(--cardhub-text-muted);
       }
 
+      .cardhub-manage__overview-action {
+        justify-self: start;
+        border: none;
+        background: transparent;
+        color: var(--cardhub-text-muted);
+        font-size: 11px;
+        cursor: pointer;
+        padding: 0;
+      }
+
       .cardhub-manage__section {
         display: grid;
         gap: 8px;
@@ -879,18 +960,28 @@
         font-size: 12px;
         cursor: pointer;
         text-transform: none;
-        transition: background-color 160ms ease, transform 120ms ease, box-shadow 160ms ease;
+        background: rgba(var(--cardhub-surface-rgb), 0.9);
+        color: var(--cardhub-text);
+        transition: background-color 160ms ease, transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease;
       }
 
       .cardhub-manage__btn.is-primary {
-        background: var(--cardhub-accent-strong);
+        background: linear-gradient(
+          135deg,
+          rgba(var(--cardhub-accent-strong-rgb), 0.98) 0%,
+          rgba(var(--cardhub-accent-strong-rgb), 0.78) 100%
+        );
         color: var(--cardhub-accent-strong-text);
         border-color: rgba(var(--cardhub-accent-strong-rgb), 0.6);
+        box-shadow:
+          0 8px 18px rgba(43, 32, 24, 0.22),
+          inset 0 1px 0 rgba(255, 255, 255, 0.25);
       }
 
       .cardhub-manage__btn.is-secondary {
         background: rgba(var(--cardhub-surface-alt-rgb), 0.98);
         color: var(--cardhub-text);
+        border-color: rgba(var(--cardhub-border-rgb), 0.8);
       }
 
       .cardhub-manage__jump-row {
@@ -906,11 +997,15 @@
       }
 
       .cardhub-manage__btn.is-primary:hover {
-        background: var(--cardhub-accent-strong);
+        background: linear-gradient(
+          135deg,
+          rgba(var(--cardhub-accent-strong-rgb), 1) 0%,
+          rgba(var(--cardhub-accent-strong-rgb), 0.82) 100%
+        );
       }
 
       .cardhub-manage__btn.is-secondary:hover {
-        background: rgba(var(--cardhub-surface-alt-rgb), 0.98);
+        background: rgba(var(--cardhub-surface-alt-rgb), 1);
       }
 
       .cardhub-manage__btn:active {
@@ -928,6 +1023,177 @@
         white-space: pre-wrap;
         overflow-wrap: anywhere;
         word-break: break-word;
+      }
+
+      .cardhub-openings__panel {
+        width: min(720px, 92vw);
+        max-width: 720px;
+        max-height: 80vh;
+        background: var(--cardhub-surface-alt);
+        border-radius: 22px;
+        box-shadow: var(--cardhub-shadow-strong);
+        padding: 18px 20px;
+        display: grid;
+        gap: 10px;
+        overflow: auto;
+        overflow-x: hidden;
+      }
+
+      .cardhub-openings {
+        background: rgba(24, 16, 10, 0.45);
+        backdrop-filter: blur(6px);
+        z-index: 100004;
+      }
+
+      .cardhub-worldbook {
+        background: rgba(24, 16, 10, 0.45);
+        backdrop-filter: blur(6px);
+        z-index: 100005;
+      }
+
+      .cardhub-worldbook__panel {
+        width: min(720px, 92vw);
+        max-height: 80vh;
+        background: var(--cardhub-surface-alt);
+        border-radius: 22px;
+        box-shadow: var(--cardhub-shadow-strong);
+        padding: 18px 20px;
+        display: grid;
+        gap: 10px;
+        overflow: auto;
+        overflow-x: hidden;
+      }
+
+      .cardhub-worldbook__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .cardhub-worldbook__title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--cardhub-text);
+      }
+
+      .cardhub-worldbook__meta {
+        display: flex;
+        gap: 8px;
+        font-size: 11px;
+        color: var(--cardhub-text-muted);
+      }
+
+      .cardhub-worldbook__list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .cardhub-worldbook__item {
+        text-align: left;
+        border: 1px solid rgba(var(--cardhub-border-rgb), 0.5);
+        background: rgba(var(--cardhub-surface-rgb), 0.98);
+        border-radius: 14px;
+        padding: 10px 12px;
+        cursor: pointer;
+        transition: transform 120ms ease, box-shadow 160ms ease;
+      }
+
+      .cardhub-worldbook__item:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 16px rgba(43, 32, 24, 0.12);
+      }
+
+      .cardhub-worldbook__item-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--cardhub-text);
+      }
+
+      .cardhub-worldbook__item-disabled {
+        font-size: 11px;
+        color: var(--cardhub-text-muted);
+      }
+
+      .cardhub-worldbook__item-preview {
+        margin-top: 4px;
+        font-size: 12px;
+        color: var(--cardhub-text-muted);
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+
+      .cardhub-openings__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 6px;
+      }
+
+      .cardhub-openings__title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--cardhub-text);
+      }
+
+      .cardhub-openings__meta {
+        display: flex;
+        gap: 8px;
+        font-size: 11px;
+        color: var(--cardhub-text-muted);
+        margin-bottom: 10px;
+      }
+
+      .cardhub-openings__list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .cardhub-openings__item {
+        text-align: left;
+        border: 1px solid rgba(var(--cardhub-border-rgb), 0.5);
+        background: rgba(var(--cardhub-surface-rgb), 0.98);
+        border-radius: 14px;
+        padding: 10px 12px;
+        cursor: pointer;
+        transition: transform 120ms ease, box-shadow 160ms ease;
+      }
+
+      .cardhub-openings__item:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 16px rgba(43, 32, 24, 0.12);
+      }
+
+      .cardhub-openings__item-title {
+        font-size: 11px;
+        color: var(--cardhub-text-muted);
+        margin-bottom: 4px;
+      }
+
+      .cardhub-openings__item-preview {
+        font-size: 12px;
+        color: var(--cardhub-text);
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+
+      .cardhub-manage__opening-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11px;
+        color: var(--cardhub-text-muted);
+        margin-bottom: 8px;
+      }
+
+      .cardhub-manage__opening-meta-value {
+        color: var(--cardhub-text);
+        font-weight: 600;
       }
 
       .cardhub-manage__opening {
@@ -1092,7 +1358,7 @@
       }
 
       .cardhub-confirm__button {
-        border: none;
+        border: 1px solid rgba(var(--cardhub-border-rgb), 0.6);
         border-radius: 999px;
         font-size: 12px;
         cursor: pointer;
@@ -1100,19 +1366,29 @@
       }
 
       .cardhub-confirm__button.is-confirm {
-        background: var(--cardhub-accent);
+        background: linear-gradient(
+          135deg,
+          rgba(var(--cardhub-accent-rgb), 0.95) 0%,
+          rgba(var(--cardhub-accent-rgb), 0.72) 100%
+        );
         color: var(--cardhub-accent-text);
+        border-color: rgba(var(--cardhub-accent-rgb), 0.55);
       }
 
       .cardhub-confirm__button.is-cancel {
-        background: transparent;
+        background: rgba(var(--cardhub-surface-rgb), 0.85);
         color: var(--cardhub-text-muted);
         border: 1px solid rgba(var(--cardhub-border-rgb), 0.6);
       }
 
       .cardhub-confirm__button.is-danger {
-        background: var(--cardhub-accent-strong);
+        background: linear-gradient(
+          135deg,
+          rgba(var(--cardhub-accent-strong-rgb), 0.98) 0%,
+          rgba(var(--cardhub-accent-strong-rgb), 0.78) 100%
+        );
         color: var(--cardhub-accent-strong-text);
+        border-color: rgba(var(--cardhub-accent-strong-rgb), 0.55);
       }
 
       .cardhub-confirm__button:hover {
@@ -1191,7 +1467,7 @@
       }
 
       .cardhub-note__btn {
-        border: none;
+        border: 1px solid rgba(var(--cardhub-border-rgb), 0.6);
         border-radius: 999px;
         padding: 8px 14px;
         font-size: 12px;
@@ -1200,8 +1476,13 @@
       }
 
       .cardhub-note__btn.is-primary {
-        background: var(--cardhub-accent-strong);
+        background: linear-gradient(
+          135deg,
+          rgba(var(--cardhub-accent-strong-rgb), 0.98) 0%,
+          rgba(var(--cardhub-accent-strong-rgb), 0.78) 100%
+        );
         color: var(--cardhub-accent-strong-text);
+        border-color: rgba(var(--cardhub-accent-strong-rgb), 0.55);
       }
 
       .cardhub-manage-viewer {
@@ -1246,7 +1527,7 @@
       }
 
       .cardhub-note__btn.is-secondary {
-        background: transparent;
+        background: rgba(var(--cardhub-surface-rgb), 0.85);
         color: var(--cardhub-text-muted);
         border: 1px solid rgba(var(--cardhub-border-rgb), 0.6);
       }
@@ -1337,7 +1618,7 @@
       }
 
       .cardhub-tag-manager__btn {
-        border: none;
+        border: 1px solid rgba(var(--cardhub-border-rgb), 0.6);
         border-radius: 999px;
         padding: 6px 12px;
         font-size: 12px;
@@ -1346,12 +1627,17 @@
       }
 
       .cardhub-tag-manager__btn.is-primary {
-        background: var(--cardhub-accent-strong);
+        background: linear-gradient(
+          135deg,
+          rgba(var(--cardhub-accent-strong-rgb), 0.98) 0%,
+          rgba(var(--cardhub-accent-strong-rgb), 0.78) 100%
+        );
         color: var(--cardhub-accent-strong-text);
+        border-color: rgba(var(--cardhub-accent-strong-rgb), 0.55);
       }
 
       .cardhub-tag-manager__btn.is-secondary {
-        background: transparent;
+        background: rgba(var(--cardhub-surface-rgb), 0.85);
         color: var(--cardhub-text-muted);
         border: 1px solid rgba(var(--cardhub-border-rgb), 0.6);
       }
@@ -1503,7 +1789,7 @@
       }
 
       .cardhub-export__btn {
-        border: none;
+        border: 1px solid rgba(var(--cardhub-border-rgb), 0.6);
         border-radius: 999px;
         font-size: 12px;
         cursor: pointer;
@@ -1511,12 +1797,17 @@
       }
 
       .cardhub-export__btn.is-primary {
-        background: var(--cardhub-accent);
+        background: linear-gradient(
+          135deg,
+          rgba(var(--cardhub-accent-rgb), 0.95) 0%,
+          rgba(var(--cardhub-accent-rgb), 0.72) 100%
+        );
         color: var(--cardhub-accent-text);
+        border-color: rgba(var(--cardhub-accent-rgb), 0.55);
       }
 
       .cardhub-export__btn.is-secondary {
-        background: transparent;
+        background: rgba(var(--cardhub-surface-rgb), 0.85);
         color: var(--cardhub-text-muted);
         border: 1px solid rgba(var(--cardhub-border-rgb), 0.6);
       }
@@ -1659,7 +1950,7 @@
       }
 
       .cardhub-batch__btn {
-        border: none;
+        border: 1px solid rgba(var(--cardhub-border-rgb), 0.6);
         border-radius: 999px;
         font-size: 12px;
         cursor: pointer;
@@ -1667,12 +1958,17 @@
       }
 
       .cardhub-batch__btn.is-primary {
-        background: var(--cardhub-accent);
+        background: linear-gradient(
+          135deg,
+          rgba(var(--cardhub-accent-rgb), 0.95) 0%,
+          rgba(var(--cardhub-accent-rgb), 0.72) 100%
+        );
         color: var(--cardhub-accent-text);
+        border-color: rgba(var(--cardhub-accent-rgb), 0.55);
       }
 
       .cardhub-batch__btn.is-secondary {
-        background: transparent;
+        background: rgba(var(--cardhub-surface-rgb), 0.85);
         color: var(--cardhub-text-muted);
         border: 1px solid rgba(var(--cardhub-border-rgb), 0.7);
       }
@@ -1680,6 +1976,7 @@
       .cardhub-batch__btn.is-ghost {
         background: rgba(var(--cardhub-accent-rgb), 0.12);
         color: var(--cardhub-accent-strong);
+        border-color: rgba(var(--cardhub-accent-rgb), 0.3);
       }
 
       .cardhub-batch__btn:hover {
@@ -1846,7 +2143,7 @@
       }
 
       .cardhub-theme__btn {
-        border: none;
+        border: 1px solid rgba(var(--cardhub-border-rgb), 0.6);
         border-radius: 999px;
         font-size: 12px;
         cursor: pointer;
@@ -1854,12 +2151,17 @@
       }
 
       .cardhub-theme__btn.is-primary {
-        background: var(--cardhub-accent);
+        background: linear-gradient(
+          135deg,
+          rgba(var(--cardhub-accent-rgb), 0.95) 0%,
+          rgba(var(--cardhub-accent-rgb), 0.72) 100%
+        );
         color: var(--cardhub-accent-text);
+        border-color: rgba(var(--cardhub-accent-rgb), 0.55);
       }
 
       .cardhub-theme__btn.is-secondary {
-        background: transparent;
+        background: rgba(var(--cardhub-surface-rgb), 0.85);
         color: var(--cardhub-text-muted);
         border: 1px solid rgba(var(--cardhub-border-rgb), 0.6);
       }
@@ -2048,15 +2350,19 @@
         .cardhub-section-title {
           font-size: 9px;
           margin-bottom: 4px;
+          line-height: 1.2;
         }
 
         .cardhub-filter-row {
-          grid-template-columns: 1fr 1fr;
-          gap: 8px;
+          grid-template-columns: 1fr;
+          gap: 10px;
+          align-items: start;
         }
 
         .cardhub-filter-block {
           gap: 6px;
+          min-width: 0;
+          align-content: start;
         }
 
         .cardhub-filter-block .cardhub-chip-row {
@@ -2100,9 +2406,9 @@
         }
 
         .cardhub-chip {
-          font-size: 11px;
-          padding: 6px 10px;
-          min-height: 30px;
+          font-size: 10px;
+          padding: 5px 9px;
+          min-height: 28px;
           line-height: 1;
           white-space: nowrap;
           flex-shrink: 0;

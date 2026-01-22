@@ -8,19 +8,22 @@
         :manage-overview="manageOverview"
         :display-tags="displayTags"
         :open-note-dialog="openNoteDialog"
+        :worldbook-available="worldbookAvailable"
+        :open-worldbook-list="openWorldbookList"
       />
       <ManageContent
         :manage-card="manageCard"
         :manage-details="manageDetails"
         :manage-details-hint="manageDetailsHint"
         :opening-items="openingItems"
+        :opening-summary="openingSummary"
         :manage-chats="manageChats"
         :paged-chats="pagedChats"
         :chat-page="chatPage"
         :chat-total-pages="chatTotalPages"
         :manage-chat-hint="manageChatHint"
         :open-detail="openDetailViewer"
-        :open-opening="openOpeningViewer"
+        :open-opening-list="openOpeningList"
         :open-latest-chat="openLatestChat"
         :open-new-chat="openNewChat"
         :open-chat="openChat"
@@ -42,6 +45,101 @@
       <div class="cardhub-note__actions">
         <button class="cardhub-note__btn is-secondary" type="button" @click="closeNoteDialog">取消</button>
         <button class="cardhub-note__btn is-primary" type="button" @click="saveNoteDialog">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="openingListOpen" class="cardhub-openings cardhub-modal" @click.self="closeOpeningList">
+    <div class="cardhub-openings__panel cardhub-modal__panel" role="dialog" aria-label="开场白列表">
+      <div class="cardhub-openings__header">
+        <div class="cardhub-openings__title">开场白列表</div>
+        <button class="cardhub-preview__close" type="button" @click="closeOpeningList">×</button>
+      </div>
+      <div class="cardhub-openings__meta">
+        <span>{{ openingSummary.value }}</span>
+        <span v-if="openingSummary.hint">{{ openingSummary.hint }}</span>
+      </div>
+      <div v-if="pagedOpenings.length" class="cardhub-openings__list">
+        <button
+          v-for="item in pagedOpenings"
+          :key="item.id"
+          class="cardhub-openings__item"
+          type="button"
+          @click="openOpeningViewer(item)"
+        >
+          <div class="cardhub-openings__item-title">开场白 {{ item.id + 1 }}</div>
+          <div class="cardhub-openings__item-preview">{{ item.preview }}</div>
+        </button>
+      </div>
+      <div v-else class="cardhub-manage__empty">暂无开场白</div>
+      <div v-if="openingTotalPages > 1" class="cardhub-manage__pager">
+        <button
+          class="cardhub-manage__pager-btn"
+          type="button"
+          :disabled="openingPage <= 1"
+          @click="prevOpeningPage"
+        >
+          上一页
+        </button>
+        <span class="cardhub-manage__pager-status">{{ openingPage }} / {{ openingTotalPages }}</span>
+        <button
+          class="cardhub-manage__pager-btn"
+          type="button"
+          :disabled="openingPage >= openingTotalPages"
+          @click="nextOpeningPage"
+        >
+          下一页
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="worldbookOpen" class="cardhub-worldbook cardhub-modal" @click.self="closeWorldbookList">
+    <div class="cardhub-worldbook__panel cardhub-modal__panel" role="dialog" aria-label="世界书">
+      <div class="cardhub-worldbook__header">
+        <div class="cardhub-worldbook__title">{{ worldbookName || '世界书' }}</div>
+        <button class="cardhub-preview__close" type="button" @click="closeWorldbookList">×</button>
+      </div>
+      <div class="cardhub-worldbook__meta">
+        <span>{{ worldbookSummary }}</span>
+        <span v-if="worldbookSummaryHint">{{ worldbookSummaryHint }}</span>
+      </div>
+      <div v-if="worldbookLoading" class="cardhub-manage__empty">加载中...</div>
+      <div v-else-if="worldbookError" class="cardhub-manage__empty">{{ worldbookError }}</div>
+      <div v-else-if="pagedWorldbookItems.length" class="cardhub-worldbook__list">
+        <button
+          v-for="item in pagedWorldbookItems"
+          :key="item.uid"
+          class="cardhub-worldbook__item"
+          type="button"
+          @click="openWorldbookEntry(item)"
+        >
+          <div class="cardhub-worldbook__item-title">
+            <span>{{ item.name }}</span>
+            <span v-if="!item.enabled" class="cardhub-worldbook__item-disabled">已禁用</span>
+          </div>
+          <div class="cardhub-worldbook__item-preview">{{ item.preview }}</div>
+        </button>
+      </div>
+      <div v-else class="cardhub-manage__empty">暂无条目</div>
+      <div v-if="worldbookTotalPages > 1" class="cardhub-manage__pager">
+        <button
+          class="cardhub-manage__pager-btn"
+          type="button"
+          :disabled="worldbookPage <= 1"
+          @click="prevWorldbookPage"
+        >
+          上一页
+        </button>
+        <span class="cardhub-manage__pager-status">{{ worldbookPage }} / {{ worldbookTotalPages }}</span>
+        <button
+          class="cardhub-manage__pager-btn"
+          type="button"
+          :disabled="worldbookPage >= worldbookTotalPages"
+          @click="nextWorldbookPage"
+        >
+          下一页
+        </button>
       </div>
     </div>
   </div>
@@ -105,6 +203,12 @@ type ManageChatSummary = {
   latest: string;
 };
 
+type OpeningSummary = {
+  value: string;
+  hint: string;
+  hasData: boolean;
+};
+
 type ManageChatData = {
   list: ManageChatEntry[];
   summary: ManageChatSummary | null;
@@ -114,12 +218,21 @@ type ManageData = {
   openings: string[];
   profile: ManageProfile | null;
   openingSummary: ManageOpeningSummary | null;
+  worldbookEntries: WorldbookEntry[];
 };
 
 type OpeningItem = {
   id: number;
   preview: string;
   html: string;
+};
+
+type WorldbookItem = {
+  uid: number;
+  name: string;
+  enabled: boolean;
+  preview: string;
+  content: string;
 };
 
 const props = defineProps<{
@@ -136,6 +249,7 @@ const props = defineProps<{
 
 const manageCard = computed(() => props.card);
 const manageOpenings = ref<string[]>([]);
+const manageWorldbookEntries = ref<WorldbookEntry[]>([]);
 const manageProfile = ref<ManageProfile | null>(null);
 const manageOpeningSummary = ref<ManageOpeningSummary | null>(null);
 const manageChats = ref<ManageChatEntry[]>([]);
@@ -179,15 +293,6 @@ const manageOverview = computed(() => {
     }
   }
   items.push({ label: '聊天概况', value: chatValue, hint: chatHint });
-
-  const opening = manageOpeningSummary.value;
-  let openingValue = '暂无开场白';
-  let openingHint = '';
-  if (opening && opening.total > 0) {
-    openingValue = `${opening.total} 条`;
-    openingHint = opening.alternate > 0 ? `替代：${opening.alternate} 条` : '无替代';
-  }
-  items.push({ label: '开场白', value: openingValue, hint: openingHint });
   return items;
 });
 const manageDetails = computed<ManageDetail[]>(() => {
@@ -225,6 +330,54 @@ const openingItems = computed<OpeningItem[]>(() =>
   })),
 );
 
+const openingSummary = computed<OpeningSummary>(() => {
+  const opening = manageOpeningSummary.value;
+  const total = opening?.total ?? openingItems.value.length;
+  const alternate = opening?.alternate ?? 0;
+  if (!total) {
+    return { value: '暂无开场白', hint: '', hasData: false };
+  }
+  return {
+    value: `共 ${total} 条`,
+    hint: alternate > 0 ? `替代 ${alternate} 条` : '无替代',
+    hasData: true,
+  };
+});
+
+const worldbookName = computed(() => manageProfile.value?.worldBookName?.trim() || '');
+const worldbookAvailable = computed(() => Boolean(worldbookName.value || manageWorldbookEntries.value.length));
+const worldbookEntries = ref<WorldbookEntry[]>([]);
+const worldbookLoadedName = ref('');
+const worldbookLoading = ref(false);
+const worldbookError = ref('');
+const worldbookOpen = ref(false);
+const worldbookPage = ref(1);
+const worldbookPageSize = 10;
+const worldbookItems = computed<WorldbookItem[]>(() =>
+  worldbookEntries.value.map((entry, index) => ({
+    uid: entry.uid ?? index,
+    name: entry.name || `条目 ${index + 1}`,
+    enabled: entry.enabled !== false,
+    preview: previewDetailText(String(entry.content ?? ''), 2, 200) || '（无内容）',
+    content: String(entry.content ?? ''),
+  })),
+);
+const worldbookTotalPages = computed(() => Math.max(1, Math.ceil(worldbookItems.value.length / worldbookPageSize)));
+const pagedWorldbookItems = computed(() => {
+  const start = (worldbookPage.value - 1) * worldbookPageSize;
+  return worldbookItems.value.slice(start, start + worldbookPageSize);
+});
+const worldbookSummary = computed(() => {
+  if (!worldbookAvailable.value) {
+    return '未绑定世界书';
+  }
+  if (worldbookLoading.value) {
+    return '正在读取条目';
+  }
+  return `共 ${worldbookItems.value.length} 条`;
+});
+const worldbookSummaryHint = computed(() => (worldbookItems.value.length ? worldbookName.value : ''));
+
 const chatPage = ref(1);
 const chatPageSize = 6;
 const chatTotalPages = computed(() => Math.max(1, Math.ceil(manageChats.value.length / chatPageSize)));
@@ -233,8 +386,17 @@ const pagedChats = computed(() => {
   return manageChats.value.slice(start, start + chatPageSize);
 });
 
+const openingPage = ref(1);
+const openingPageSize = 10;
+const openingTotalPages = computed(() => Math.max(1, Math.ceil(openingItems.value.length / openingPageSize)));
+const pagedOpenings = computed(() => {
+  const start = (openingPage.value - 1) * openingPageSize;
+  return openingItems.value.slice(start, start + openingPageSize);
+});
+
 const noteDialogOpen = ref(false);
 const noteDraft = ref('');
+const openingListOpen = ref(false);
 const viewerOpen = ref(false);
 const viewerTitle = ref('');
 const viewerHtml = ref('');
@@ -245,13 +407,22 @@ watch(
   card => {
     if (!card) {
       manageOpenings.value = [];
+      manageWorldbookEntries.value = [];
       manageProfile.value = null;
       manageOpeningSummary.value = null;
       manageChats.value = [];
       manageChatSummary.value = null;
       chatPage.value = 1;
+      openingPage.value = 1;
       noteDialogOpen.value = false;
       noteDraft.value = '';
+      openingListOpen.value = false;
+      worldbookOpen.value = false;
+      worldbookEntries.value = [];
+      worldbookLoadedName.value = '';
+      worldbookLoading.value = false;
+      worldbookError.value = '';
+      worldbookPage.value = 1;
       viewerOpen.value = false;
       viewerTitle.value = '';
       viewerHtml.value = '';
@@ -271,6 +442,80 @@ function prevChatPage() {
 function nextChatPage() {
   if (chatPage.value < chatTotalPages.value) {
     chatPage.value += 1;
+  }
+}
+
+async function openWorldbookList() {
+  const name = worldbookName.value;
+  if (!name && !manageWorldbookEntries.value.length) {
+    return;
+  }
+  worldbookOpen.value = true;
+  worldbookError.value = '';
+  worldbookPage.value = 1;
+  if (manageWorldbookEntries.value.length) {
+    worldbookEntries.value = manageWorldbookEntries.value;
+    worldbookLoadedName.value = name || 'embedded';
+    return;
+  }
+  if (worldbookLoadedName.value === name && worldbookEntries.value.length) {
+    return;
+  }
+  if (typeof getWorldbook !== 'function') {
+    worldbookError.value = '世界书接口不可用';
+    return;
+  }
+  worldbookLoading.value = true;
+  try {
+    const entries = await getWorldbook(name);
+    worldbookEntries.value = Array.isArray(entries) ? entries : [];
+    worldbookLoadedName.value = name;
+  } catch (error) {
+    worldbookError.value = '读取世界书失败';
+    worldbookEntries.value = [];
+    console.warn('[CardHub] 读取世界书失败', error);
+  } finally {
+    worldbookLoading.value = false;
+  }
+}
+
+function closeWorldbookList() {
+  worldbookOpen.value = false;
+}
+
+function prevWorldbookPage() {
+  if (worldbookPage.value > 1) {
+    worldbookPage.value -= 1;
+  }
+}
+
+function nextWorldbookPage() {
+  if (worldbookPage.value < worldbookTotalPages.value) {
+    worldbookPage.value += 1;
+  }
+}
+
+function openOpeningList() {
+  if (!openingItems.value.length) {
+    return;
+  }
+  openingPage.value = 1;
+  openingListOpen.value = true;
+}
+
+function closeOpeningList() {
+  openingListOpen.value = false;
+}
+
+function prevOpeningPage() {
+  if (openingPage.value > 1) {
+    openingPage.value -= 1;
+  }
+}
+
+function nextOpeningPage() {
+  if (openingPage.value < openingTotalPages.value) {
+    openingPage.value += 1;
   }
 }
 
@@ -301,8 +546,16 @@ function openDetailViewer(detail: ManageDetail) {
 }
 
 function openOpeningViewer(item: OpeningItem) {
+  openingListOpen.value = false;
   viewerTitle.value = `开场白 ${item.id + 1}`;
   viewerHtml.value = item.html || textToHtml(item.preview);
+  viewerOpen.value = true;
+}
+
+function openWorldbookEntry(item: WorldbookItem) {
+  worldbookOpen.value = false;
+  viewerTitle.value = item.name || '世界书条目';
+  viewerHtml.value = textToHtml(item.content);
   viewerOpen.value = true;
 }
 
@@ -313,11 +566,20 @@ function closeViewer() {
 async function openManage(card: CardHubItem) {
   const requestId = ++manageRequestId;
   manageOpenings.value = [];
+  manageWorldbookEntries.value = [];
   manageChats.value = [];
   manageProfile.value = null;
   manageOpeningSummary.value = null;
   manageChatSummary.value = null;
   chatPage.value = 1;
+  openingPage.value = 1;
+  openingListOpen.value = false;
+  worldbookOpen.value = false;
+  worldbookEntries.value = [];
+  worldbookLoadedName.value = '';
+  worldbookLoading.value = false;
+  worldbookError.value = '';
+  worldbookPage.value = 1;
 
   const [manageResult, chatsResult] = await Promise.allSettled([resolveManageData(card), resolveRecentChats(card)]);
 
@@ -326,10 +588,13 @@ async function openManage(card: CardHubItem) {
   }
 
   const manageData: ManageData =
-    manageResult.status === 'fulfilled' ? manageResult.value : { openings: [], profile: null, openingSummary: null };
+    manageResult.status === 'fulfilled'
+      ? manageResult.value
+      : { openings: [], profile: null, openingSummary: null, worldbookEntries: [] };
   manageOpenings.value = manageData.openings;
   manageProfile.value = manageData.profile;
   manageOpeningSummary.value = manageData.openingSummary;
+  manageWorldbookEntries.value = manageData.worldbookEntries;
 
   const chatData: ManageChatData = chatsResult.status === 'fulfilled' ? chatsResult.value : { list: [], summary: null };
   manageChats.value = chatData.list;
@@ -343,6 +608,7 @@ async function resolveManageData(card: CardHubItem): Promise<ManageData> {
       openings: extractOpeningMessages(data),
       profile: extractCardProfile(data),
       openingSummary: extractOpeningSummary(data),
+      worldbookEntries: extractWorldbookEntries(data),
     };
   }
   const raw = await getFullCharacterData(card);
@@ -360,6 +626,7 @@ async function resolveManageData(card: CardHubItem): Promise<ManageData> {
     openings,
     profile: extractCardProfile(primary ?? fallback),
     openingSummary,
+    worldbookEntries: extractWorldbookEntries(primary ?? fallback),
   };
 }
 
@@ -664,6 +931,14 @@ function extractCardProfile(data: any): ManageProfile | null {
     Boolean(profile.worldBookName) ||
     typeof profile.worldBookCount === 'number';
   return hasValue ? profile : null;
+}
+
+function extractWorldbookEntries(data: any): WorldbookEntry[] {
+  const book = data?.character_book ?? data?.data?.character_book;
+  if (!book || !Array.isArray(book?.entries)) {
+    return [];
+  }
+  return book.entries as WorldbookEntry[];
 }
 
 function pickString(...values: unknown[]): string {

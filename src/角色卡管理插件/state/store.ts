@@ -4,6 +4,7 @@ import type { CardHubItem, EntrySource } from '../types';
 type CardHubState = {
   open: boolean;
   loading: boolean;
+  search: string;
   lastOpenSource: EntrySource;
   characters: CardHubItem[];
   library: CardHubItem[];
@@ -12,6 +13,7 @@ type CardHubState = {
 export const cardHubState = reactive<CardHubState>({
   open: false,
   loading: false,
+  search: '',
   lastOpenSource: 'manual',
   characters: [],
   library: [],
