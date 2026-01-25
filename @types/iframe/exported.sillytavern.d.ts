@@ -373,25 +373,6 @@ declare namespace SillyTavern {
     /** The type of the input (default is checkbox) */
     type?: string;
   };
-
-  type ContextTag = {
-    id?: string;
-    name?: string;
-  };
-
-  type Context = {
-    characters?: v1CharData[];
-    tags?: ContextTag[];
-    tagMap?: Record<string, string[]>;
-    characterId?: string | number;
-    getCharacters?: () => Promise<void>;
-    selectCharacterById?: (character_id: number, options?: { switchMenu?: boolean }) => Promise<void>;
-    openCharacterChat?: (character_id: number, options?: { switchMenu?: boolean }) => Promise<void>;
-    unshallowCharacter?: (character_id: number) => Promise<void>;
-    getCharacterCardFields?: (args: { chid: number }) => Promise<Partial<v1CharData> & Record<string, any>>;
-    getRequestHeaders?: () => Record<string, string>;
-    saveSettingsDebounced?: () => Promise<void> | void;
-  };
 }
 
 /**
@@ -414,7 +395,6 @@ declare const SillyTavern: {
     'Content-Type': string;
     'X-CSRF-TOKEN': string;
   };
-  readonly getContext?: () => SillyTavern.Context;
   readonly reloadCurrentChat: () => Promise<void>;
   readonly renameChat: (old_name: string, new_name: string) => Promise<void>;
   readonly saveSettingsDebounced: () => Promise<void>;
@@ -577,6 +557,7 @@ declare const SillyTavern: {
     response_length?: number,
     force_chid?: number,
   ) => Promise<string>;
+  /** 严禁使用本方法修改角色卡的 `extensions` 字段, 它会合并原有值和新值而不是替换; 应该使用 `updateCharacterWith` */
   readonly writeExtensionField: (character_id: number, key: string, value: any) => Promise<void>;
   readonly getThumbnailUrl: (type: any, file: any) => string;
   readonly selectCharacterById: (id: number, { switchMenu }?: { switchMenu?: boolean }) => Promise<void>;
@@ -704,7 +685,3 @@ declare const SillyTavern: {
     ignore: any;
   };
 };
-
-interface Window {
-  SillyTavern?: typeof SillyTavern;
-}
