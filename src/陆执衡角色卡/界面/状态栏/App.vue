@@ -149,7 +149,7 @@ const formatTemp = (value?: number) => {
   --accent: #b88b4a;
   --paper: #f7f1e7;
   --mist: #efe6d7;
-  font-family: "Source Han Serif SC", "Noto Serif SC", "STSong", serif;
+  font-family: 'Source Han Serif SC', 'Noto Serif SC', 'STSong', serif;
   color: var(--ink);
   background: linear-gradient(135deg, #f9f3ea 0%, #efe3d3 100%);
   border: 1px solid #d8c7b4;

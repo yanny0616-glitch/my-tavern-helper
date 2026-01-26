@@ -2,11 +2,7 @@
 import type { CardHubItem } from '../types';
 import { loadStorageSettings, type StorageMode } from './storageSettings';
 import { loadGlobalState, updateGlobalState } from './globalState';
-import {
-  isIndexedDbAvailable,
-  readLibraryFromIndexedDb,
-  writeLibraryToIndexedDb,
-} from './libraryStorageIndexedDb';
+import { isIndexedDbAvailable, readLibraryFromIndexedDb, writeLibraryToIndexedDb } from './libraryStorageIndexedDb';
 
 type StoredLibrary = {
   entries: CardHubItem[];
@@ -404,8 +400,7 @@ export async function addToLibrary(files: FileList | File[], existingEntries?: C
   if (!list.length) {
     return await loadLibrary();
   }
-  const current =
-    Array.isArray(existingEntries) && existingEntries.length ? existingEntries : await loadLibrary();
+  const current = Array.isArray(existingEntries) && existingEntries.length ? existingEntries : await loadLibrary();
   const fingerprints = new Set<string>();
   current.forEach(entry => {
     const fingerprint = ensureFingerprint(entry);
@@ -541,5 +536,3 @@ export function removeFromLibrary(entryId: string, existingEntries?: CardHubItem
   void persistLibrary(updated);
   return updated;
 }
-
-

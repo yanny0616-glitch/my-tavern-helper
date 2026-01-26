@@ -35,12 +35,15 @@ export function initMacroManager() {
   buttonManager.render(settings);
   buttonManager.bind(settings);
 
-  manager = createMacroManager(() => settings, nextSettings => {
-    settings = nextSettings;
-    saveSettings(settings);
-    buttonManager.render(settings);
-    buttonManager.bind(settings);
-  });
+  manager = createMacroManager(
+    () => settings,
+    nextSettings => {
+      settings = nextSettings;
+      saveSettings(settings);
+      buttonManager.render(settings);
+      buttonManager.bind(settings);
+    },
+  );
 
   buttonManager.ensureManageButton(manager);
 

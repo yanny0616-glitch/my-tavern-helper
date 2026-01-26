@@ -159,9 +159,7 @@ function renderMemoryItem(amCode: string, entry: any) {
 
 function initUserInput() {
   const trimmed = parseUserInput(rawContent).replace(/^\s+|\s+$/g, '');
-  userInputHtml.value = trimmed
-    ? escapeHtml(trimmed)
-    : '<span class="th-muted">（无输入内容）</span>';
+  userInputHtml.value = trimmed ? escapeHtml(trimmed) : '<span class="th-muted">（无输入内容）</span>';
 }
 
 async function loadMemories() {
@@ -190,9 +188,7 @@ async function loadMemories() {
     }
     const entries = await getLorebookEntries(wbName);
     if (!entries) return;
-    memoryListHtml.value = amCodes
-      .map(code => renderMemoryItem(code, findEntryByKey(entries as any[], code)))
-      .join('');
+    memoryListHtml.value = amCodes.map(code => renderMemoryItem(code, findEntryByKey(entries as any[], code))).join('');
     updateIframeHeight();
   } catch (err) {
     console.error('记忆召回失败:', err);
@@ -269,10 +265,7 @@ function syncFontSizeFromParent() {
   try {
     if (window.parent && window.parent !== window) {
       const parentDoc = window.parent.document;
-      const sample =
-        parentDoc.querySelector('.mes_text') ||
-        parentDoc.querySelector('.message') ||
-        parentDoc.body;
+      const sample = parentDoc.querySelector('.mes_text') || parentDoc.querySelector('.message') || parentDoc.body;
       const style = window.parent.getComputedStyle(sample as Element);
       const size = style.fontSize;
       const lineHeight = style.lineHeight;

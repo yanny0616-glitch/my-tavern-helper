@@ -17,10 +17,22 @@
       </button>
 
       <template v-if="mode === 'active'">
-        <button class="macro-icon-btn" type="button" aria-label="复制" title="复制" @click.stop="emit('duplicate', macro.id)">
+        <button
+          class="macro-icon-btn"
+          type="button"
+          aria-label="复制"
+          title="复制"
+          @click.stop="emit('duplicate', macro.id)"
+        >
           <i class="macro-icon fa-regular fa-copy" aria-hidden="true"></i>
         </button>
-        <button class="macro-icon-btn" type="button" aria-label="移出列表" title="移出列表" @click.stop="emit('hide', macro.id)">
+        <button
+          class="macro-icon-btn"
+          type="button"
+          aria-label="移出列表"
+          title="移出列表"
+          @click.stop="emit('hide', macro.id)"
+        >
           <i class="macro-icon fa-regular fa-eye-slash" aria-hidden="true"></i>
         </button>
       </template>
@@ -32,12 +44,28 @@
           :title="macro.enabled ? '移出快捷回复' : '加入快捷回复'"
           @click.stop="emit('toggle', macro.id)"
         >
-          <i class="macro-icon" :class="macro.enabled ? 'fa-solid fa-minus' : 'fa-solid fa-plus'" aria-hidden="true"></i>
+          <i
+            class="macro-icon"
+            :class="macro.enabled ? 'fa-solid fa-minus' : 'fa-solid fa-plus'"
+            aria-hidden="true"
+          ></i>
         </button>
-        <button class="macro-icon-btn" type="button" aria-label="编辑" title="编辑" @click.stop="emit('edit', macro.id)">
+        <button
+          class="macro-icon-btn"
+          type="button"
+          aria-label="编辑"
+          title="编辑"
+          @click.stop="emit('edit', macro.id)"
+        >
           <i class="macro-icon fa-regular fa-pen-to-square" aria-hidden="true"></i>
         </button>
-        <button class="macro-icon-btn" type="button" aria-label="删除" title="删除" @click.stop="emit('delete', macro.id)">
+        <button
+          class="macro-icon-btn"
+          type="button"
+          aria-label="删除"
+          title="删除"
+          @click.stop="emit('delete', macro.id)"
+        >
           <i class="macro-icon fa-regular fa-trash-can" aria-hidden="true"></i>
         </button>
       </template>

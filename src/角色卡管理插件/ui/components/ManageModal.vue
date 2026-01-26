@@ -129,11 +129,7 @@
           <div class="cardhub-worldbook__item-title">
             <span class="cardhub-worldbook__item-index">{{ item.indexLabel }}</span>
             <span class="cardhub-worldbook__item-name">{{ item.title || '未命名条目' }}</span>
-            <span
-              v-if="item.strategyLabel"
-              class="cardhub-worldbook__item-strategy"
-              :class="`is-${item.strategyType}`"
-            >
+            <span v-if="item.strategyLabel" class="cardhub-worldbook__item-strategy" :class="`is-${item.strategyType}`">
               {{ item.strategyLabel }}
             </span>
             <span v-if="!item.enabled" class="cardhub-worldbook__item-disabled">已禁用</span>
@@ -351,7 +347,13 @@ const manageDetails = computed<ManageDetail[]>(() => {
   }
   const canEdit = manageCard.value?.origin === 'tavern';
   if (profile) {
-    pushDetail('角色描述', profile.description ?? '', 240, Boolean(canEdit && profile.descriptionField), profile.descriptionField ?? '');
+    pushDetail(
+      '角色描述',
+      profile.description ?? '',
+      240,
+      Boolean(canEdit && profile.descriptionField),
+      profile.descriptionField ?? '',
+    );
     pushDetail('性格', profile.personality ?? '');
     pushDetail('场景', profile.scenario ?? '');
     pushDetail(
@@ -421,9 +423,7 @@ function resolveWorldbookTitle(entry: WorldbookEntry): string {
     return primary;
   }
   const secondary = pickWorldbookKey(
-    entry?.strategy?.keys_secondary?.keys ??
-      (entry as any)?.keys_secondary ??
-      (entry as any)?.secondary_keys,
+    entry?.strategy?.keys_secondary?.keys ?? (entry as any)?.keys_secondary ?? (entry as any)?.secondary_keys,
   );
   if (secondary) {
     return secondary;

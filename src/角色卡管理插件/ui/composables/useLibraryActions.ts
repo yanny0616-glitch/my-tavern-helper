@@ -530,5 +530,3 @@ export function useLibraryActions(options: LibraryActionOptions) {
     manageDelete,
   };
 }
-
-

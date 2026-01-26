@@ -31,7 +31,9 @@ body {
   border-radius: 14px;
   padding: 10px 12px;
   box-shadow: var(--perf-shadow);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .perf-card:hover {

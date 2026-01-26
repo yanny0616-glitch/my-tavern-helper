@@ -5,12 +5,7 @@
       <div v-for="detail in manageDetails" :key="detail.label" class="cardhub-manage__detail">
         <div class="cardhub-manage__detail-head">
           <div class="cardhub-manage__detail-label">{{ detail.label }}</div>
-          <button
-            v-if="detail.editable"
-            class="cardhub-manage__detail-edit"
-            type="button"
-            @click="openEdit(detail)"
-          >
+          <button v-if="detail.editable" class="cardhub-manage__detail-edit" type="button" @click="openEdit(detail)">
             ✎
           </button>
         </div>

@@ -181,12 +181,23 @@
           <div class="macro-search">
             <i class="macro-icon fa-solid fa-magnifying-glass" aria-hidden="true"></i>
             <input v-model="searchTerm" class="macro-search-input" placeholder="搜索名称或内容" />
-            <button v-if="searchTerm" class="macro-icon-btn is-ghost" type="button" aria-label="清除" @click="searchTerm = ''">
+            <button
+              v-if="searchTerm"
+              class="macro-icon-btn is-ghost"
+              type="button"
+              aria-label="清除"
+              @click="searchTerm = ''"
+            >
               <i class="macro-icon fa-solid fa-xmark" aria-hidden="true"></i>
             </button>
           </div>
           <div class="macro-filters">
-            <button class="macro-filter-chip" :class="{ active: scopeFilter === 'all' }" type="button" @click="scopeFilter = 'all'">
+            <button
+              class="macro-filter-chip"
+              :class="{ active: scopeFilter === 'all' }"
+              type="button"
+              @click="scopeFilter = 'all'"
+            >
               全部
             </button>
             <button
@@ -205,11 +216,21 @@
             >
               角色
             </button>
-            <button class="macro-filter-chip" :class="{ active: onlyPinned }" type="button" @click="onlyPinned = !onlyPinned">
+            <button
+              class="macro-filter-chip"
+              :class="{ active: onlyPinned }"
+              type="button"
+              @click="onlyPinned = !onlyPinned"
+            >
               <i class="macro-icon fa-solid fa-star" aria-hidden="true"></i>
               收藏
             </button>
-            <button class="macro-filter-chip" :class="{ active: onlyRecent }" type="button" @click="onlyRecent = !onlyRecent">
+            <button
+              class="macro-filter-chip"
+              :class="{ active: onlyRecent }"
+              type="button"
+              @click="onlyRecent = !onlyRecent"
+            >
               <i class="macro-icon fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
               最近
             </button>
@@ -218,112 +239,112 @@
           <div class="macro-library-grid" :class="{ 'is-editing': !!librarySelectedMacro }">
             <div class="macro-library-list">
               <div class="macro-list">
-            <template v-if="onlyRecent">
-              <div class="macro-subtitle">最近使用</div>
-              <div class="macro-group">
-                <div
-                  v-for="macro in recentMacros"
-                  :key="macro.id"
-                  class="macro-item"
-                  :class="{ active: macro.id === librarySelectedId }"
-                  @click="selectLibraryMacro(macro.id)"
-                  role="button"
-                  tabindex="0"
-                  @keydown.enter.prevent="selectLibraryMacro(macro.id)"
-                  @keydown.space.prevent="selectLibraryMacro(macro.id)"
-                >
-                  <MacroListItem
-                    :macro="macro"
-                    mode="library"
-                    :character-label="getMacroCharacterLabel(macro)"
-                    @pin="togglePinned"
-                    @toggle="toggleEnabled"
-                    @edit="editFromLibrary"
-                    @delete="deleteItem"
-                  />
-                </div>
-                <div v-if="!recentMacros.length" class="macro-empty-list">暂无最近使用</div>
-              </div>
-            </template>
-            <template v-else>
-              <template v-if="showRecentSection">
-                <div class="macro-subtitle">最近使用</div>
-                <div class="macro-group">
-                  <div
-                    v-for="macro in recentPreview"
-                    :key="macro.id"
-                    class="macro-item"
-                    :class="{ active: macro.id === librarySelectedId }"
-                    @click="selectLibraryMacro(macro.id)"
-                    role="button"
-                    tabindex="0"
-                    @keydown.enter.prevent="selectLibraryMacro(macro.id)"
-                    @keydown.space.prevent="selectLibraryMacro(macro.id)"
-                  >
-                    <MacroListItem
-                      :macro="macro"
-                      mode="library"
-                      :character-label="getMacroCharacterLabel(macro)"
-                      @pin="togglePinned"
-                      @toggle="toggleEnabled"
-                      @edit="editFromLibrary"
-                      @delete="deleteItem"
-                    />
+                <template v-if="onlyRecent">
+                  <div class="macro-subtitle">最近使用</div>
+                  <div class="macro-group">
+                    <div
+                      v-for="macro in recentMacros"
+                      :key="macro.id"
+                      class="macro-item"
+                      :class="{ active: macro.id === librarySelectedId }"
+                      @click="selectLibraryMacro(macro.id)"
+                      role="button"
+                      tabindex="0"
+                      @keydown.enter.prevent="selectLibraryMacro(macro.id)"
+                      @keydown.space.prevent="selectLibraryMacro(macro.id)"
+                    >
+                      <MacroListItem
+                        :macro="macro"
+                        mode="library"
+                        :character-label="getMacroCharacterLabel(macro)"
+                        @pin="togglePinned"
+                        @toggle="toggleEnabled"
+                        @edit="editFromLibrary"
+                        @delete="deleteItem"
+                      />
+                    </div>
+                    <div v-if="!recentMacros.length" class="macro-empty-list">暂无最近使用</div>
                   </div>
-                </div>
-              </template>
-              <div v-if="groupedMacros.global.length" class="macro-subtitle">全局</div>
-              <div v-if="groupedMacros.global.length" class="macro-group">
-                <div
-                  v-for="macro in groupedMacros.global"
-                  :key="macro.id"
-                  class="macro-item"
-                  :class="{ active: macro.id === librarySelectedId }"
-                  @click="selectLibraryMacro(macro.id)"
-                  role="button"
-                  tabindex="0"
-                  @keydown.enter.prevent="selectLibraryMacro(macro.id)"
-                  @keydown.space.prevent="selectLibraryMacro(macro.id)"
-                >
-                  <MacroListItem
-                    :macro="macro"
-                    mode="library"
-                    :character-label="getMacroCharacterLabel(macro)"
-                    @pin="togglePinned"
-                    @toggle="toggleEnabled"
-                    @edit="editFromLibrary"
-                    @delete="deleteItem"
-                  />
-                </div>
-              </div>
-              <div v-if="groupedMacros.character.length" class="macro-subtitle">角色</div>
-              <div v-if="groupedMacros.character.length" class="macro-group">
-                <div
-                  v-for="macro in groupedMacros.character"
-                  :key="macro.id"
-                  class="macro-item"
-                  :class="{ active: macro.id === librarySelectedId }"
-                  @click="selectLibraryMacro(macro.id)"
-                  role="button"
-                  tabindex="0"
-                  @keydown.enter.prevent="selectLibraryMacro(macro.id)"
-                  @keydown.space.prevent="selectLibraryMacro(macro.id)"
-                >
-                  <MacroListItem
-                    :macro="macro"
-                    mode="library"
-                    :character-label="getMacroCharacterLabel(macro)"
-                    @pin="togglePinned"
-                    @toggle="toggleEnabled"
-                    @edit="editFromLibrary"
-                    @delete="deleteItem"
-                  />
-                </div>
-              </div>
-              <div v-if="!groupedMacros.global.length && !groupedMacros.character.length" class="macro-empty-list">
-                没有匹配的快捷语句
-              </div>
-            </template>
+                </template>
+                <template v-else>
+                  <template v-if="showRecentSection">
+                    <div class="macro-subtitle">最近使用</div>
+                    <div class="macro-group">
+                      <div
+                        v-for="macro in recentPreview"
+                        :key="macro.id"
+                        class="macro-item"
+                        :class="{ active: macro.id === librarySelectedId }"
+                        @click="selectLibraryMacro(macro.id)"
+                        role="button"
+                        tabindex="0"
+                        @keydown.enter.prevent="selectLibraryMacro(macro.id)"
+                        @keydown.space.prevent="selectLibraryMacro(macro.id)"
+                      >
+                        <MacroListItem
+                          :macro="macro"
+                          mode="library"
+                          :character-label="getMacroCharacterLabel(macro)"
+                          @pin="togglePinned"
+                          @toggle="toggleEnabled"
+                          @edit="editFromLibrary"
+                          @delete="deleteItem"
+                        />
+                      </div>
+                    </div>
+                  </template>
+                  <div v-if="groupedMacros.global.length" class="macro-subtitle">全局</div>
+                  <div v-if="groupedMacros.global.length" class="macro-group">
+                    <div
+                      v-for="macro in groupedMacros.global"
+                      :key="macro.id"
+                      class="macro-item"
+                      :class="{ active: macro.id === librarySelectedId }"
+                      @click="selectLibraryMacro(macro.id)"
+                      role="button"
+                      tabindex="0"
+                      @keydown.enter.prevent="selectLibraryMacro(macro.id)"
+                      @keydown.space.prevent="selectLibraryMacro(macro.id)"
+                    >
+                      <MacroListItem
+                        :macro="macro"
+                        mode="library"
+                        :character-label="getMacroCharacterLabel(macro)"
+                        @pin="togglePinned"
+                        @toggle="toggleEnabled"
+                        @edit="editFromLibrary"
+                        @delete="deleteItem"
+                      />
+                    </div>
+                  </div>
+                  <div v-if="groupedMacros.character.length" class="macro-subtitle">角色</div>
+                  <div v-if="groupedMacros.character.length" class="macro-group">
+                    <div
+                      v-for="macro in groupedMacros.character"
+                      :key="macro.id"
+                      class="macro-item"
+                      :class="{ active: macro.id === librarySelectedId }"
+                      @click="selectLibraryMacro(macro.id)"
+                      role="button"
+                      tabindex="0"
+                      @keydown.enter.prevent="selectLibraryMacro(macro.id)"
+                      @keydown.space.prevent="selectLibraryMacro(macro.id)"
+                    >
+                      <MacroListItem
+                        :macro="macro"
+                        mode="library"
+                        :character-label="getMacroCharacterLabel(macro)"
+                        @pin="togglePinned"
+                        @toggle="toggleEnabled"
+                        @edit="editFromLibrary"
+                        @delete="deleteItem"
+                      />
+                    </div>
+                  </div>
+                  <div v-if="!groupedMacros.global.length && !groupedMacros.character.length" class="macro-empty-list">
+                    没有匹配的快捷语句
+                  </div>
+                </template>
               </div>
             </div>
 
@@ -533,7 +554,9 @@ const recentAll = computed(() =>
 );
 const recentMacros = computed(() => recentAll.value.filter(matchesMacro));
 const recentPreview = computed(() => recentMacros.value.slice(0, 5));
-const showRecentSection = computed(() => !onlyRecent.value && !normalizedSearch.value && recentPreview.value.length > 0);
+const showRecentSection = computed(
+  () => !onlyRecent.value && !normalizedSearch.value && recentPreview.value.length > 0,
+);
 
 const orderPinnedFirst = (list: Macro[]) => {
   const pinned = list.filter(macro => macro.pinned);

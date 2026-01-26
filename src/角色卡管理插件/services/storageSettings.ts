@@ -16,8 +16,7 @@ function normalizeSettings(raw: unknown): StorageSettings {
   }
   const data = raw as Record<string, unknown>;
   const modeValue = typeof data.mode === 'string' ? data.mode : DEFAULT_SETTINGS.mode;
-  const mode: StorageMode =
-    modeValue === 'indexeddb' || modeValue === 'variables' ? modeValue : DEFAULT_SETTINGS.mode;
+  const mode: StorageMode = modeValue === 'indexeddb' || modeValue === 'variables' ? modeValue : DEFAULT_SETTINGS.mode;
   return {
     mode,
   };

@@ -543,9 +543,7 @@
               <input v-model="storageModeDraft" type="radio" value="indexeddb" :disabled="!indexedDbAvailable" />
               <div class="cardhub-settings__option-body">
                 <div class="cardhub-settings__option-title">浏览器 IndexedDB</div>
-                <div class="cardhub-settings__option-desc">
-                  适合大体积私有库，但仅在当前浏览器生效，换设备会丢失。
-                </div>
+                <div class="cardhub-settings__option-desc">适合大体积私有库，但仅在当前浏览器生效，换设备会丢失。</div>
                 <div v-if="!indexedDbAvailable" class="cardhub-settings__option-warn">当前浏览器不支持。</div>
               </div>
             </label>
