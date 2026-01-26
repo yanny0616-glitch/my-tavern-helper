@@ -23,6 +23,7 @@
         :chat-total-pages="chatTotalPages"
         :manage-chat-hint="manageChatHint"
         :open-detail="openDetailViewer"
+        :open-edit="openEditDialog"
         :open-opening-list="openOpeningList"
         :open-latest-chat="openLatestChat"
         :open-new-chat="openNewChat"
@@ -45,6 +46,22 @@
       <div class="cardhub-note__actions">
         <button class="cardhub-note__btn is-secondary" type="button" @click="closeNoteDialog">取消</button>
         <button class="cardhub-note__btn is-primary" type="button" @click="saveNoteDialog">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="editDialogOpen" class="cardhub-edit cardhub-modal" @click.self="closeEditDialog">
+    <div class="cardhub-edit__panel cardhub-modal__panel" role="dialog" :aria-label="editDialogTitle">
+      <div class="cardhub-edit__header">
+        <div class="cardhub-edit__title">{{ editDialogTitle }}</div>
+        <button class="cardhub-preview__close" type="button" @click="closeEditDialog">×</button>
+      </div>
+      <textarea v-model="editDraft" class="cardhub-edit__input" placeholder="填写内容" />
+      <div class="cardhub-edit__actions">
+        <button class="cardhub-edit__btn is-secondary" type="button" @click="closeEditDialog">取消</button>
+        <button class="cardhub-edit__btn is-primary" type="button" @click="saveEditDialog" :disabled="editSaving">
+          {{ editSaving ? '保存中...' : '保存' }}
+        </button>
       </div>
     </div>
   </div>
@@ -110,7 +127,15 @@
           @click="openWorldbookEntry(item)"
         >
           <div class="cardhub-worldbook__item-title">
-            <span>{{ item.name }}</span>
+            <span class="cardhub-worldbook__item-index">{{ item.indexLabel }}</span>
+            <span class="cardhub-worldbook__item-name">{{ item.title || '未命名条目' }}</span>
+            <span
+              v-if="item.strategyLabel"
+              class="cardhub-worldbook__item-strategy"
+              :class="`is-${item.strategyType}`"
+            >
+              {{ item.strategyLabel }}
+            </span>
             <span v-if="!item.enabled" class="cardhub-worldbook__item-disabled">已禁用</span>
           </div>
           <div class="cardhub-worldbook__item-preview">{{ item.preview }}</div>
@@ -167,6 +192,8 @@ type ManageDetail = {
   preview: string;
   full: string;
   hasMore: boolean;
+  editable?: boolean;
+  field?: string;
 };
 
 type ManageChatEntry = {
@@ -178,9 +205,11 @@ type ManageChatEntry = {
 
 type ManageProfile = {
   description?: string;
+  descriptionField?: string;
   personality?: string;
   scenario?: string;
   creatorNotes?: string;
+  creatorNotesField?: string;
   systemPrompt?: string;
   postHistory?: string;
   creator?: string;
@@ -225,6 +254,10 @@ type OpeningItem = {
 type WorldbookItem = {
   uid: number;
   name: string;
+  title: string;
+  indexLabel: string;
+  strategyLabel: string;
+  strategyType: 'constant' | 'selective' | 'vectorized' | 'unknown';
   enabled: boolean;
   preview: string;
   content: string;
@@ -293,11 +326,22 @@ const manageOverview = computed(() => {
 const manageDetails = computed<ManageDetail[]>(() => {
   const details: ManageDetail[] = [];
   const profile = manageProfile.value;
-  const pushDetail = (label: string, value: string, maxChars = 240) => {
+  const pushDetail = (label: string, value: string, maxChars = 240, editable = false, field = '') => {
     const preview = previewDetailText(value, 3, maxChars);
-    if (preview) {
-      details.push({ label, preview, full: value.trim(), hasMore: preview !== value.trim() });
+    const trimmed = value.trim();
+    if (!preview && !editable) {
+      return;
     }
+    const displayPreview = preview || (editable ? '（空）' : '');
+    const hasMore = Boolean(displayPreview) && trimmed.length > displayPreview.replace(/…$/, '').length;
+    details.push({
+      label,
+      preview: displayPreview,
+      full: trimmed,
+      hasMore,
+      editable,
+      field,
+    });
   };
   if (manageCard.value?.origin === 'library' && manageCard.value.importFileName) {
     pushDetail('导入文件名', manageCard.value.importFileName, 120);
@@ -305,11 +349,18 @@ const manageDetails = computed<ManageDetail[]>(() => {
   if (manageCard.value?.note?.trim()) {
     pushDetail('备注', manageCard.value.note.trim(), 200);
   }
+  const canEdit = manageCard.value?.origin === 'tavern';
   if (profile) {
-    pushDetail('角色描述', profile.description ?? '');
+    pushDetail('角色描述', profile.description ?? '', 240, Boolean(canEdit && profile.descriptionField), profile.descriptionField ?? '');
     pushDetail('性格', profile.personality ?? '');
     pushDetail('场景', profile.scenario ?? '');
-    pushDetail('创作者备注', profile.creatorNotes ?? '');
+    pushDetail(
+      '创作者备注',
+      profile.creatorNotes ?? '',
+      240,
+      Boolean(canEdit && profile.creatorNotesField),
+      profile.creatorNotesField ?? '',
+    );
     pushDetail('系统提示', profile.systemPrompt ?? '', 200);
     pushDetail('历史指令', profile.postHistory ?? '', 200);
     pushDetail('作者', profile.creator ?? '', 80);
@@ -348,14 +399,151 @@ const worldbookError = ref('');
 const worldbookOpen = ref(false);
 const worldbookPage = ref(1);
 const worldbookPageSize = 10;
+function resolveWorldbookTitle(entry: WorldbookEntry): string {
+  const name = pickString(
+    entry?.name,
+    (entry as any)?.title,
+    (entry as any)?.comment,
+    (entry as any)?.annotation,
+    (entry as any)?.label,
+  );
+  if (name) {
+    return name;
+  }
+  const primary = pickWorldbookKey(
+    entry?.strategy?.keys ??
+      (entry as any)?.keys ??
+      (entry as any)?.keywords ??
+      (entry as any)?.key ??
+      (entry as any)?.search?.keys,
+  );
+  if (primary) {
+    return primary;
+  }
+  const secondary = pickWorldbookKey(
+    entry?.strategy?.keys_secondary?.keys ??
+      (entry as any)?.keys_secondary ??
+      (entry as any)?.secondary_keys,
+  );
+  if (secondary) {
+    return secondary;
+  }
+  const content = typeof entry?.content === 'string' ? entry.content : '';
+  return pickWorldbookContentTitle(content);
+}
+
+function pickWorldbookKey(keys: unknown): string {
+  const normalized = normalizeWorldbookKeys(keys);
+  if (!normalized.length) {
+    return '';
+  }
+  for (const key of normalized) {
+    if (typeof key === 'string') {
+      const trimmed = key.trim();
+      if (trimmed) {
+        return trimmed;
+      }
+    } else if (key instanceof RegExp) {
+      return String(key);
+    }
+  }
+  return '';
+}
+
+function normalizeWorldbookKeys(keys: unknown): Array<string | RegExp> {
+  if (!keys) {
+    return [];
+  }
+  if (Array.isArray(keys)) {
+    return keys as Array<string | RegExp>;
+  }
+  if (typeof keys === 'string' || keys instanceof RegExp) {
+    return [keys as string | RegExp];
+  }
+  if (typeof keys === 'object') {
+    const inner = (keys as any).keys;
+    if (Array.isArray(inner)) {
+      return inner as Array<string | RegExp>;
+    }
+  }
+  return [];
+}
+
+function pickWorldbookContentTitle(content: string): string {
+  if (!content) {
+    return '';
+  }
+  const lines = content.split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      continue;
+    }
+    const cleaned = trimmed.replace(/^<[^>]+>/g, '').trim();
+    if (cleaned) {
+      return cleaned.length > 32 ? `${cleaned.slice(0, 32)}...` : cleaned;
+    }
+  }
+  return '';
+}
+
+function resolveWorldbookStrategyType(entry: WorldbookEntry): WorldbookItem['strategyType'] {
+  const raw =
+    (entry as any)?.strategy?.type ??
+    (entry as any)?.strategy_type ??
+    (entry as any)?.strategyType ??
+    (entry as any)?.type ??
+    '';
+  if (raw === 'constant' || raw === 'selective' || raw === 'vectorized') {
+    return raw;
+  }
+  if (
+    (entry as any)?.vectorized === true ||
+    (entry as any)?.use_vectorized === true ||
+    (entry as any)?.strategy?.vectorized === true
+  ) {
+    return 'vectorized';
+  }
+  const primaryKeys = normalizeWorldbookKeys(
+    (entry as any)?.strategy?.keys ?? (entry as any)?.keys ?? (entry as any)?.key ?? (entry as any)?.keywords,
+  );
+  const secondaryKeys = normalizeWorldbookKeys(
+    (entry as any)?.strategy?.keys_secondary?.keys ?? (entry as any)?.keys_secondary ?? (entry as any)?.secondary_keys,
+  );
+  if (primaryKeys.length || secondaryKeys.length) {
+    return 'selective';
+  }
+  return 'constant';
+}
+
+function formatWorldbookStrategyLabel(type: WorldbookItem['strategyType']): string {
+  if (type === 'constant') {
+    return '蓝灯';
+  }
+  if (type === 'selective') {
+    return '绿灯';
+  }
+  if (type === 'vectorized') {
+    return '向量';
+  }
+  return '';
+}
 const worldbookItems = computed<WorldbookItem[]>(() =>
-  worldbookEntries.value.map((entry, index) => ({
-    uid: entry.uid ?? index,
-    name: entry.name || `条目 ${index + 1}`,
-    enabled: entry.enabled !== false,
-    preview: previewDetailText(String(entry.content ?? ''), 2, 200) || '（无内容）',
-    content: String(entry.content ?? ''),
-  })),
+  worldbookEntries.value.map((entry, index) => {
+    const title = resolveWorldbookTitle(entry);
+    const strategyType = resolveWorldbookStrategyType(entry);
+    return {
+      uid: entry.uid ?? index,
+      name: entry.name || '',
+      title,
+      indexLabel: `条目 ${index + 1}`,
+      strategyLabel: formatWorldbookStrategyLabel(strategyType),
+      strategyType,
+      enabled: entry.enabled !== false,
+      preview: previewDetailText(String(entry.content ?? ''), 2, 200) || '（无内容）',
+      content: String(entry.content ?? ''),
+    };
+  }),
 );
 const worldbookTotalPages = computed(() => Math.max(1, Math.ceil(worldbookItems.value.length / worldbookPageSize)));
 const pagedWorldbookItems = computed(() => {
@@ -391,6 +579,11 @@ const pagedOpenings = computed(() => {
 
 const noteDialogOpen = ref(false);
 const noteDraft = ref('');
+const editDialogOpen = ref(false);
+const editDialogTitle = ref('');
+const editDraft = ref('');
+const editField = ref('');
+const editSaving = ref(false);
 const openingListOpen = ref(false);
 const viewerOpen = ref(false);
 const viewerTitle = ref('');
@@ -411,6 +604,11 @@ watch(
       openingPage.value = 1;
       noteDialogOpen.value = false;
       noteDraft.value = '';
+      editDialogOpen.value = false;
+      editDialogTitle.value = '';
+      editDraft.value = '';
+      editField.value = '';
+      editSaving.value = false;
       openingListOpen.value = false;
       worldbookOpen.value = false;
       worldbookEntries.value = [];
@@ -549,7 +747,7 @@ function openOpeningViewer(item: OpeningItem) {
 
 function openWorldbookEntry(item: WorldbookItem) {
   worldbookOpen.value = false;
-  viewerTitle.value = item.name || '世界书条目';
+  viewerTitle.value = item.title || item.indexLabel || '世界书条目';
   viewerHtml.value = textToHtml(item.content);
   viewerOpen.value = true;
 }
@@ -896,8 +1094,11 @@ function extractCardProfile(data: any): ManageProfile | null {
   if (!data) {
     return null;
   }
+  const descriptionField = hasField(data, 'description') ? 'description' : '';
+  const creatorNotesField = resolveCreatorNotesField(data);
   const profile: ManageProfile = {
     description: pickString(data?.description, data?.data?.description),
+    descriptionField,
     personality: pickString(data?.personality, data?.data?.personality),
     scenario: pickString(data?.scenario, data?.data?.scenario),
     creatorNotes: pickString(
@@ -906,6 +1107,7 @@ function extractCardProfile(data: any): ManageProfile | null {
       data?.creator_notes,
       data?.data?.creator_notes,
     ),
+    creatorNotesField,
     systemPrompt: pickString(data?.system_prompt, data?.data?.system_prompt),
     postHistory: pickString(data?.post_history_instructions, data?.data?.post_history_instructions),
     creator: pickString(data?.creator, data?.data?.creator),
@@ -928,6 +1130,20 @@ function extractCardProfile(data: any): ManageProfile | null {
   return hasValue ? profile : null;
 }
 
+function hasField(data: any, field: string): boolean {
+  return data?.[field] !== undefined || data?.data?.[field] !== undefined;
+}
+
+function resolveCreatorNotesField(data: any): string {
+  if (hasField(data, 'creatorcomment')) {
+    return 'creatorcomment';
+  }
+  if (hasField(data, 'creator_notes')) {
+    return 'creator_notes';
+  }
+  return '';
+}
+
 function extractWorldbookEntries(data: any): WorldbookEntry[] {
   const book = data?.character_book ?? data?.data?.character_book;
   if (!book || !Array.isArray(book?.entries)) {
@@ -946,6 +1162,17 @@ function pickString(...values: unknown[]): string {
     }
   }
   return '';
+}
+
+function isEditableDetail(detail: ManageDetail): boolean {
+  return Boolean(detail.editable && detail.field);
+}
+
+function resolveEditFields(field: string): string[] {
+  if (field === 'creatorcomment' || field === 'creator_notes') {
+    return ['creatorcomment', 'creator_notes'];
+  }
+  return [field];
 }
 
 function extractOpeningSummary(data: any): ManageOpeningSummary | null {
@@ -1198,5 +1425,85 @@ function avatarUrl(character: CardHubItem, useFull = false): string | null {
     return TavernHelper.getCharAvatarPath(avatar, true) ?? `/thumbnail?type=avatar&file=${encodeURIComponent(avatar)}`;
   }
   return `/thumbnail?type=avatar&file=${encodeURIComponent(avatar)}`;
+}
+
+function openEditDialog(detail: ManageDetail) {
+  if (!manageCard.value || manageCard.value.origin !== 'tavern' || !isEditableDetail(detail)) {
+    return;
+  }
+  editDialogOpen.value = true;
+  editDialogTitle.value = `编辑${detail.label}`;
+  editDraft.value = detail.full ?? '';
+  editField.value = detail.field ?? '';
+}
+
+function closeEditDialog() {
+  editDialogOpen.value = false;
+  editDialogTitle.value = '';
+  editDraft.value = '';
+  editField.value = '';
+  editSaving.value = false;
+}
+
+async function saveEditDialog() {
+  if (!manageCard.value || manageCard.value.origin !== 'tavern' || !editField.value) {
+    return;
+  }
+  if (editSaving.value) {
+    return;
+  }
+  editSaving.value = true;
+  try {
+    const token = await fetchCsrfToken();
+    if (!token) {
+      toastr.error('未获取到 CSRF Token');
+      return;
+    }
+    const basePayload = {
+      avatar_url: manageCard.value.avatar ?? '',
+      ch_name: manageCard.value.name ?? manageCard.value.avatar ?? '',
+      value: editDraft.value ?? '',
+    };
+    const fields = resolveEditFields(editField.value);
+    for (const field of fields) {
+      const response = await fetch('/api/characters/edit-attribute', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': token,
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({ ...basePayload, field }),
+      });
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || '保存失败');
+      }
+    }
+    toastr.success('已保存角色卡字段');
+    closeEditDialog();
+    if (manageCard.value) {
+      void openManage(manageCard.value);
+    }
+  } catch (error) {
+    console.warn('[CardHub] 编辑角色卡字段失败', error);
+    toastr.error('保存失败，请稍后再试');
+  } finally {
+    editSaving.value = false;
+  }
+}
+
+async function fetchCsrfToken(): Promise<string> {
+  try {
+    const response = await fetch('/csrf-token', { credentials: 'same-origin' });
+    if (!response.ok) {
+      return '';
+    }
+    const data = await response.json();
+    return typeof data?.token === 'string' ? data.token : '';
+  } catch (error) {
+    console.warn('[CardHub] 获取 CSRF Token 失败', error);
+    return '';
+  }
 }
 </script>

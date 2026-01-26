@@ -11,6 +11,9 @@
           <button class="cardhub-theme-trigger" type="button" aria-label="配色" @click="openThemeDialog">
             <i class="fa-solid fa-palette" aria-hidden="true"></i>
           </button>
+          <button class="cardhub-settings-trigger" type="button" aria-label="设置" @click="openSettingsDialog">
+            <i class="fa-solid fa-gear" aria-hidden="true"></i>
+          </button>
           <button class="cardhub-close" type="button" aria-label="关闭" @click="close">
             <span aria-hidden="true">×</span>
           </button>
@@ -61,6 +64,14 @@
                   @click="statusFilter = 'unimported'"
                 >
                   未导入
+                </button>
+                <button
+                  class="cardhub-chip"
+                  :class="{ 'is-active': statusFilter === 'duplicate' }"
+                  type="button"
+                  @click="statusFilter = 'duplicate'"
+                >
+                  重复
                 </button>
                 <button
                   class="cardhub-chip"
@@ -162,6 +173,7 @@
                 v-for="character in pagedCharacters"
                 :key="character.id"
                 class="cardhub-card"
+                :class="{ 'is-duplicate': duplicateIdSet.has(character.id) }"
                 @click="openManage(character)"
               >
                 <div
@@ -188,7 +200,7 @@
                     <span>{{ character.origin === 'tavern' ? '已导入' : '未导入' }}</span>
                     <span>{{ displayTags(character).length }} 标签</span>
                   </div>
-                  <div v-if="displayNote(character)" class="cardhub-card__note">
+                  <div v-if="showNoteSummary && displayNote(character)" class="cardhub-card__note">
                     {{ displayNote(character) }}
                   </div>
                   <div class="cardhub-card__tags">
@@ -502,6 +514,129 @@
       </div>
     </div>
 
+    <div v-if="settingsDialogOpen" class="cardhub-settings cardhub-modal" @click.self="closeSettingsDialog">
+      <div class="cardhub-settings__panel cardhub-modal__panel" role="dialog" aria-label="设置">
+        <div class="cardhub-settings__header">
+          <div>
+            <div class="cardhub-settings__title">设置</div>
+            <div class="cardhub-settings__subtitle">用于调整私有库在本地的存储方式</div>
+          </div>
+          <button class="cardhub-preview__close" type="button" @click="closeSettingsDialog">×</button>
+        </div>
+        <div class="cardhub-settings__section">
+          <div class="cardhub-settings__label">私有库存储位置</div>
+          <div class="cardhub-settings__hint">
+            当前：{{ storageModeCurrentLabel }}。切换后会迁移现有私有库数据，仅影响未导入角色卡。
+          </div>
+          <div class="cardhub-settings__options">
+            <label class="cardhub-settings__option" :class="{ 'is-active': storageModeDraft === 'variables' }">
+              <input v-model="storageModeDraft" type="radio" value="variables" />
+              <div class="cardhub-settings__option-body">
+                <div class="cardhub-settings__option-title">酒馆助手变量</div>
+                <div class="cardhub-settings__option-desc">无需额外权限，但数据量大时会变慢。</div>
+              </div>
+            </label>
+            <label
+              class="cardhub-settings__option"
+              :class="{ 'is-active': storageModeDraft === 'indexeddb', 'is-disabled': !indexedDbAvailable }"
+            >
+              <input v-model="storageModeDraft" type="radio" value="indexeddb" :disabled="!indexedDbAvailable" />
+              <div class="cardhub-settings__option-body">
+                <div class="cardhub-settings__option-title">浏览器 IndexedDB</div>
+                <div class="cardhub-settings__option-desc">
+                  适合大体积私有库，但仅在当前浏览器生效，换设备会丢失。
+                </div>
+                <div v-if="!indexedDbAvailable" class="cardhub-settings__option-warn">当前浏览器不支持。</div>
+              </div>
+            </label>
+          </div>
+        </div>
+        <div class="cardhub-settings__section">
+          <div class="cardhub-settings__label">列表显示</div>
+          <div class="cardhub-settings__options cardhub-settings__options--compact">
+            <label class="cardhub-settings__row">
+              <span>每页数量</span>
+              <select v-model.number="uiSettingsDraft.pageSize" class="cardhub-settings__select">
+                <option :value="12">12</option>
+                <option :value="24">24</option>
+                <option :value="36">36</option>
+                <option :value="48">48</option>
+              </select>
+            </label>
+            <label class="cardhub-settings__row cardhub-settings__toggle">
+              <span>显示备注摘要</span>
+              <input v-model="uiSettingsDraft.showNoteSummary" type="checkbox" />
+            </label>
+            <label class="cardhub-settings__row">
+              <span>标签默认行数</span>
+              <select v-model.number="uiSettingsDraft.tagRows" class="cardhub-settings__select">
+                <option :value="1">1</option>
+                <option :value="2">2</option>
+                <option :value="3">3</option>
+                <option :value="4">4</option>
+              </select>
+            </label>
+            <label class="cardhub-settings__row">
+              <span>头像大小</span>
+              <select v-model="uiSettingsDraft.avatarSize" class="cardhub-settings__select">
+                <option value="sm">小</option>
+                <option value="md">中</option>
+                <option value="lg">大</option>
+              </select>
+            </label>
+            <label class="cardhub-settings__row cardhub-settings__toggle">
+              <span>同步酒馆标签</span>
+              <input v-model="uiSettingsDraft.syncTavernTags" type="checkbox" />
+            </label>
+          </div>
+        </div>
+        <div class="cardhub-settings__section">
+          <div class="cardhub-settings__label">导出默认格式</div>
+          <div class="cardhub-settings__options cardhub-settings__options--compact">
+            <label class="cardhub-settings__row cardhub-settings__radio">
+              <input v-model="uiSettingsDraft.exportFormat" type="radio" value="png" />
+              <span>PNG</span>
+            </label>
+            <label class="cardhub-settings__row cardhub-settings__radio">
+              <input v-model="uiSettingsDraft.exportFormat" type="radio" value="json" />
+              <span>JSON</span>
+            </label>
+          </div>
+        </div>
+        <div class="cardhub-settings__section">
+          <div class="cardhub-settings__label">私有库备份</div>
+          <div class="cardhub-settings__hint">导出当前私有库为 JSON 文件，便于手动备份或迁移。</div>
+          <div class="cardhub-settings__backup">
+            <button class="cardhub-settings__btn is-secondary" type="button" @click="exportLibraryBackup">
+              导出私有库
+            </button>
+            <button class="cardhub-settings__btn is-secondary" type="button" @click="triggerBackupImport">
+              导入私有库
+            </button>
+            <input
+              ref="backupImportInput"
+              class="cardhub-import-input"
+              type="file"
+              accept=".json"
+              @change="handleBackupImport"
+            />
+          </div>
+        </div>
+        <div class="cardhub-settings__actions">
+          <button class="cardhub-settings__btn is-secondary" type="button" @click="closeSettingsDialog">取消</button>
+          <div class="cardhub-settings__spacer"></div>
+          <button
+            class="cardhub-settings__btn is-primary"
+            type="button"
+            :disabled="(!storageModeDirty && !uiSettingsDirty) || storageSaveBusy"
+            @click="saveSettingsDialog"
+          >
+            {{ storageSaveBusy ? '保存中...' : '保存' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div v-if="themeDialogOpen" class="cardhub-theme cardhub-modal" @click.self="closeThemeDialog">
       <div class="cardhub-theme__panel cardhub-modal__panel" role="dialog" aria-label="配色设置">
         <div class="cardhub-theme__header">
@@ -579,18 +714,24 @@ import type { CardHubItem } from '../types';
 import {
   addToLibrary,
   loadLibrary,
+  persistLibrary,
+  normalizeLibraryEntries,
+  mergeLibraryEntries,
+  parseLibraryBackup,
   removeFromLibrary,
   updateLibraryNote,
   updateLibraryTags,
 } from '../services/libraryService';
 import { getMergedTags, updateCharacterTags } from '../services/tagService';
+import { loadStorageSettings, saveStorageSettings, type StorageMode } from '../services/storageSettings';
+import { loadGlobalState, updateGlobalState } from '../services/globalState';
 import ManageModal from './components/ManageModal.vue';
 import { useBatchTags } from './composables/useBatchTags';
 import { useLibraryActions } from './composables/useLibraryActions';
 import { useTagEditing } from './composables/useTagEditing';
 import { useTagFilters } from './composables/useTagFilters';
 
-const statusFilter = ref<'all' | 'imported' | 'unimported'>('all');
+const statusFilter = ref<'all' | 'imported' | 'unimported' | 'duplicate'>('all');
 const pageSize = ref(24);
 const currentPage = ref(1);
 const manageCard = ref<CardHubItem | null>(null);
@@ -617,25 +758,61 @@ const allCards = computed(() => [...state.characters, ...state.library]);
 const mergedTagsMap = computed(() => {
   const map = new Map<string, string[]>();
   allCards.value.forEach(card => {
-    map.set(card.id, getMergedTags(card));
+    map.set(card.id, resolveMergedTags(card));
   });
   return map;
 });
+const duplicateIdSet = computed(() => {
+  const duplicates = new Set<string>();
+  const tavernNameSet = new Set<string>();
+  const tavernAvatarSet = new Set<string>();
+  state.characters.forEach(card => {
+    tavernNameSet.add(normalizeNameKey(card.name));
+    if (card.avatar) {
+      const base = normalizeAvatarBase(card.avatar);
+      if (base) {
+        tavernAvatarSet.add(base);
+      }
+    }
+  });
+  const libraryNameSet = new Set<string>();
+  const libraryFileSet = new Set<string>();
+  state.library.forEach(entry => {
+    libraryNameSet.add(normalizeNameKey(entry.name));
+    if (entry.importFileName) {
+      const base = normalizeFileBase(entry.importFileName);
+      if (base) {
+        libraryFileSet.add(base);
+      }
+    }
+  });
+  state.characters.forEach(card => {
+    const nameKey = normalizeNameKey(card.name);
+    const avatarBase = card.avatar ? normalizeAvatarBase(card.avatar) : '';
+    if (libraryNameSet.has(nameKey) || (avatarBase && libraryFileSet.has(avatarBase))) {
+      duplicates.add(card.id);
+    }
+  });
+  state.library.forEach(entry => {
+    const nameKey = normalizeNameKey(entry.name);
+    const fileBase = entry.importFileName ? normalizeFileBase(entry.importFileName) : '';
+    if (tavernNameSet.has(nameKey) || (fileBase && tavernAvatarSet.has(fileBase))) {
+      duplicates.add(entry.id);
+    }
+  });
+  return duplicates;
+});
 const { selectedTags, allTags, applyTagFilter, toggleTagFilter, clearTagFilter } = useTagFilters(
   allCards,
-  getMergedTags,
+  resolveMergedTags,
 );
 
-const FAVORITES_KEY = 'cardhub_favorites';
 const favoriteIds = ref<string[]>([]);
 const favoriteSet = computed(() => new Set(favoriteIds.value));
 const sortKey = ref<'recent' | 'name' | 'tags' | 'imported'>('recent');
 const favoritesOnly = ref(false);
-const LAST_CHAT_CACHE_KEY = 'cardhub_last_chat_cache';
 const lastChatCache = ref<Record<string, number>>({});
-const IMPORT_CACHE_KEY = 'cardhub_import_cache';
 const importCache = ref<Record<string, number>>({});
-const NOTE_KEY = 'cardhub_notes';
 const noteMap = ref<Record<string, string>>({});
 
 type CardHubTheme = {
@@ -650,7 +827,6 @@ type CardHubTheme = {
   border: string;
 };
 
-const THEME_KEY = 'cardhub_theme';
 const defaultTheme: CardHubTheme = {
   bgStart: '#f6f8fb',
   bgEnd: '#e6ebf2',
@@ -668,6 +844,9 @@ const themeCurrent = ref<CardHubTheme>({ ...defaultTheme });
 const themeDraft = reactive<CardHubTheme>({ ...defaultTheme });
 const themeStyle = computed<Record<string, string>>(() => {
   const theme = themeDialogOpen.value ? (themeDraft as CardHubTheme) : themeCurrent.value;
+  const avatarSize = uiSettingsCurrent.avatarSize;
+  const avatarDesktop = avatarSize === 'sm' ? 36 : avatarSize === 'lg' ? 50 : 42;
+  const avatarMobile = avatarSize === 'sm' ? 34 : avatarSize === 'lg' ? 46 : 40;
   return {
     '--cardhub-bg-start': theme.bgStart,
     '--cardhub-bg-end': theme.bgEnd,
@@ -685,8 +864,94 @@ const themeStyle = computed<Record<string, string>>(() => {
     '--cardhub-accent-strong-rgb': hexToRgb(theme.accentStrong),
     '--cardhub-accent-text': contrastTextColor(theme.accent),
     '--cardhub-accent-strong-text': contrastTextColor(theme.accentStrong),
+    '--cardhub-tag-rows': String(uiSettingsCurrent.tagRows),
+    '--cardhub-avatar-size': `${avatarDesktop}px`,
+    '--cardhub-avatar-size-mobile': `${avatarMobile}px`,
   };
 });
+
+const settingsDialogOpen = ref(false);
+const storageModeCurrent = ref<StorageMode>('variables');
+const storageModeDraft = ref<StorageMode>('variables');
+const storageSaveBusy = ref(false);
+const indexedDbAvailable = ref(true);
+const storageModeLabels: Record<StorageMode, string> = {
+  variables: '酒馆助手变量',
+  indexeddb: '浏览器 IndexedDB',
+};
+const storageModeCurrentLabel = computed(() => storageModeLabels[storageModeCurrent.value]);
+const storageModeDirty = computed(() => storageModeDraft.value !== storageModeCurrent.value);
+type UiSettings = {
+  pageSize: number;
+  showNoteSummary: boolean;
+  exportFormat: 'png' | 'json';
+  tagRows: number;
+  avatarSize: 'sm' | 'md' | 'lg';
+  syncTavernTags: boolean;
+};
+const defaultUiSettings: UiSettings = {
+  pageSize: 24,
+  showNoteSummary: true,
+  exportFormat: 'png',
+  tagRows: 2,
+  avatarSize: 'md',
+  syncTavernTags: true,
+};
+const uiSettingsCurrent = reactive<UiSettings>({ ...defaultUiSettings });
+const uiSettingsDraft = reactive<UiSettings>({ ...defaultUiSettings });
+const uiSettingsDirty = computed(
+  () =>
+    uiSettingsDraft.pageSize !== uiSettingsCurrent.pageSize ||
+    uiSettingsDraft.showNoteSummary !== uiSettingsCurrent.showNoteSummary ||
+    uiSettingsDraft.exportFormat !== uiSettingsCurrent.exportFormat ||
+    uiSettingsDraft.tagRows !== uiSettingsCurrent.tagRows ||
+    uiSettingsDraft.avatarSize !== uiSettingsCurrent.avatarSize ||
+    uiSettingsDraft.syncTavernTags !== uiSettingsCurrent.syncTavernTags,
+);
+const showNoteSummary = computed(() => uiSettingsCurrent.showNoteSummary);
+const backupImportInput = ref<HTMLInputElement | null>(null);
+
+function normalizeUiSettings(raw: unknown): UiSettings {
+  if (!raw || typeof raw !== 'object') {
+    return { ...defaultUiSettings };
+  }
+  const data = raw as Record<string, unknown>;
+  const pageSizeValue = Number(data.pageSize);
+  const pageSizeAllowed = [12, 24, 36, 48];
+  const pageSizeNormalized = pageSizeAllowed.includes(pageSizeValue) ? pageSizeValue : defaultUiSettings.pageSize;
+  const showNoteSummaryValue =
+    typeof data.showNoteSummary === 'boolean' ? data.showNoteSummary : defaultUiSettings.showNoteSummary;
+  const exportFormatValue =
+    data.exportFormat === 'json' || data.exportFormat === 'png' ? data.exportFormat : defaultUiSettings.exportFormat;
+  const tagRowsValue = Number(data.tagRows);
+  const tagRowsAllowed = [1, 2, 3, 4];
+  const tagRowsNormalized = tagRowsAllowed.includes(tagRowsValue) ? tagRowsValue : defaultUiSettings.tagRows;
+  const avatarSizeValue = data.avatarSize === 'sm' || data.avatarSize === 'lg' ? data.avatarSize : 'md';
+  const syncTavernTagsValue =
+    typeof data.syncTavernTags === 'boolean' ? data.syncTavernTags : defaultUiSettings.syncTavernTags;
+  return {
+    pageSize: pageSizeNormalized,
+    showNoteSummary: showNoteSummaryValue,
+    exportFormat: exportFormatValue,
+    tagRows: tagRowsNormalized,
+    avatarSize: avatarSizeValue,
+    syncTavernTags: syncTavernTagsValue,
+  };
+}
+
+function syncUiSettings() {
+  const state = loadGlobalState();
+  const normalized = normalizeUiSettings(state?.uiSettings);
+  Object.assign(uiSettingsCurrent, normalized);
+  Object.assign(uiSettingsDraft, normalized);
+  pageSize.value = normalized.pageSize;
+}
+
+function saveUiSettings() {
+  Object.assign(uiSettingsCurrent, uiSettingsDraft);
+  updateGlobalState({ uiSettings: { ...uiSettingsCurrent } });
+  pageSize.value = uiSettingsCurrent.pageSize;
+}
 const themePresets = [
   {
     name: '晨雾',
@@ -881,8 +1146,12 @@ const {
   setCharacters: setCharactersWithNotes,
   fetchCharacterSummaries,
   addToLibrary,
+  parseLibraryBackup,
+  normalizeLibraryEntries,
+  mergeLibraryEntries,
+  persistLibrary,
   removeFromLibrary,
-  updateCharacterTags,
+  updateCharacterTags: updateCharacterTagsWithSetting,
   parseLibraryCardData,
   extractCardTagsFromData,
   normalizeNameKey,
@@ -892,6 +1161,7 @@ const {
   openConfirm,
   closeManage,
   sleep,
+  getExportFormat: () => uiSettingsCurrent.exportFormat,
 });
 
 const totalPages = computed(() => {
@@ -924,11 +1194,79 @@ function avatarStyle(character: CardHubItem): Record<string, string> {
 }
 
 function displayTags(character: CardHubItem): string[] {
-  return mergedTagsMap.value.get(character.id) ?? getMergedTags(character);
+  return mergedTagsMap.value.get(character.id) ?? resolveMergedTags(character);
+}
+
+function buildNoteCandidates(card: CardHubItem): string[] {
+  const candidates = new Set<string>();
+  if (card.origin !== 'tavern') {
+    return [];
+  }
+  const rawValues = [card.tagKey, card.avatar, card.name].filter(Boolean) as string[];
+  rawValues.forEach(value => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return;
+    }
+    candidates.add(`tavern:${trimmed}`);
+    if (trimmed.includes('::')) {
+      candidates.add(`tavern:${trimmed.split('::')[0]}`);
+    }
+    if (trimmed.startsWith('name:')) {
+      const namePart = trimmed.slice(5).split('::')[0];
+      if (namePart) {
+        candidates.add(`tavern:${namePart}`);
+      }
+    }
+    const baseName = trimmed.includes('/') ? trimmed.split('/').pop() : trimmed;
+    if (baseName && baseName !== trimmed) {
+      candidates.add(`tavern:${baseName}`);
+    }
+    try {
+      const decoded = decodeURIComponent(trimmed);
+      if (decoded && decoded !== trimmed) {
+        candidates.add(`tavern:${decoded}`);
+      }
+    } catch {
+      // ignore decode errors
+    }
+  });
+  return Array.from(candidates);
+}
+
+function resolveNoteForCard(card: CardHubItem): string {
+  if (card.origin === 'tavern') {
+    const candidates = buildNoteCandidates(card);
+    for (const key of candidates) {
+      const note = noteMap.value[key];
+      if (note && note.trim()) {
+        return note.trim();
+      }
+    }
+  }
+  return card.note?.trim() ?? '';
 }
 
 function displayNote(character: CardHubItem): string {
-  return character.note?.trim() ?? '';
+  return resolveNoteForCard(character);
+}
+
+function resolveMergedTags(card: CardHubItem): string[] {
+  if (card.origin === 'library') {
+    return card.tags ?? [];
+  }
+  if (!uiSettingsCurrent.syncTavernTags) {
+    return card.tags ?? [];
+  }
+  return getMergedTags(card);
+}
+
+function updateCharacterTagsWithSetting(target: CardHubItem, nextTags: string[]): string[] {
+  if (!uiSettingsCurrent.syncTavernTags) {
+    const cleaned = Array.from(new Set(nextTags.map(tag => tag.trim()).filter(Boolean)));
+    return cleaned;
+  }
+  return updateCharacterTags(target, nextTags);
 }
 
 function applyFavoriteFilter(list: CardHubItem[]): CardHubItem[] {
@@ -939,19 +1277,18 @@ function applyFavoriteFilter(list: CardHubItem[]): CardHubItem[] {
 }
 
 function getFavoriteList(): string[] {
-  const vars = TavernHelper.getVariables({ type: 'global' }) as Record<string, unknown>;
-  const raw = vars?.[FAVORITES_KEY];
+  const state = loadGlobalState();
+  const raw = state?.favorites;
   return Array.isArray(raw) ? raw.filter(item => typeof item === 'string') : [];
 }
 
 function saveFavoriteList(list: string[]) {
-  const vars = TavernHelper.getVariables({ type: 'global' }) as Record<string, unknown>;
-  TavernHelper.replaceVariables({ type: 'global' }, { ...vars, [FAVORITES_KEY]: list });
+  updateGlobalState({ favorites: list });
 }
 
 function loadLastChatCache(): Record<string, number> {
-  const vars = TavernHelper.getVariables({ type: 'global' }) as Record<string, unknown>;
-  const raw = vars?.[LAST_CHAT_CACHE_KEY];
+  const state = loadGlobalState();
+  const raw = state?.lastChatCache;
   if (!raw || typeof raw !== 'object') {
     return {};
   }
@@ -962,13 +1299,12 @@ function loadLastChatCache(): Record<string, number> {
 }
 
 function saveLastChatCache(cache: Record<string, number>) {
-  const vars = TavernHelper.getVariables({ type: 'global' }) as Record<string, unknown>;
-  TavernHelper.replaceVariables({ type: 'global' }, { ...vars, [LAST_CHAT_CACHE_KEY]: cache });
+  updateGlobalState({ lastChatCache: cache });
 }
 
 function loadImportCache(): Record<string, number> {
-  const vars = TavernHelper.getVariables({ type: 'global' }) as Record<string, unknown>;
-  const raw = vars?.[IMPORT_CACHE_KEY];
+  const state = loadGlobalState();
+  const raw = state?.importCache;
   if (!raw || typeof raw !== 'object') {
     return {};
   }
@@ -979,13 +1315,12 @@ function loadImportCache(): Record<string, number> {
 }
 
 function saveImportCache(cache: Record<string, number>) {
-  const vars = TavernHelper.getVariables({ type: 'global' }) as Record<string, unknown>;
-  TavernHelper.replaceVariables({ type: 'global' }, { ...vars, [IMPORT_CACHE_KEY]: cache });
+  updateGlobalState({ importCache: cache });
 }
 
 function loadNoteMap(): Record<string, string> {
-  const vars = TavernHelper.getVariables({ type: 'global' }) as Record<string, unknown>;
-  const raw = vars?.[NOTE_KEY];
+  const state = loadGlobalState();
+  const raw = state?.notes;
   if (!raw || typeof raw !== 'object') {
     return {};
   }
@@ -996,8 +1331,7 @@ function loadNoteMap(): Record<string, string> {
 }
 
 function saveNoteMap(map: Record<string, string>) {
-  const vars = TavernHelper.getVariables({ type: 'global' }) as Record<string, unknown>;
-  TavernHelper.replaceVariables({ type: 'global' }, { ...vars, [NOTE_KEY]: map });
+  updateGlobalState({ notes: map });
 }
 
 function getChatCacheKey(card: CardHubItem): string | null {
@@ -1140,6 +1474,9 @@ function applyStatusFilter(list: CardHubItem[]): CardHubItem[] {
   if (statusFilter.value === 'unimported') {
     return list.filter(item => isLibraryItem(item));
   }
+  if (statusFilter.value === 'duplicate') {
+    return list.filter(item => duplicateIdSet.value.has(item.id));
+  }
   return list;
 }
 
@@ -1239,13 +1576,12 @@ function applyTheme(theme: CardHubTheme) {
 }
 
 function loadThemeFromGlobal(): CardHubTheme {
-  const vars = TavernHelper.getVariables({ type: 'global' }) as Record<string, unknown>;
-  return normalizeTheme(vars?.[THEME_KEY]);
+  const state = loadGlobalState();
+  return normalizeTheme(state?.theme);
 }
 
 function saveThemeToGlobal(theme: CardHubTheme) {
-  const vars = TavernHelper.getVariables({ type: 'global' }) as Record<string, unknown>;
-  TavernHelper.replaceVariables({ type: 'global' }, { ...vars, [THEME_KEY]: theme });
+  updateGlobalState({ theme });
 }
 
 function openThemeDialog() {
@@ -1275,6 +1611,110 @@ function saveThemeDraft() {
 function applyThemePreset(preset: { name: string; value: CardHubTheme }) {
   Object.assign(themeDraft, preset.value);
 }
+
+function syncStorageSettings() {
+  const settings = loadStorageSettings();
+  const normalized = settings.mode === 'indexeddb' || settings.mode === 'variables' ? settings.mode : 'variables';
+  storageModeCurrent.value = normalized;
+  storageModeDraft.value = normalized;
+}
+
+function openSettingsDialog() {
+  syncStorageSettings();
+  syncUiSettings();
+  settingsDialogOpen.value = true;
+}
+
+function closeSettingsDialog() {
+  settingsDialogOpen.value = false;
+  storageModeDraft.value = storageModeCurrent.value;
+  Object.assign(uiSettingsDraft, uiSettingsCurrent);
+}
+
+async function saveSettingsDialog() {
+  if (storageSaveBusy.value || (!storageModeDirty.value && !uiSettingsDirty.value)) {
+    settingsDialogOpen.value = false;
+    return;
+  }
+  storageSaveBusy.value = true;
+  const nextMode = storageModeDraft.value;
+  const prevMode = storageModeCurrent.value;
+  try {
+    if (storageModeDirty.value) {
+      const currentLibrary = await loadLibrary();
+      saveStorageSettings({ mode: nextMode });
+      await persistLibrary(currentLibrary, nextMode);
+      storageModeCurrent.value = nextMode;
+      setLibrary(currentLibrary);
+    }
+    if (uiSettingsDirty.value) {
+      saveUiSettings();
+    }
+    settingsDialogOpen.value = false;
+    toastr.success(storageModeDirty.value ? '已切换私有库存储位置' : '已保存设置');
+  } catch (error) {
+    console.warn('[CardHub] 切换私有库存储失败', error);
+    if (storageModeDirty.value) {
+      saveStorageSettings({ mode: prevMode });
+      storageModeCurrent.value = prevMode;
+      storageModeDraft.value = prevMode;
+    }
+    Object.assign(uiSettingsDraft, uiSettingsCurrent);
+    toastr.error('切换存储失败，请稍后重试');
+  } finally {
+    storageSaveBusy.value = false;
+  }
+}
+
+async function exportLibraryBackup() {
+  const entries = await loadLibrary();
+  const blob = new Blob([JSON.stringify({ entries }, null, 2)], { type: 'application/json' });
+  const stamp = new Date().toISOString().slice(0, 10);
+  downloadBlob(blob, `cardhub_library_${stamp}.json`);
+  toastr.success('已导出私有库备份');
+}
+
+function triggerBackupImport() {
+  backupImportInput.value?.click();
+}
+
+async function handleBackupImport(event: Event) {
+  const target = event.target as HTMLInputElement | null;
+  const files = target?.files;
+  if (!files || !files.length) {
+    return;
+  }
+  const file = files[0];
+  try {
+    const text = await file.text();
+    const backupEntries = parseLibraryBackup(text);
+    if (!backupEntries) {
+      toastr.error('不是有效的私有库备份文件');
+      return;
+    }
+    const result = await openConfirm({
+      title: '导入私有库备份',
+      message: '选择“覆盖”会替换现有私有库，选择“合并”会追加进去。',
+      confirmLabel: '覆盖',
+      altLabel: '合并',
+      cancelLabel: '取消',
+    });
+    if (result === 'cancel') {
+      return;
+    }
+    const normalized = normalizeLibraryEntries(backupEntries);
+    const current = state.library;
+    const next = result === 'alt' ? mergeLibraryEntries(current, normalized) : normalized;
+    setLibrary(next);
+    await persistLibrary(next);
+    toastr.success(result === 'alt' ? '已合并私有库备份' : '已导入私有库备份');
+  } finally {
+    if (target) {
+      target.value = '';
+    }
+  }
+}
+
 function toggleExportTagFilter(tag: string) {
   if (exportTagFilters.value.includes(tag)) {
     exportTagFilters.value = exportTagFilters.value.filter(item => item !== tag);
@@ -1302,6 +1742,9 @@ onMounted(() => {
   themeCurrent.value = theme;
   Object.assign(themeDraft, theme);
   nextTick(() => scheduleThemeApply(theme));
+  indexedDbAvailable.value = typeof indexedDB !== 'undefined';
+  syncStorageSettings();
+  syncUiSettings();
   favoriteIds.value = getFavoriteList();
   lastChatCache.value = loadLastChatCache();
   importCache.value = loadImportCache();
@@ -1369,6 +1812,15 @@ function normalizeAvatarKey(value: string): string {
   return raw.trim().toLowerCase();
 }
 
+function normalizeAvatarBase(value: string): string {
+  const raw = normalizeAvatarKey(value);
+  return raw.replace(/\.(png|webp|jpg|jpeg)$/i, '');
+}
+
+function normalizeFileBase(fileName: string): string {
+  return normalizeNameKey(fileName.replace(/\.(png|json)$/i, ''));
+}
+
 function getNoteStorageKey(card: CardHubItem): string | null {
   if (card.origin !== 'tavern') {
     return null;
@@ -1382,11 +1834,8 @@ function getNoteStorageKey(card: CardHubItem): string | null {
 
 function applyNotesToCharacters(list: CardHubItem[]): CardHubItem[] {
   return list.map(card => {
-    const noteKey = getNoteStorageKey(card);
-    if (!noteKey) {
-      return { ...card, note: card.note ?? '' };
-    }
-    return { ...card, note: noteMap.value[noteKey] ?? '' };
+    const note = resolveNoteForCard(card);
+    return { ...card, note };
   });
 }
 
@@ -1427,14 +1876,14 @@ function applyTagUpdate(character: CardHubItem, nextTags: string[]) {
     const updatedLibrary = updateLibraryTags(character.id, nextTags, state.library);
     setLibrary(updatedLibrary);
   } else {
-    const next = updateCharacterTags(character, nextTags);
+    const next = updateCharacterTagsWithSetting(character, nextTags);
     character.tags = next;
     setCharacters([...state.characters]);
   }
 }
 
 const { tagKey, activeTagKey, tagInput, startTagEdit, cancelTagEdit, confirmTag, removeTag } = useTagEditing({
-  getTags: getMergedTags,
+  getTags: resolveMergedTags,
   applyTagUpdate,
 });
 
@@ -1472,7 +1921,8 @@ function applyNoteUpdate(character: CardHubItem, note: string) {
 }
 
 function openManage(card: CardHubItem) {
-  manageCard.value = card;
+  const note = resolveNoteForCard(card);
+  manageCard.value = note ? { ...card, note } : card;
 }
 
 function closeManage() {
@@ -1881,7 +2331,8 @@ async function refresh() {
   try {
     const characters = await fetchCharacterSummaries();
     setCharactersWithNotes(characters);
-    setLibrary(loadLibrary());
+    const library = await loadLibrary();
+    setLibrary(library);
   } finally {
     setLoading(false);
   }

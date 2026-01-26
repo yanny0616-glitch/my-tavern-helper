@@ -9,6 +9,9 @@ export type Macro = {
   newline: boolean;
   scope: 'global' | 'character';
   characterId: string;
+  pinned: boolean;
+  lastUsedAt: number;
+  enabled: boolean;
 };
 
 export type Theme = {

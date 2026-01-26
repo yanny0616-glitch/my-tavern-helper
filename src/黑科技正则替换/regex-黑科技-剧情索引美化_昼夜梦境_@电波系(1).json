@@ -1,0 +1,19 @@
+﻿{
+    "id":  "109be65b-ac17-40eb-9595-f1c0ac21ae7b",
+    "scriptName":  "黑科技-剧情索引美化|昼夜梦境 @电波系",
+    "disabled":  false,
+    "runOnEdit":  true,
+    "findRegex":  "/以下是用户([\\s\\S]*)$/m",
+    "replaceString":  "```\n\u003cbody\u003e\n\u003cscript type=\"text/plain\" id=\"rawData\"\u003e$1\u003c/script\u003e\n\u003cscript\u003e\n(function(){\n  var el=document.getElementById(\u0027rawData\u0027);\n  window.__TH_RAW__=el?el.textContent||\u0027\u0027:\u0027\u0027;\n})();\n$(\u0027body\u0027).load(\u0027http://localhost:5500/dist/黑科技正则替换/index.html\u0027);\n\u003c/script\u003e\n\u003c/body\u003e\n```",
+    "trimStrings":  [
+
+                    ],
+    "placement":  [
+                      1
+                  ],
+    "substituteRegex":  0,
+    "minDepth":  null,
+    "maxDepth":  null,
+    "markdownOnly":  true,
+    "promptOnly":  false
+}

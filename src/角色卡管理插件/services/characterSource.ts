@@ -34,14 +34,14 @@ export async function fetchCharacterSummaries(): Promise<CardHubItem[]> {
     const avatarKey = character.avatar;
     const name = character.name ?? '未命名角色';
     const createdRaw =
-      character.create_date ??
-      character.date_added ??
+      (character as any)?.create_date ??
+      (character as any)?.date_added ??
       (character as any)?.created ??
       (character as any)?.created_at ??
       (character as any)?.timestamp ??
       (character as any)?.time ??
-      character.data?.create_date ??
-      character.data?.date_added ??
+      (character as any)?.data?.create_date ??
+      (character as any)?.data?.date_added ??
       (character as any)?.data?.created ??
       (character as any)?.data?.created_at ??
       (character as any)?.data?.timestamp ??

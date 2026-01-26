@@ -3,7 +3,17 @@
     <div class="cardhub-manage__label">角色卡预览</div>
     <div v-if="manageDetails.length" class="cardhub-manage__details">
       <div v-for="detail in manageDetails" :key="detail.label" class="cardhub-manage__detail">
-        <div class="cardhub-manage__detail-label">{{ detail.label }}</div>
+        <div class="cardhub-manage__detail-head">
+          <div class="cardhub-manage__detail-label">{{ detail.label }}</div>
+          <button
+            v-if="detail.editable"
+            class="cardhub-manage__detail-edit"
+            type="button"
+            @click="openEdit(detail)"
+          >
+            ✎
+          </button>
+        </div>
         <div class="cardhub-manage__detail-content">
           {{ detail.preview }}
         </div>
@@ -123,6 +133,8 @@ type ManageDetail = {
   preview: string;
   full: string;
   hasMore: boolean;
+  editable?: boolean;
+  field?: string;
 };
 
 type ManageChatEntry = {
@@ -156,6 +168,7 @@ defineProps<{
   chatTotalPages: number;
   manageChatHint: string;
   openDetail: (detail: ManageDetail) => void;
+  openEdit: (detail: ManageDetail) => void;
   openOpeningList: () => void;
   openLatestChat: () => void;
   openNewChat: () => void;

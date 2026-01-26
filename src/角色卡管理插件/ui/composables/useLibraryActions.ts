@@ -1,4 +1,4 @@
-import { computed, ref, type ComputedRef, type Ref } from 'vue';
+﻿import { computed, ref, type ComputedRef, type Ref } from 'vue';
 import type { CardHubItem } from '../../types';
 
 type ConfirmResult = 'confirm' | 'cancel' | 'alt';
@@ -21,7 +21,11 @@ type LibraryActionOptions = {
   setCharacters: (characters: CardHubItem[]) => void;
   fetchCharacterSummaries: () => Promise<CardHubItem[]>;
   addToLibrary: (files: FileList | File[], existingEntries?: CardHubItem[]) => Promise<CardHubItem[]>;
-  removeFromLibrary: (entryId: string) => CardHubItem[];
+  parseLibraryBackup: (raw: string) => CardHubItem[] | null;
+  normalizeLibraryEntries: (entries: CardHubItem[]) => CardHubItem[];
+  mergeLibraryEntries: (current: CardHubItem[], incoming: CardHubItem[]) => CardHubItem[];
+  persistLibrary: (entries: CardHubItem[]) => Promise<void>;
+  removeFromLibrary: (entryId: string, existingEntries?: CardHubItem[]) => CardHubItem[];
   updateCharacterTags: (target: CardHubItem, nextTags: string[]) => string[];
   parseLibraryCardData: (card: CardHubItem) => any | null;
   extractCardTagsFromData: (data: any) => string[];
@@ -32,6 +36,7 @@ type LibraryActionOptions = {
   openConfirm: (options: ConfirmOptions) => Promise<ConfirmResult>;
   closeManage: () => void;
   sleep: (ms: number) => Promise<void>;
+  getExportFormat: () => 'png' | 'json';
 };
 
 export function useLibraryActions(options: LibraryActionOptions) {
@@ -113,6 +118,35 @@ export function useLibraryActions(options: LibraryActionOptions) {
     if (!files || !files.length) {
       return;
     }
+    if (files.length === 1 && files[0].name.toLowerCase().endsWith('.json')) {
+      try {
+        const text = await files[0].text();
+        const backupEntries = options.parseLibraryBackup(text);
+        if (backupEntries) {
+          const result = await options.openConfirm({
+            title: '导入私有库备份',
+            message: '检测到私有库备份文件。\n选择“覆盖”会替换现有私有库，选择“合并”会追加进去。',
+            confirmLabel: '覆盖',
+            altLabel: '合并',
+            cancelLabel: '取消',
+          });
+          if (result === 'cancel') {
+            target.value = '';
+            return;
+          }
+          const normalized = options.normalizeLibraryEntries(backupEntries);
+          const current = options.getLibrary();
+          const next = result === 'alt' ? options.mergeLibraryEntries(current, normalized) : normalized;
+          options.setLibrary(next);
+          await options.persistLibrary(next);
+          toastr.success(result === 'alt' ? '已合并私有库备份' : '已导入私有库备份');
+          target.value = '';
+          return;
+        }
+      } catch (error) {
+        console.warn('[CardHub] 读取备份失败', error);
+      }
+    }
     const updated = await options.addToLibrary(files, options.getLibrary());
     options.setLibrary(updated);
     target.value = '';
@@ -185,7 +219,7 @@ export function useLibraryActions(options: LibraryActionOptions) {
     );
     const importedCard = matchedByAvatar ?? matchedByName ?? null;
     if (importedCard) {
-      options.setLibrary(options.removeFromLibrary(card.id));
+      options.setLibrary(options.removeFromLibrary(card.id, options.getLibrary()));
       const rawTags = card.tags?.length
         ? card.tags
         : options.extractCardTagsFromData(options.parseLibraryCardData(card));
@@ -218,6 +252,14 @@ export function useLibraryActions(options: LibraryActionOptions) {
     if (card.origin === 'library') {
       await exportLibraryCard(card);
       return;
+    }
+    if (options.getExportFormat() === 'json') {
+      const raw = TavernHelper.getCharData(card.avatar ?? card.name, true);
+      if (raw) {
+        const blob = new Blob([JSON.stringify(raw, null, 2)], { type: 'application/json' });
+        options.downloadBlob(blob, `${card.name}.json`);
+        return;
+      }
     }
     if (!card.avatar) {
       toastr.error('无法导出：缺少头像信息');
@@ -290,7 +332,10 @@ export function useLibraryActions(options: LibraryActionOptions) {
     }
     const response = await fetch(avatarPath, { cache: 'no-cache' });
     const blob = await response.blob();
-    const updated = await options.addToLibrary([new File([blob], `${card.name}.png`, { type: 'image/png' })]);
+    const updated = await options.addToLibrary(
+      [new File([blob], `${card.name}.png`, { type: 'image/png' })],
+      options.getLibrary(),
+    );
     options.setLibrary(updated);
   }
 
@@ -406,7 +451,7 @@ export function useLibraryActions(options: LibraryActionOptions) {
       if (confirmDelete !== 'confirm') {
         return;
       }
-      options.setLibrary(options.removeFromLibrary(card.id));
+      options.setLibrary(options.removeFromLibrary(card.id, options.getLibrary()));
       options.closeManage();
       return;
     }
@@ -485,3 +530,5 @@ export function useLibraryActions(options: LibraryActionOptions) {
     manageDelete,
   };
 }
+
+

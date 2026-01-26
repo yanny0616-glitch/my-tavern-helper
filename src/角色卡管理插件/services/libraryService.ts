@@ -1,17 +1,16 @@
 ﻿import { uuidv4 } from '../../../util/common';
 import type { CardHubItem } from '../types';
-
-const LIBRARY_KEY = 'cardhub_library';
+import { loadStorageSettings, type StorageMode } from './storageSettings';
+import { loadGlobalState, updateGlobalState } from './globalState';
+import {
+  isIndexedDbAvailable,
+  readLibraryFromIndexedDb,
+  writeLibraryToIndexedDb,
+} from './libraryStorageIndexedDb';
 
 type StoredLibrary = {
   entries: CardHubItem[];
 };
-
-function getGlobalStorage() {
-  return {
-    type: 'global',
-  } as const;
-}
 
 function getScriptStorage() {
   return {
@@ -20,35 +19,63 @@ function getScriptStorage() {
   } as const;
 }
 
-function readLibrary(): StoredLibrary {
-  const globalVars = TavernHelper.getVariables(getGlobalStorage()) as Record<string, unknown>;
-  const globalRaw = globalVars?.[LIBRARY_KEY];
-  if (globalRaw && typeof globalRaw === 'object') {
-    const entries = Array.isArray((globalRaw as StoredLibrary).entries) ? (globalRaw as StoredLibrary).entries : [];
+function readLibraryFromVariables(): StoredLibrary {
+  const state = loadGlobalState();
+  if (state?.library && typeof state.library === 'object') {
+    const entries = Array.isArray((state.library as StoredLibrary).entries)
+      ? ((state.library as StoredLibrary).entries as CardHubItem[])
+      : [];
     return { entries };
   }
 
   const scriptVars = TavernHelper.getVariables(getScriptStorage()) as Record<string, unknown>;
-  const scriptRaw = scriptVars?.[LIBRARY_KEY];
+  const scriptRaw = scriptVars?.['cardhub_library'];
   if (!scriptRaw || typeof scriptRaw !== 'object') {
     return { entries: [] };
   }
   const entries = Array.isArray((scriptRaw as StoredLibrary).entries) ? (scriptRaw as StoredLibrary).entries : [];
   if (entries.length) {
-    writeLibrary(entries);
+    writeLibraryToVariables(entries);
   }
   return { entries };
 }
 
-function writeLibrary(entries: CardHubItem[]) {
-  const vars = TavernHelper.getVariables(getGlobalStorage()) as Record<string, unknown>;
-  TavernHelper.replaceVariables(
-    {
-      ...vars,
-      [LIBRARY_KEY]: { entries },
-    },
-    getGlobalStorage(),
-  );
+function writeLibraryToVariables(entries: CardHubItem[]) {
+  updateGlobalState({ library: { entries } });
+}
+
+async function readLibraryFromStorage(): Promise<CardHubItem[]> {
+  const settings = loadStorageSettings();
+  if (settings.mode === 'indexeddb') {
+    if (!isIndexedDbAvailable()) {
+      return readLibraryFromVariables().entries;
+    }
+    try {
+      return await readLibraryFromIndexedDb();
+    } catch (error) {
+      console.warn('[CardHub] 读取 IndexedDB 失败，已回退到变量存储', error);
+      return readLibraryFromVariables().entries;
+    }
+  }
+  return readLibraryFromVariables().entries;
+}
+
+export async function persistLibrary(entries: CardHubItem[], modeOverride?: StorageMode): Promise<void> {
+  const mode = modeOverride ?? loadStorageSettings().mode;
+  if (mode === 'indexeddb') {
+    if (!isIndexedDbAvailable()) {
+      writeLibraryToVariables(entries);
+      return;
+    }
+    try {
+      await writeLibraryToIndexedDb(entries);
+    } catch (error) {
+      console.warn('[CardHub] 写入 IndexedDB 失败，已回退到变量存储', error);
+      writeLibraryToVariables(entries);
+    }
+    return;
+  }
+  writeLibraryToVariables(entries);
 }
 
 function readFileAsDataUrl(file: File): Promise<string> {
@@ -326,13 +353,15 @@ function ensureFingerprint(entry: CardHubItem): string | null {
   return fingerprint;
 }
 
-export function loadLibrary(): CardHubItem[] {
-  const stored = readLibrary().entries;
+type NormalizeResult = { entries: CardHubItem[]; changed: boolean };
+
+function normalizeLibraryEntriesInternal(stored: CardHubItem[]): NormalizeResult {
   let changed = false;
   const now = Date.now();
   const entries = stored.map((entry, index) => {
     const normalized: CardHubItem = {
       ...entry,
+      id: entry.id ?? uuidv4(),
       origin: entry.origin ?? 'library',
       tags: Array.isArray(entry.tags) ? entry.tags : [],
       note: typeof entry.note === 'string' ? entry.note : '',
@@ -354,8 +383,18 @@ export function loadLibrary(): CardHubItem[] {
       createdAt: now - (stored.length - 1 - index) * 1000,
     };
   });
+  return { entries, changed };
+}
+
+export function normalizeLibraryEntries(stored: CardHubItem[]): CardHubItem[] {
+  return normalizeLibraryEntriesInternal(stored).entries;
+}
+
+export async function loadLibrary(): Promise<CardHubItem[]> {
+  const stored = await readLibraryFromStorage();
+  const { entries, changed } = normalizeLibraryEntriesInternal(stored);
   if (changed) {
-    writeLibrary(entries);
+    void persistLibrary(entries);
   }
   return entries;
 }
@@ -363,9 +402,10 @@ export function loadLibrary(): CardHubItem[] {
 export async function addToLibrary(files: FileList | File[], existingEntries?: CardHubItem[]): Promise<CardHubItem[]> {
   const list = Array.from(files);
   if (!list.length) {
-    return loadLibrary();
+    return await loadLibrary();
   }
-  const current = Array.isArray(existingEntries) && existingEntries.length ? existingEntries : loadLibrary();
+  const current =
+    Array.isArray(existingEntries) && existingEntries.length ? existingEntries : await loadLibrary();
   const fingerprints = new Set<string>();
   current.forEach(entry => {
     const fingerprint = ensureFingerprint(entry);
@@ -431,37 +471,75 @@ export async function addToLibrary(files: FileList | File[], existingEntries?: C
   }
 
   const merged = [...current, ...nextEntries];
-  writeLibrary(merged);
+  void persistLibrary(merged);
+  return merged;
+}
+
+export function parseLibraryBackup(raw: string): CardHubItem[] | null {
+  const parsed = parseJsonSafe(raw);
+  if (!parsed || typeof parsed !== 'object') {
+    return null;
+  }
+  const entries = (parsed as { entries?: unknown }).entries;
+  if (!Array.isArray(entries)) {
+    return null;
+  }
+  return entries as CardHubItem[];
+}
+
+export function mergeLibraryEntries(current: CardHubItem[], incoming: CardHubItem[]): CardHubItem[] {
+  const normalizedIncoming = normalizeLibraryEntries(incoming);
+  const fingerprints = new Set<string>();
+  const merged: CardHubItem[] = [];
+  current.forEach(entry => {
+    const fingerprint = ensureFingerprint(entry);
+    if (fingerprint) {
+      fingerprints.add(fingerprint);
+    }
+    merged.push(entry);
+  });
+  normalizedIncoming.forEach(entry => {
+    const fingerprint = ensureFingerprint(entry);
+    if (fingerprint && fingerprints.has(fingerprint)) {
+      return;
+    }
+    if (fingerprint) {
+      fingerprints.add(fingerprint);
+    }
+    merged.push(entry);
+  });
   return merged;
 }
 
 export function updateLibraryTags(entryId: string, tags: string[], existingEntries?: CardHubItem[]): CardHubItem[] {
-  const current = Array.isArray(existingEntries) && existingEntries.length ? existingEntries : loadLibrary();
+  const current = Array.isArray(existingEntries) && existingEntries.length ? existingEntries : [];
   const updated = current.map(entry => {
     if (entry.id !== entryId) {
       return entry;
     }
     return { ...entry, tags, tagsEdited: true };
   });
-  writeLibrary(updated);
+  void persistLibrary(updated);
   return updated;
 }
 
 export function updateLibraryNote(entryId: string, note: string, existingEntries?: CardHubItem[]): CardHubItem[] {
-  const current = Array.isArray(existingEntries) && existingEntries.length ? existingEntries : loadLibrary();
+  const current = Array.isArray(existingEntries) && existingEntries.length ? existingEntries : [];
   const updated = current.map(entry => {
     if (entry.id !== entryId) {
       return entry;
     }
     return { ...entry, note };
   });
-  writeLibrary(updated);
+  void persistLibrary(updated);
   return updated;
 }
 
-export function removeFromLibrary(entryId: string): CardHubItem[] {
-  const current = loadLibrary();
+export function removeFromLibrary(entryId: string, existingEntries?: CardHubItem[]): CardHubItem[] {
+  const current = Array.isArray(existingEntries) && existingEntries.length ? existingEntries : [];
   const updated = current.filter(entry => entry.id !== entryId);
-  writeLibrary(updated);
+  void persistLibrary(updated);
   return updated;
 }
+
+

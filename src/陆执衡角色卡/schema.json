@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "世界环境": {
+      "type": "object",
+      "properties": {
+        "时间": {
+          "type": "string"
+        },
+        "气候": {
+          "type": "object",
+          "properties": {
+            "季节": {
+              "type": "string"
+            },
+            "天气": {
+              "type": "string"
+            },
+            "温度": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "季节",
+            "天气",
+            "温度"
+          ]
+        }
+      },
+      "required": [
+        "时间",
+        "气候"
+      ]
+    },
+    "孟砚白": {
+      "type": "object",
+      "properties": {
+        "服装": {
+          "type": "object",
+          "properties": {
+            "上衣": {
+              "type": "string"
+            },
+            "下衣": {
+              "type": "string"
+            },
+            "鞋子": {
+              "type": "string"
+            },
+            "配饰": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "上衣",
+            "下衣",
+            "鞋子",
+            "配饰"
+          ]
+        },
+        "心理活动": {
+          "type": "object",
+          "properties": {
+            "表层想法": {
+              "type": "string"
+            },
+            "深层欲念": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "表层想法",
+            "深层欲念"
+          ]
+        },
+        "手机": {
+          "type": "object",
+          "properties": {
+            "最近搜索": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "最近搜索"
+          ]
+        },
+        "备忘录": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "克制值": {
+          "type": "number"
+        },
+        "亲密度": {
+          "type": "number"
+        },
+        "情绪": {
+          "type": "string"
+        },
+        "生理征兆": {
+          "type": "string"
+        },
+        "当前姿势": {
+          "type": "string"
+        },
+        "当前位置": {
+          "type": "object",
+          "properties": {
+            "地点": {
+              "type": "string"
+            },
+            "具体方位": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "地点",
+            "具体方位"
+          ]
+        }
+      },
+      "required": [
+        "服装",
+        "心理活动",
+        "手机",
+        "备忘录",
+        "克制值",
+        "亲密度",
+        "情绪",
+        "生理征兆",
+        "当前姿势",
+        "当前位置"
+      ]
+    },
+    "user": {
+      "type": "object",
+      "properties": {
+        "当前位置": {
+          "type": "object",
+          "properties": {
+            "地点": {
+              "type": "string"
+            },
+            "具体方位": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "地点",
+            "具体方位"
+          ]
+        },
+        "服装": {
+          "type": "object",
+          "properties": {
+            "上衣": {
+              "type": "string"
+            },
+            "下衣": {
+              "type": "string"
+            },
+            "鞋子": {
+              "type": "string"
+            },
+            "配饰": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "上衣",
+            "下衣",
+            "鞋子",
+            "配饰"
+          ]
+        }
+      },
+      "required": [
+        "当前位置",
+        "服装"
+      ]
+    }
+  },
+  "required": [
+    "世界环境",
+    "孟砚白",
+    "user"
+  ]
+}

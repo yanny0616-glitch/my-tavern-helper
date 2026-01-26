@@ -1,0 +1,57 @@
+﻿:root {
+  --perf-bg: rgba(255, 255, 255, 0.6);
+  --perf-border: rgba(255, 105, 180, 0.25);
+  --perf-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+}
+
+body {
+  font-family: 'Noto Serif SC', 'Source Han Serif CN', serif;
+  background: transparent;
+  padding: 12px;
+}
+
+.perf-header {
+  background: linear-gradient(135deg, rgba(255, 182, 193, 0.5), rgba(255, 255, 255, 0.4));
+  border: 1px solid var(--perf-border);
+  border-radius: 18px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--perf-shadow);
+}
+
+.perf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.perf-card {
+  background: var(--perf-bg);
+  border: 1px solid var(--perf-border);
+  border-radius: 14px;
+  padding: 10px 12px;
+  box-shadow: var(--perf-shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.perf-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+}
+
+.perf-card__title {
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+}
+
+.perf-card__meta {
+  font-size: 11px;
+  opacity: 0.7;
+  margin: 6px 0;
+}
+
+.perf-card__body {
+  font-size: 12px;
+  line-height: 1.5;
+}

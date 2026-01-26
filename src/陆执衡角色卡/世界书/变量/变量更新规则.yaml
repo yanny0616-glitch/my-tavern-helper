@@ -1,0 +1,72 @@
+﻿---
+变量更新规则:
+  世界环境:
+    时间:
+      type: string
+      format: YYYY-MM-DD HH:MM
+      check:
+        - 根据剧情推进同步更新时间
+        - 时间变化应连续且合理
+    气候:
+      type: |-
+        { 季节: string; 天气: string; 温度: number }
+      check:
+        - 季节与天气保持一致
+        - 温度与天气状况保持一致
+  孟砚白:
+    服装:
+      type: |-
+        { 上衣: string; 下衣: string; 鞋子: string; 配饰: string }
+      check:
+        - 服装变化需有事件或场景触发
+    心理活动:
+      type: |-
+        { 表层想法: string; 深层欲念: string }
+      check:
+        - 表层想法为表层想法，显现给外界的理性逻辑与长线思考
+        - 深层欲念为深层欲望，极力压抑的真实渴望与冲动
+    手机:
+      type: |-
+        { 最近搜索: string[] }
+      check:
+        - 仅保留最近三条搜索记录
+        - 搜索内容与当前场景相关
+    备忘录:
+      type: string[]
+      check:
+        - 使用可执行的短句记录待办
+    克制值:
+      type: number
+      check:
+        - 情感越界或冲突会降低
+        - 自我约束或冷处理会回升
+    亲密度:
+      type: number
+      check:
+        - 亲密互动会提升
+        - 冷淡疏离会下降
+    情绪:
+      check:
+        - 用简短词描述当前情绪
+    生理征兆:
+      check:
+        - 无明显反应时写明“无明显反应”
+    当前姿势:
+      check:
+        - 用一句话描述身体姿势
+    当前位置:
+      type: |-
+        { 地点: string; 具体方位: string }
+      check:
+        - 方位描述具体到方向或钟点方位
+  user:
+    当前位置:
+      type: |-
+        { 地点: string; 具体方位: string }
+      check:
+        - 方位描述具体到方向或钟点方位
+    服装:
+      type: |-
+        { 上衣: string; 下衣: string; 鞋子: string; 配饰: string }
+      check:
+        - 用户服装变化需与剧情一致

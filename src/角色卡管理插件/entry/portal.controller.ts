@@ -25,7 +25,8 @@ async function refreshCharacters() {
   try {
     const characters = await fetchCharacterSummaries();
     setCharacters(characters);
-    setLibrary(loadLibrary());
+    const library = await loadLibrary();
+    setLibrary(library);
   } finally {
     setLoading(false);
   }
