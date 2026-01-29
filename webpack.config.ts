@@ -234,7 +234,7 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
               test: /\.tsx?$/,
               loader: 'ts-loader',
               options: {
-                transpileOnly: true,
+                transpileOnly: argv.mode !== 'production',
                 onlyCompileBundledFiles: true,
                 compilerOptions: {
                   noUnusedLocals: false,
@@ -268,7 +268,7 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
               test: /\.tsx?$/,
               loader: 'ts-loader',
               options: {
-                transpileOnly: true,
+                transpileOnly: argv.mode !== 'production',
                 onlyCompileBundledFiles: true,
                 compilerOptions: {
                   noUnusedLocals: false,
@@ -302,7 +302,7 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
               test: /\.tsx?$/,
               loader: 'ts-loader',
               options: {
-                transpileOnly: true,
+                transpileOnly: argv.mode !== 'production',
                 onlyCompileBundledFiles: true,
                 compilerOptions: {
                   noUnusedLocals: false,
