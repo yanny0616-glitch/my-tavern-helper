@@ -29,7 +29,7 @@ export function injectStreamingMessageContext(): Readonly<StreamingMessageContex
  *     - 将会继承酒馆样式
  *     - 禁止使用 mes_text 类名, 它会让酒馆的编辑楼层功能不可用
  *     - 组件内不能使用 tailwindcss, 因为会影响酒馆其他部分的样式
- *     - 你也许会用到 `@types/function/displayed_message.d.ts` 中的 `formatAsDisplayedMessage` 函数来格式化消息内容
+ *     - 你也许会用到 `@types/function/displayed_message.d.ts` 中的 `formatAsDisplayedMessage` 来格式化消息内容, 并用 `.replaceAll('mes_text', 'mes_streaming')` 来为格式化后内容适配样式
  *
  * @param creator 创建流式界面的组件, 函数内可以用 `.use` 安装依赖或执行其他逻辑
  * @param options 可选选项
@@ -49,8 +49,7 @@ export function mountStreamingMessages(
 
   const destroyIfInvalid = (message_id: number): boolean => {
     const min_message_id = Number($('#chat > .mes').first().attr('mesid'));
-    const max_message_id = getLastMessageId();
-    if (!_.inRange(message_id, min_message_id, max_message_id + 1)) {
+    if (!_.inRange(message_id, min_message_id, SillyTavern.chat.length)) {
       states.get(message_id)?.destroy();
       return true;
     }
@@ -134,6 +133,7 @@ export function mountStreamingMessages(
         $host.addClass('hidden!');
       } else if ($edit_textarea.length === 0) {
         $mes_text.addClass('hidden!');
+        $message_element.find('.TH-streaming').addClass('hidden!');
         $host.removeClass('hidden!');
       }
     });
@@ -161,27 +161,47 @@ export function mountStreamingMessages(
     });
   };
 
-  const renderAllMessage = async () => {
+  const renderAllMessage = async (options: { destroy_all?: boolean; trigger_event?: boolean } = {}) => {
     if (has_stoped) {
       return;
     }
-    destroyAllInvalid();
+    if (options.destroy_all) {
+      states.forEach(({ destroy }) => destroy());
+    } else {
+      destroyAllInvalid();
+    }
     await Promise.all(
-      _.range(Number($('#chat > .mes').first().attr('mesid')), getLastMessageId() + 1).map(
-        async message_id => await renderOneMessage(message_id),
-      ),
+      $('#chat')
+        .children(".mes[is_user='false'][is_system='false']")
+        .map(async (_index, node) => {
+          const message_id = Number($(node).attr('mesid') ?? 'NaN');
+          if (!isNaN(message_id)) {
+            await renderOneMessage(message_id);
+            if (options.trigger_event) {
+              eventEmit(tavern_events.CHARACTER_MESSAGE_RENDERED, message_id, 'rerender');
+            }
+          }
+        }),
     );
   };
 
   const stop_list: Array<() => void> = [];
-  const scopedEventOn = <T extends EventType>(event: T, listener: ListenerType[T]) => {
-    stop_list.push(eventOn(event, errorCatched(listener)).stop);
+  const scopedEventOn = <T extends EventType>(event: T, listener: ListenerType[T], first?: true) => {
+    stop_list.push(
+      first ? eventMakeFirst(event, errorCatched(listener)).stop : eventOn(event, errorCatched(listener)).stop,
+    );
   };
-  scopedEventOn('chatLoaded', () => renderAllMessage());
-  scopedEventOn(tavern_events.CHARACTER_MESSAGE_RENDERED, message_id => {
-    destroyAllInvalid();
-    renderOneMessage(message_id);
+  scopedEventOn('chatLoaded', () => {
+    renderAllMessage({ destroy_all: true });
   });
+  scopedEventOn(
+    tavern_events.CHARACTER_MESSAGE_RENDERED,
+    message_id => {
+      destroyAllInvalid();
+      renderOneMessage(message_id);
+    },
+    true,
+  );
   [tavern_events.MESSAGE_EDITED, tavern_events.MESSAGE_DELETED].forEach(event =>
     scopedEventOn(event, message_id => {
       destroyAllInvalid();
@@ -197,7 +217,7 @@ export function mountStreamingMessages(
   if (host === 'div') {
     stop_list.push(teleportStyle().destroy);
   }
-  renderAllMessage();
+  renderAllMessage({ trigger_event: true });
 
   return {
     unmount: () => {
