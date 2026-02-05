@@ -81,8 +81,6 @@ export function prettifyErrorWithInput(error: z.ZodError) {
     })
     .join('\n');
 }
-<<<<<<< HEAD
-=======
 
 export function literalYamlify(value: any) {
   return YAML.stringify(value, { blockQuote: 'literal' });
@@ -129,4 +127,3 @@ export async function checkAndUpdateCharacter(name: string, latest_version: stri
     name,
   );
 }
->>>>>>> f0b81694107b46de13c384cb766919135218501f
