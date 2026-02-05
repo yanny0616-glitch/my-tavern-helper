@@ -1,0 +1,3826 @@
+```html
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&family=Montserrat:wght@400;600;800&family=Noto+Sans+SC:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --f-main: 'Noto Sans SC', sans-serif;
+        --f-code: 'Roboto Mono', monospace;
+        --f-head: 'Montserrat', sans-serif;
+        --tr: 0.25s cubic-bezier(0.2, 0, 0.2, 1);
+        --c-bg: 10, 10, 12;
+        --c-surf: 25, 25, 30;
+        --c-border: 60, 60, 70;
+        --c-text: 220, 220, 220;
+        --c-prim: 0, 255, 200;
+        --c-sec: 255, 0, 90;
+        --c-accent: 255, 220, 0;
+        --c-laser-1: #00f3ff;
+        --c-laser-2: #ff005a;
+        --c-pos: 100, 255, 150;
+        --c-neg: 255, 100, 100;
+        --c-magic: 180, 100, 255;
+        --r-card: 10px;
+        --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        --blur: 20px;
+        --grid-line: rgba(255, 255, 255, 0.03);
+        --card-op: 0.85;
+        --badge-bg: rgba(0, 0, 0, 0.4);
+        --badge-col: #fff;
+        --text-adapt: 220, 220, 220;
+      }
+
+      [data-theme='forest'] {
+        --c-bg: 240, 244, 243;
+        --c-surf: 255, 255, 255;
+        --c-border: 130, 160, 155;
+        --c-text: 40, 60, 55;
+        --c-prim: 45, 125, 115;
+        --c-sec: 180, 70, 70;
+        --c-accent: 180, 130, 40;
+        --c-laser-1: #419d9d;
+        --c-laser-2: #c8963c;
+        --shadow: 0 4px 15px rgba(65, 125, 125, 0.15);
+        --grid-line: rgba(65, 145, 135, 0.05);
+        --card-op: 0.95;
+        --badge-bg: rgba(65, 145, 135, 0.15);
+        --badge-col: #1a4a4a;
+        --text-adapt: 40, 60, 55;
+      }
+      [data-theme='sakura-day'] {
+        --c-bg: 255, 240, 245;
+        --c-surf: 255, 255, 255;
+        --c-border: 255, 180, 200;
+        --c-text: 80, 50, 60;
+        --c-prim: 235, 85, 130;
+        --c-sec: 255, 50, 80;
+        --c-accent: 235, 160, 0;
+        --c-laser-1: #ff69b4;
+        --c-laser-2: #ffb7c5;
+        --shadow: 0 4px 20px rgba(255, 150, 180, 0.2);
+        --grid-line: rgba(255, 100, 150, 0.05);
+        --card-op: 0.95;
+        --badge-bg: rgba(255, 105, 150, 0.15);
+        --badge-col: #a03050;
+        --text-adapt: 80, 50, 60;
+      }
+      [data-theme='sakura-night'] {
+        --c-bg: 45, 20, 30;
+        --c-surf: 65, 35, 45;
+        --c-border: 140, 80, 100;
+        --c-text: 255, 235, 240;
+        --c-prim: 255, 160, 200;
+        --c-sec: 255, 80, 100;
+        --c-accent: 255, 220, 150;
+        --c-laser-1: #ffb7c5;
+        --c-laser-2: #ff005a;
+        --card-op: 0.85;
+        --blur: 30px;
+        --text-adapt: 255, 235, 240;
+      }
+      [data-theme='aqua'] {
+        --c-bg: 240, 250, 255;
+        --c-surf: 255, 255, 255;
+        --c-border: 180, 220, 240;
+        --c-text: 30, 60, 80;
+        --c-prim: 0, 140, 210;
+        --c-sec: 255, 80, 80;
+        --c-accent: 235, 160, 0;
+        --c-laser-1: #00bfff;
+        --c-laser-2: #1e90ff;
+        --shadow: 0 4px 15px rgba(0, 150, 255, 0.15);
+        --grid-line: rgba(0, 150, 255, 0.05);
+        --card-op: 0.95;
+        --badge-bg: rgba(0, 160, 230, 0.1);
+        --badge-col: #005080;
+        --text-adapt: 30, 60, 80;
+      }
+      [data-theme='cyber'] {
+        --c-bg: 5, 8, 10;
+        --c-surf: 15, 20, 25;
+        --c-border: 40, 50, 60;
+        --c-text: 200, 210, 220;
+        --c-prim: 0, 243, 255;
+        --c-sec: 255, 42, 109;
+        --c-accent: 247, 208, 2;
+        --c-laser-1: #00f3ff;
+        --c-laser-2: #ff2a6d;
+        --text-adapt: 200, 210, 220;
+      }
+      [data-theme='moonlight'] {
+        --c-bg: 10, 10, 25;
+        --c-surf: 25, 25, 50;
+        --c-border: 80, 80, 140;
+        --c-text: 230, 230, 255;
+        --c-prim: 190, 170, 255;
+        --c-sec: 100, 200, 255;
+        --c-accent: 255, 255, 150;
+        --c-laser-1: #b388ff;
+        --c-laser-2: #80d8ff;
+        --text-adapt: 230, 230, 255;
+      }
+      [data-theme='ink'] {
+        --c-bg: 252, 252, 252;
+        --c-surf: 255, 255, 255;
+        --c-border: 100, 100, 100;
+        --c-text: 20, 20, 20;
+        --c-prim: 50, 50, 50;
+        --c-sec: 180, 20, 20;
+        --c-accent: 80, 80, 80;
+        --c-laser-1: #333;
+        --c-laser-2: #666;
+        --grid-line: rgba(0, 0, 0, 0.08);
+        --card-op: 0.98;
+        --badge-bg: rgba(0, 0, 0, 0.08);
+        --badge-col: #333;
+        --text-adapt: 20, 20, 20;
+      }
+      [data-theme='terminal'] {
+        --c-bg: 0, 0, 0;
+        --c-surf: 10, 15, 10;
+        --c-border: 0, 80, 0;
+        --c-text: 0, 220, 0;
+        --c-prim: 0, 255, 0;
+        --c-sec: 0, 150, 0;
+        --c-accent: 180, 255, 180;
+        --c-laser-1: #00ff00;
+        --c-laser-2: #ccffcc;
+        --r-card: 0px;
+        --shadow: none;
+        --card-op: 0.95;
+        --badge-bg: #003300;
+        --badge-col: #00ff00;
+        --text-adapt: 0, 220, 0;
+      }
+
+      [data-font='sans'] {
+        --f-main: 'Noto Sans SC', sans-serif;
+      }
+      [data-font='serif'] {
+        --f-main: 'Playfair Display', serif;
+      }
+      [data-font='mono'] {
+        --f-main: 'Roboto Mono', monospace;
+      }
+      [data-font='art'] {
+        --f-main: 'Ma Shan Zheng', cursive;
+      }
+
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+      body {
+        background: transparent !important;
+        font-family: var(--f-main);
+        font-size: 11px !important;
+        color: rgb(var(--c-text));
+        margin: 0;
+        overflow-x: hidden;
+      }
+      #input-buffer {
+        display: none !important;
+      }
+
+      .app {
+        width: 98%;
+        max-width: 600px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 10;
+        padding: 10px 0;
+        transition: var(--tr);
+        min-height: 50px;
+      }
+
+      .data-label,
+      .section-sub,
+      .ch-label,
+      .kv-k,
+      .file-key,
+      .eval-label,
+      .imp-tag {
+        background: var(--badge-bg) !important;
+        color: var(--badge-col) !important;
+        padding: 2px 6px !important;
+        border-radius: 4px;
+        font-weight: 600;
+      }
+
+      .capsule-bar {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        background: rgba(var(--c-surf), var(--card-op));
+        border: 1px solid rgba(var(--c-prim), 0.3);
+        border-radius: var(--r-card);
+        padding: 0;
+        margin-bottom: 10px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(var(--blur));
+        -webkit-backdrop-filter: blur(var(--blur));
+        overflow: hidden;
+        transition: var(--tr);
+        position: relative;
+        z-index: 100;
+      }
+      .capsule-top {
+        display: flex;
+        align-items: stretch;
+        justify-content: space-between;
+      }
+      .app.folded .capsule-bar {
+        margin-bottom: 0;
+        border-color: rgba(var(--c-prim), 0.5);
+        background: rgba(var(--c-surf), 0.98);
+        box-shadow: 0 0 20px rgba(var(--c-prim), 0.2);
+        overflow: visible;
+      }
+
+      .laser-container {
+        position: absolute;
+        inset: -2px;
+        border-radius: inherit;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+        z-index: -1;
+        overflow: hidden;
+      }
+      .app.folded .laser-container {
+        opacity: 1;
+      }
+      .laser-mask {
+        position: absolute;
+        inset: 2px;
+        background: rgba(var(--c-surf), 0.95);
+        border-radius: inherit;
+        z-index: 1;
+      }
+      .laser-beam {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 200vmax;
+        height: 200vmax;
+        transform: translate(-50%, -50%);
+        background: conic-gradient(from 0deg, transparent 320deg, var(--c-laser-1) 360deg);
+        animation: laserSpin 3s linear infinite;
+        z-index: 0;
+      }
+      .laser-beam.sec {
+        background: conic-gradient(from 0deg, transparent 320deg, var(--c-laser-2) 360deg);
+        animation-delay: -1.5s;
+      }
+      @keyframes laserSpin {
+        0% {
+          transform: translate(-50%, -50%) rotate(0deg);
+        }
+        100% {
+          transform: translate(-50%, -50%) rotate(360deg);
+        }
+      }
+
+      .capsule-toggle {
+        width: 60px;
+        min-width: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(var(--c-prim), 0.15);
+        border-right: 1px solid rgba(var(--c-prim), 0.2);
+        cursor: pointer;
+        color: rgb(var(--c-prim));
+        font-size: 1.3em;
+        transition: var(--tr);
+        position: relative;
+        z-index: 999;
+        touch-action: manipulation;
+        user-select: none;
+        min-height: 46px;
+      }
+      .capsule-toggle:hover,
+      .capsule-toggle:active {
+        background: rgba(var(--c-prim), 0.25);
+      }
+      .app.folded .capsule-toggle {
+        background: rgba(var(--c-prim), 0.2);
+        border-right: 1px solid rgba(var(--c-prim), 0.4);
+      }
+
+      .data-grid {
+        flex: 1;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0;
+        position: relative;
+        z-index: 2;
+      }
+      .data-cell {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-right: 1px solid rgba(var(--c-border), 0.3);
+        padding: 6px 0 4px;
+        transform: translateY(3px);
+      }
+      .data-cell:last-child {
+        border-right: none;
+      }
+      .data-label {
+        font-family: var(--f-code);
+        font-size: 0.6em;
+        opacity: 0.8;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+        letter-spacing: 1px;
+      }
+      .data-val {
+        font-family: var(--f-head);
+        font-weight: 800;
+        font-size: 1.1em;
+        color: rgb(var(--c-text));
+      }
+      .data-val.hl {
+        color: rgb(var(--c-prim));
+      }
+      .data-val.warn {
+        color: rgb(var(--c-sec));
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0% {
+          opacity: 0.6;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0.6;
+        }
+      }
+
+      .main-interface {
+        display: block;
+        opacity: 1;
+        transition: var(--tr);
+        background:
+          repeating-linear-gradient(0deg, transparent, transparent 19px, var(--grid-line) 20px),
+          repeating-linear-gradient(90deg, transparent, transparent 19px, var(--grid-line) 20px);
+        padding: 5px;
+      }
+      .app.folded .main-interface {
+        display: none;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .quick-status-bar {
+        display: flex;
+        align-items: stretch;
+        justify-content: flex-start;
+        flex-direction: column;
+        gap: 6px;
+        background: rgba(var(--c-bg), 0.35);
+        border: 1px solid rgba(var(--c-border), 0.25);
+        border-radius: var(--r-card);
+        padding: 6px 8px;
+        margin: 0;
+        backdrop-filter: blur(var(--blur));
+        -webkit-backdrop-filter: blur(var(--blur));
+        font-size: 0.9em;
+        box-shadow: none;
+      }
+      .quick-npc-emotions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        flex: 1;
+      }
+      .quick-status-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .quick-npc-item {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        background: rgba(var(--c-bg), 0.4);
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.85em;
+        color: rgb(var(--c-text));
+        border: 1px solid rgba(var(--c-border), 0.3);
+        transition: var(--tr);
+      }
+      .quick-npc-item:hover {
+        background: rgba(var(--c-prim), 0.1);
+        border-color: rgba(var(--c-prim), 0.3);
+      }
+      .quick-npc-emoji {
+        font-size: 1.1em;
+      }
+      .quick-npc-name {
+        font-weight: 600;
+      }
+      .quick-location {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: rgb(var(--c-prim));
+        font-weight: 600;
+        background: rgba(var(--c-prim), 0.1);
+        padding: 4px 10px;
+        border-radius: 12px;
+        border: 1px solid rgba(var(--c-prim), 0.2);
+        font-size: 0.85em;
+      }
+      .quick-location i {
+        font-size: 0.9em;
+      }
+
+      .collapsible-section {
+        background: rgba(var(--c-surf), var(--card-op));
+        border: 1px solid rgba(var(--c-border), 0.4);
+        border-radius: var(--r-card);
+        margin-bottom: 10px;
+        backdrop-filter: blur(var(--blur));
+        -webkit-backdrop-filter: blur(var(--blur));
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+      .collapsible-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 12px;
+        cursor: pointer;
+        user-select: none;
+        background: rgba(var(--c-bg), 0.3);
+        border-bottom: 1px solid rgba(var(--c-border), 0.2);
+        transition: var(--tr);
+      }
+      .collapsible-header:hover {
+        background: rgba(var(--c-prim), 0.1);
+      }
+      .collapsible-header .header-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+        color: rgb(var(--c-text));
+      }
+      .collapsible-header .header-title i {
+        color: rgb(var(--c-prim));
+      }
+      .collapsible-header .toggle-icon {
+        transition: transform 0.3s;
+        color: rgb(var(--c-text));
+        opacity: 0.6;
+      }
+      .collapsible-section.closed .collapsible-header .toggle-icon {
+        transform: rotate(-90deg);
+      }
+      .collapsible-section.closed .collapsible-header {
+        border-bottom: none;
+      }
+      .collapsible-body {
+        transition:
+          max-height 0.3s ease,
+          padding 0.3s ease;
+        overflow: hidden;
+      }
+      .collapsible-section.closed .collapsible-body {
+        max-height: 0 !important;
+        padding: 0 12px;
+      }
+      .collapsible-body-inner {
+        padding: 12px;
+      }
+
+      .user-input-section {
+        border-left: 4px solid rgb(var(--c-accent));
+      }
+      .user-input-section .collapsible-header {
+        background: rgba(var(--c-accent), 0.1);
+      }
+      .user-input-section .header-title {
+        color: rgb(var(--c-accent));
+      }
+      .user-input-section .header-title i {
+        color: rgb(var(--c-accent));
+      }
+
+      .user-input-actions {
+        display: flex;
+        gap: 6px;
+      }
+      .user-input-btn {
+        font-size: 0.75em;
+        padding: 4px 10px;
+        background: rgba(var(--c-accent), 0.1);
+        border: 1px solid rgba(var(--c-accent), 0.3);
+        border-radius: 4px;
+        cursor: pointer;
+        color: rgb(var(--c-accent));
+        transition: var(--tr);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        touch-action: manipulation;
+      }
+      .user-input-btn:hover {
+        background: rgba(var(--c-accent), 0.25);
+      }
+      .user-input-btn.active {
+        background: rgba(var(--c-prim), 0.2);
+        color: rgb(var(--c-prim));
+        border-color: rgb(var(--c-prim));
+      }
+      .user-input-btn.save-btn {
+        background: rgba(var(--c-prim), 0.15);
+        color: rgb(var(--c-prim));
+        border-color: rgba(var(--c-prim), 0.4);
+      }
+      .user-input-btn.save-btn:hover {
+        background: rgba(var(--c-prim), 0.3);
+      }
+
+      .user-input-content {
+        font-size: 0.95em;
+        line-height: 1.6;
+        color: rgb(var(--c-text));
+        max-height: 120px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        padding: 8px;
+        background: rgba(var(--c-bg), 0.5);
+        border-radius: 4px;
+      }
+      .user-input-textarea {
+        width: 100%;
+        min-height: 80px;
+        max-height: 200px;
+        font-size: 0.95em;
+        line-height: 1.6;
+        color: rgb(var(--c-text));
+        background: rgba(var(--c-bg), 0.7);
+        border: 1px solid rgba(var(--c-accent), 0.3);
+        border-radius: 4px;
+        padding: 8px;
+        resize: vertical;
+        font-family: var(--f-main);
+        display: none;
+        box-sizing: border-box;
+      }
+      .user-input-textarea:focus {
+        outline: none;
+        border-color: rgb(var(--c-prim));
+        box-shadow: 0 0 8px rgba(var(--c-prim), 0.3);
+      }
+      .user-input-section.editing .user-input-content {
+        display: none;
+      }
+      .user-input-section.editing .user-input-textarea {
+        display: block;
+      }
+
+      .npc-names-editor {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px dashed rgba(var(--c-border), 0.4);
+      }
+      .npc-names-label {
+        font-size: 0.8em;
+        color: rgb(var(--c-text));
+        opacity: 0.7;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .npc-names-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+      }
+      .npc-name-chip {
+        font-size: 0.85em;
+        padding: 6px 10px;
+        background: rgba(var(--c-prim), 0.1);
+        border: 1px solid rgba(var(--c-prim), 0.3);
+        border-radius: 8px;
+        color: rgb(var(--c-text));
+        text-align: center;
+        font-family: var(--f-main);
+        transition: var(--tr);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+      }
+      .npc-name-chip:hover {
+        background: rgba(var(--c-prim), 0.2);
+        border-color: rgb(var(--c-prim));
+        transform: translateY(-1px);
+      }
+      .npc-name-chip:active {
+        transform: translateY(0);
+        background: rgba(var(--c-prim), 0.3);
+      }
+      .npc-name-chip i {
+        font-size: 0.8em;
+        opacity: 0.7;
+      }
+
+      .timeline-bar {
+        display: flex;
+        align-items: center;
+        background: linear-gradient(135deg, rgba(var(--c-surf), 0.95) 0%, rgba(var(--c-prim), 0.1) 100%);
+        border: 1px solid rgba(var(--c-prim), 0.4);
+        border-radius: var(--r-card);
+        padding: 12px 15px;
+        margin: 10px 0;
+        backdrop-filter: blur(var(--blur));
+        -webkit-backdrop-filter: blur(var(--blur));
+        position: relative;
+        overflow: hidden;
+        box-shadow:
+          0 0 20px rgba(var(--c-prim), 0.15),
+          inset 0 0 30px rgba(var(--c-prim), 0.05);
+      }
+      .timeline-bar::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: linear-gradient(180deg, var(--c-laser-1), var(--c-laser-2));
+        animation: timelinePulse 2s ease-in-out infinite;
+      }
+      @keyframes timelinePulse {
+        0%,
+        100% {
+          opacity: 0.6;
+          box-shadow: 0 0 10px var(--c-laser-1);
+        }
+        50% {
+          opacity: 1;
+          box-shadow:
+            0 0 20px var(--c-laser-1),
+            0 0 30px var(--c-laser-1);
+        }
+      }
+      .timeline-bar::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(var(--c-prim), 0.5), transparent);
+        animation: scanLine 3s linear infinite;
+      }
+      @keyframes scanLine {
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(100%);
+        }
+      }
+      .timeline-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(var(--c-prim), 0.3), rgba(var(--c-prim), 0.1));
+        border: 2px solid rgba(var(--c-prim), 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15em;
+        color: rgb(var(--c-prim));
+        margin-right: 10px;
+        flex-shrink: 0;
+        position: relative;
+        animation: iconGlow 2s ease-in-out infinite;
+        box-shadow: 0 0 12px rgba(var(--c-prim), 0.3);
+      }
+      @keyframes iconGlow {
+        0%,
+        100% {
+          box-shadow: 0 0 15px rgba(var(--c-prim), 0.3);
+        }
+        50% {
+          box-shadow:
+            0 0 25px rgba(var(--c-prim), 0.6),
+            0 0 35px rgba(var(--c-prim), 0.3);
+        }
+      }
+      .timeline-icon::before {
+        content: '';
+        position: absolute;
+        inset: -3px;
+        border: 1px dashed rgba(var(--c-prim), 0.4);
+        border-radius: 50%;
+        animation: iconRotate 10s linear infinite;
+      }
+      @keyframes iconRotate {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      .timeline-content {
+        flex: 1;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .timeline-main {
+        font-family: var(--f-code);
+        font-weight: 700;
+        font-size: 1.2em;
+        color: rgb(var(--c-prim));
+        text-shadow: 0 0 10px rgba(var(--c-prim), 0.5);
+        letter-spacing: 1px;
+        white-space: nowrap;
+      }
+      .timeline-sub {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .timeline-tag {
+        background: rgba(var(--c-prim), 0.15);
+        color: rgb(var(--c-prim));
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 0.85em;
+        font-weight: 600;
+        border: 1px solid rgba(var(--c-prim), 0.3);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .timeline-tag.warn {
+        background: rgba(var(--c-sec), 0.15);
+        color: rgb(var(--c-sec));
+        border-color: rgba(var(--c-sec), 0.4);
+        animation: warnPulse 1.5s ease-in-out infinite;
+      }
+      @keyframes warnPulse {
+        0%,
+        100% {
+          box-shadow: none;
+        }
+        50% {
+          box-shadow: 0 0 10px rgba(var(--c-sec), 0.5);
+        }
+      }
+      .timeline-particles {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        gap: 3px;
+      }
+      .timeline-particle {
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: rgb(var(--c-prim));
+        animation: particleFloat 1.5s ease-in-out infinite;
+      }
+      .timeline-particle:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .timeline-particle:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+      .timeline-particle:nth-child(4) {
+        animation-delay: 0.6s;
+      }
+      @keyframes particleFloat {
+        0%,
+        100% {
+          opacity: 0.3;
+          transform: translateY(0);
+        }
+        50% {
+          opacity: 1;
+          transform: translateY(-5px);
+        }
+      }
+
+      .mem-grid {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 6px !important;
+        padding: 5px;
+      }
+      .mem-capsule {
+        font-family: var(--f-code);
+        background: rgba(var(--c-bg), 0.6);
+        border: 1px solid rgba(var(--c-border), 0.5);
+        padding: 6px 4px;
+        border-radius: 8px;
+        font-size: 0.75em;
+        cursor: pointer;
+        opacity: 0.9;
+        transition: var(--tr);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        color: rgb(var(--c-text));
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .mem-capsule:hover {
+        opacity: 1;
+        border-color: rgb(var(--c-prim));
+        background: rgba(var(--c-prim), 0.1);
+      }
+      .mem-capsule.active {
+        background: rgba(var(--c-prim), 0.2);
+        border-color: rgb(var(--c-prim));
+        color: rgb(var(--c-prim));
+        font-weight: bold;
+      }
+      .mem-capsule i {
+        font-size: 0.9em;
+      }
+
+      .progress-container {
+        margin: 10px 0;
+      }
+      .progress-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+        font-size: 0.85em;
+      }
+      .progress-label {
+        font-weight: 600;
+        color: rgb(var(--c-text));
+      }
+      .progress-text {
+        font-family: var(--f-code);
+        color: rgb(var(--c-prim));
+        font-weight: 700;
+      }
+      .progress-bar {
+        height: 8px;
+        background: rgba(var(--c-border), 0.3);
+        border-radius: 4px;
+        overflow: hidden;
+        position: relative;
+      }
+      .progress-fill {
+        height: 100%;
+        border-radius: 4px;
+        background: linear-gradient(90deg, rgb(var(--c-prim)), rgb(var(--c-accent)));
+        transition: width 0.5s ease;
+        position: relative;
+      }
+      .progress-fill::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 20px;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3));
+        animation: progressShine 1.5s infinite;
+      }
+      @keyframes progressShine {
+        0% {
+          opacity: 0;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+        }
+      }
+
+      .obj-row {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 10px;
+        padding: 10px;
+        background: rgba(var(--c-bg), 0.3);
+        border-radius: var(--r-card);
+        border: 1px solid rgba(var(--c-border), 0.2);
+        transition: var(--tr);
+      }
+      .obj-row:hover {
+        background: rgba(var(--c-bg), 0.5);
+      }
+      .obj-row.done {
+        opacity: 0.7;
+        background: rgba(var(--c-prim), 0.05);
+        border-color: rgba(var(--c-prim), 0.2);
+      }
+      .obj-status {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+        flex-shrink: 0;
+        font-size: 0.85em;
+        position: relative;
+      }
+      .obj-status.pending {
+        background: linear-gradient(135deg, rgba(128, 128, 128, 0.3), rgba(128, 128, 128, 0.1));
+        border: 2px solid rgba(128, 128, 128, 0.4);
+        color: #888;
+      }
+      .obj-status.progress {
+        background: linear-gradient(135deg, rgba(var(--c-accent), 0.3), rgba(var(--c-accent), 0.1));
+        border: 2px solid rgba(var(--c-accent), 0.5);
+        color: rgb(var(--c-accent));
+        animation: statusSpin 3s linear infinite;
+      }
+      .obj-status.done {
+        background: linear-gradient(135deg, rgba(var(--c-prim), 0.3), rgba(var(--c-prim), 0.1));
+        border: 2px solid rgba(var(--c-prim), 0.5);
+        color: rgb(var(--c-prim));
+        animation: statusPulse 2s ease-in-out infinite;
+      }
+      .obj-status.failed {
+        background: linear-gradient(135deg, rgba(var(--c-neg), 0.3), rgba(var(--c-neg), 0.1));
+        border: 2px solid rgba(var(--c-neg), 0.5);
+        color: rgb(var(--c-neg));
+      }
+      @keyframes statusSpin {
+        0% {
+          transform: rotate(0deg);
+          box-shadow: 0 0 5px rgba(var(--c-accent), 0.3);
+        }
+        50% {
+          box-shadow: 0 0 15px rgba(var(--c-accent), 0.6);
+        }
+        100% {
+          transform: rotate(360deg);
+          box-shadow: 0 0 5px rgba(var(--c-accent), 0.3);
+        }
+      }
+      @keyframes statusPulse {
+        0%,
+        100% {
+          transform: scale(1);
+          box-shadow: 0 0 5px rgba(var(--c-prim), 0.3);
+        }
+        50% {
+          transform: scale(1.1);
+          box-shadow: 0 0 15px rgba(var(--c-prim), 0.5);
+        }
+      }
+      .obj-content {
+        flex: 1;
+      }
+      .obj-text {
+        margin-bottom: 4px;
+        line-height: 1.4;
+        color: rgb(var(--c-text));
+      }
+      .obj-text.done-text {
+        text-decoration: line-through;
+        opacity: 0.7;
+      }
+      .obj-meta {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+      }
+      .obj-tag {
+        font-family: var(--f-code);
+        font-size: 0.7em;
+        padding: 2px 6px;
+        border-radius: 3px;
+        background: rgba(var(--c-border), 0.2);
+        color: rgb(var(--c-text));
+      }
+
+      .completed-section {
+        margin-top: 10px;
+        border: 1px dashed rgba(var(--c-prim), 0.3);
+        border-radius: var(--r-card);
+        overflow: hidden;
+      }
+      .completed-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        background: rgba(var(--c-prim), 0.1);
+        cursor: pointer;
+        user-select: none;
+        font-size: 0.85em;
+        color: rgb(var(--c-prim));
+        transition: var(--tr);
+      }
+      .completed-header:hover {
+        background: rgba(var(--c-prim), 0.15);
+      }
+      .completed-header i.fa-chevron-down {
+        transition: transform 0.3s;
+      }
+      .completed-section.open .completed-header i.fa-chevron-down {
+        transform: rotate(180deg);
+      }
+      .completed-body {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+      }
+      .completed-section.open .completed-body {
+        max-height: 500px;
+      }
+      .completed-body-inner {
+        padding: 10px;
+      }
+
+      .memory-graph-section {
+        border-color: rgba(var(--c-prim), 0.3);
+      }
+      .memory-graph-section .collapsible-header {
+        background: rgba(var(--c-prim), 0.1);
+      }
+      .memory-graph-section .header-title {
+        color: rgb(var(--c-prim));
+      }
+      .npc-memory-group {
+        margin-bottom: 10px;
+        padding: 8px;
+        background: rgba(var(--c-bg), 0.4);
+        border-radius: var(--r-card);
+        border-left: 3px solid rgb(var(--c-prim));
+      }
+      .npc-memory-name {
+        font-weight: 700;
+        color: rgb(var(--c-prim));
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.9em;
+      }
+      .npc-memory-codes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+      }
+      .npc-memory-code {
+        font-family: var(--f-code);
+        font-size: 0.75em;
+        background: rgba(var(--c-prim), 0.15);
+        border: 1px solid rgba(var(--c-prim), 0.3);
+        padding: 3px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: var(--tr);
+        color: rgb(var(--c-text));
+      }
+      .npc-memory-code:hover {
+        background: rgba(var(--c-prim), 0.3);
+        color: rgb(var(--c-prim));
+      }
+      .npc-memory-code.active {
+        background: rgb(var(--c-prim));
+        color: rgb(var(--c-bg));
+      }
+
+      .theme-bar {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-bottom: 10px;
+        padding: 6px 12px;
+        background: rgba(var(--c-surf), 0.8);
+        border-radius: 20px;
+        width: fit-content;
+        margin-left: auto;
+        margin-right: auto;
+        border: 1px solid rgba(var(--c-border), 0.3);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      }
+      .theme-dot {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 1px solid rgba(128, 128, 128, 0.3);
+        transition: transform 0.2s;
+      }
+      .theme-dot:hover {
+        transform: scale(1.2);
+      }
+
+      .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 20px 0 10px;
+        padding: 10px 15px;
+        background: rgba(var(--c-surf), 0.9);
+        border: 1px solid rgba(var(--c-border), 0.5);
+        border-left: 4px solid rgb(var(--c-prim));
+        border-radius: var(--r-card);
+        cursor: pointer;
+        user-select: none;
+        transition: var(--tr);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(var(--blur));
+      }
+      .section-header:hover {
+        transform: translateX(2px);
+        background: rgba(var(--c-surf), 1);
+      }
+      .section-title {
+        font-family: var(--f-head);
+        font-weight: 800;
+        font-size: 1.15em;
+        letter-spacing: 1px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: rgb(var(--c-text));
+      }
+      .section-title i {
+        color: rgb(var(--c-prim));
+      }
+      .section-sub {
+        font-family: var(--f-code);
+        font-size: 0.75em;
+        text-transform: uppercase;
+        font-weight: bold;
+      }
+      .section-body {
+        overflow: hidden;
+        transition: 0.3s ease;
+        transform-origin: top;
+      }
+      .section-body.closed {
+        max-height: 0 !important;
+        opacity: 0;
+        transform: scaleY(0.95);
+        margin: 0;
+        padding: 0 !important;
+      }
+
+      .section-header.static {
+        cursor: default;
+      }
+      .section-header.static:hover {
+        transform: none;
+        background: rgba(var(--c-surf), 0.9);
+      }
+
+      /* 顶栏更紧凑 */
+      .capsule-bar {
+        margin-bottom: 8px;
+      }
+      .capsule-toggle {
+        min-height: 46px;
+      }
+      .data-cell {
+        padding: 2px 0;
+      }
+      .data-label {
+        font-size: 0.7em;
+        letter-spacing: 0.5px;
+        line-height: 1.1;
+      }
+      .data-val {
+        font-size: 1.15em;
+        line-height: 1.2;
+        margin-top: 2px;
+      }
+
+      .card {
+        background: rgba(var(--c-surf), var(--card-op));
+        border: 1px solid rgba(var(--c-border), 0.5);
+        border-radius: var(--r-card);
+        padding: 15px;
+        margin-bottom: 12px;
+        position: relative;
+        backdrop-filter: blur(var(--blur));
+        color: rgb(var(--c-text));
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      }
+
+      .review-card {
+        background: linear-gradient(135deg, rgba(var(--c-surf), 0.95) 0%, rgba(var(--c-prim), 0.05) 100%);
+        border: 1px solid rgba(var(--c-prim), 0.3);
+        border-radius: var(--r-card);
+        padding: 15px;
+        margin-bottom: 12px;
+        backdrop-filter: blur(var(--blur));
+      }
+      .review-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--f-head);
+        font-weight: 700;
+        font-size: 1em;
+        color: rgb(var(--c-prim));
+        margin-bottom: 12px;
+        border-bottom: 1px solid rgba(var(--c-prim), 0.2);
+        padding-bottom: 8px;
+      }
+      .review-speaker {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 10px;
+        padding: 10px;
+        border-radius: var(--r-card);
+      }
+      .review-speaker.alphonse {
+        background: rgba(50, 100, 155, 0.2);
+        border-left: 3px solid #64b4ff;
+        color: rgb(var(--c-text));
+      }
+      .review-speaker.edward {
+        background: rgba(155, 100, 0, 0.2);
+        border-left: 3px solid #ffb400;
+        color: rgb(var(--c-text));
+      }
+      .review-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9em;
+        flex-shrink: 0;
+      }
+      .review-speaker.alphonse .review-avatar {
+        background: rgba(100, 180, 255, 0.3);
+        color: #fff;
+      }
+      .review-speaker.edward .review-avatar {
+        background: rgba(255, 180, 0, 0.3);
+        color: #fff;
+      }
+      .review-content {
+        flex: 1;
+        font-size: 0.9em;
+        line-height: 1.6;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .review-bubble {
+        background: rgba(var(--c-bg), 0.5);
+        padding: 6px 10px;
+        border-radius: 4px;
+      }
+
+      .ability-card {
+        background: linear-gradient(135deg, rgba(var(--c-magic), 0.15) 0%, rgba(var(--c-surf), 0.9) 100%);
+        border: 1px solid rgba(var(--c-magic), 0.4);
+        border-left: 4px solid rgb(var(--c-magic));
+        border-radius: var(--r-card);
+        padding: 12px;
+        margin-bottom: 12px;
+        color: rgb(var(--text-adapt));
+      }
+      .ability-title {
+        color: rgb(var(--c-magic));
+        font-weight: bold;
+        font-family: var(--f-head);
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .mem-detail-box {
+        margin-top: 10px;
+        background: rgba(var(--c-bg), 0.8);
+        border: 1px solid rgba(var(--c-prim), 0.2);
+        border-radius: var(--r-card);
+        padding: 15px;
+        display: none;
+        animation: slideDown 0.2s;
+        color: rgb(var(--c-text));
+        backdrop-filter: blur(var(--blur));
+      }
+      .mem-detail-box.show {
+        display: block;
+      }
+
+      .mem-meta-box {
+        display: grid;
+        gap: 6px;
+        margin-bottom: 12px;
+        background: rgba(var(--c-bg), 0.4);
+        padding: 10px;
+        border-radius: var(--r-card);
+        border: 1px dashed rgba(var(--c-border), 0.5);
+      }
+      .mem-meta-row {
+        display: flex;
+        align-items: baseline;
+      }
+      .mem-meta-key {
+        width: 70px;
+        flex-shrink: 0;
+        font-family: var(--f-code);
+        font-size: 0.8em;
+        color: rgb(var(--c-prim));
+        font-weight: bold;
+      }
+      .mem-meta-val {
+        color: rgb(var(--c-text));
+        opacity: 0.95;
+        font-size: 0.95em;
+      }
+
+      .chat-box {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      .chat-row {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+      }
+      .chat-row.right {
+        flex-direction: row-reverse;
+      }
+      .chat-avatar {
+        width: 28px;
+        height: 28px;
+        flex-shrink: 0;
+        border-radius: 4px;
+        background: rgba(var(--c-prim), 0.1);
+        border: 1px solid rgba(var(--c-prim), 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9em;
+        color: rgb(var(--c-prim));
+        font-weight: bold;
+      }
+      .chat-bubble {
+        background: rgba(var(--c-surf), 0.95);
+        padding: 10px 14px;
+        border-radius: 0 10px 10px 10px;
+        font-size: 0.95em;
+        line-height: 1.5;
+        max-width: 85%;
+        border: 1px solid rgba(var(--c-border), 0.3);
+        color: rgb(var(--c-text));
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+      .chat-row.right .chat-bubble {
+        background: rgba(var(--c-prim), 0.15);
+        border-color: rgba(var(--c-prim), 0.3);
+        border-radius: 10px 0 10px 10px;
+      }
+
+      .narrative-text {
+        font-style: italic;
+        opacity: 0.9;
+        font-size: 0.95em;
+        padding: 8px 12px;
+        border-left: 3px solid rgba(var(--c-text), 0.3);
+        margin: 8px 0;
+        background: rgba(var(--c-bg), 0.5);
+        border-radius: 0 4px 4px 0;
+      }
+
+      .ch-meta {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+        font-size: 0.85em;
+        opacity: 0.9;
+        flex-wrap: wrap;
+      }
+      .ch-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .ch-label {
+        font-family: var(--f-code);
+        text-transform: uppercase;
+        font-size: 0.8em;
+      }
+      .ch-val {
+        font-weight: bold;
+        color: rgb(var(--c-text));
+      }
+      .ch-val.urg-high {
+        color: rgb(var(--c-sec));
+      }
+
+      .npc-tabs {
+        display: flex;
+        gap: 2px;
+        margin-bottom: 15px;
+        background: rgba(var(--c-bg), 0.6);
+        padding: 4px;
+        border-radius: var(--r-card);
+        border: 1px solid rgba(var(--c-border), 0.5);
+        backdrop-filter: blur(10px);
+      }
+      .npc-tab {
+        flex: 1;
+        text-align: center;
+        padding: 6px 4px;
+        cursor: pointer;
+        border-radius: var(--r-card);
+        font-size: 0.85em;
+        opacity: 0.8;
+        transition: var(--tr);
+        font-family: var(--f-head);
+        color: rgb(var(--c-text));
+        font-weight: 600;
+      }
+      .npc-tab.active {
+        background: rgb(var(--c-surf));
+        opacity: 1;
+        font-weight: bold;
+        color: rgb(var(--c-prim));
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      .npc-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 10px;
+      }
+      .npc-card {
+        background: rgba(var(--c-surf), var(--card-op));
+        border: 1px solid rgba(var(--c-border), 0.5);
+        border-radius: var(--r-card);
+        overflow: hidden;
+        transition: var(--tr);
+        position: relative;
+        backdrop-filter: blur(var(--blur));
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+      .npc-card:hover {
+        border-color: rgba(var(--c-prim), 0.5);
+        transform: translateY(-2px);
+      }
+      .npc-card.pinned {
+        border: 1px solid rgb(var(--c-sec));
+      }
+
+      .npc-head {
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background: rgba(var(--c-bg), 0.3);
+        border-bottom: 1px solid rgba(var(--c-border), 0.3);
+        cursor: pointer;
+        min-height: 40px;
+      }
+      .npc-head-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 8px;
+      }
+      .npc-name {
+        font-family: var(--f-head);
+        font-weight: 700;
+        font-size: 1.2em;
+        color: rgb(var(--c-text));
+      }
+      .npc-meta {
+        display: flex;
+        gap: 4px;
+        flex-shrink: 0;
+        margin-left: 8px;
+        flex-wrap: wrap;
+      }
+      .npc-badge {
+        font-size: 0.7em;
+        padding: 1px 5px;
+        border-radius: 2px;
+        background: rgba(var(--c-text), 0.1);
+        color: rgb(var(--c-text));
+      }
+      .npc-badge.main {
+        background: rgba(var(--c-prim), 0.2);
+        color: rgb(var(--c-prim));
+      }
+      .npc-badge.rel {
+        background: rgba(var(--c-prim), 0.15);
+        border: 1px solid rgba(var(--c-prim), 0.3);
+      }
+      .npc-badge.emo {
+        background: rgba(var(--c-accent), 0.15);
+        border: 1px solid rgba(var(--c-accent), 0.3);
+        color: rgb(var(--c-accent));
+      }
+
+      .npc-body {
+        display: none;
+        padding: 15px;
+        font-size: 0.95em;
+      }
+      .npc-card.open .npc-body {
+        display: block;
+        animation: slideDown 0.3s;
+      }
+      .npc-card.open .npc-head {
+        background: rgba(var(--c-prim), 0.1);
+      }
+
+      .kv-box {
+        display: grid;
+        gap: 8px;
+      }
+      .kv {
+        display: flex;
+        align-items: baseline;
+        line-height: 1.6;
+      }
+      .kv-k {
+        width: 60px;
+        flex-shrink: 0;
+        font-family: var(--f-code);
+        font-size: 0.8em;
+        color: var(--badge-col) !important;
+        margin-right: 5px;
+        font-weight: 600;
+      }
+      .kv-v {
+        color: rgb(var(--c-text));
+        opacity: 0.95;
+      }
+
+      .npc-actions {
+        border-top: 1px solid rgba(var(--c-border), 0.3);
+        padding: 8px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        background: rgba(var(--c-bg), 0.4);
+      }
+      .act-btn {
+        font-family: var(--f-code);
+        font-size: 0.8em;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        color: rgb(var(--c-text));
+        background: rgba(var(--c-bg), 0.5);
+        padding: 2px 8px;
+        border-radius: 4px;
+      }
+      .act-btn:hover {
+        opacity: 1;
+        color: rgb(var(--c-prim));
+        background: rgba(var(--c-prim), 0.1);
+      }
+      .act-btn.active {
+        color: rgb(var(--c-sec));
+        opacity: 1;
+        font-weight: bold;
+      }
+
+      .antagonist-bar {
+        border: 1px solid rgba(255, 0, 0, 0.3);
+        background: linear-gradient(135deg, rgba(40, 10, 10, 0.9) 0%, rgba(20, 5, 5, 0.95) 100%);
+        border-radius: var(--r-card);
+        padding: 12px;
+        margin-top: 10px;
+        position: relative;
+        overflow: hidden;
+        color: #ddd;
+      }
+      .antagonist-bar::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: #ff005a;
+      }
+      .ant-title {
+        color: #ff4d6d;
+        font-weight: 800;
+        font-size: 1em;
+        margin-bottom: 8px;
+        font-family: var(--f-head);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .ant-threat {
+        font-size: 0.75em;
+        background: rgba(255, 0, 90, 0.2);
+        color: #ff005a;
+        padding: 2px 8px;
+        border-radius: 4px;
+      }
+      .ant-content {
+        font-size: 0.9em;
+        color: #ddd;
+        line-height: 1.6;
+        opacity: 0.9;
+      }
+
+      .appointment-bar {
+        border: 1px solid rgba(var(--c-prim), 0.3);
+        background: linear-gradient(135deg, rgba(var(--c-prim), 0.1) 0%, rgba(var(--c-surf), 0.9) 100%);
+        border-radius: var(--r-card);
+        padding: 12px;
+        margin-top: 10px;
+      }
+      .app-title {
+        color: rgb(var(--c-prim));
+        font-weight: 700;
+        font-size: 0.95em;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .app-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .app-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 0.9em;
+        line-height: 1.5;
+        color: rgb(var(--c-text));
+      }
+      .app-bullet {
+        color: rgb(var(--c-prim));
+        font-size: 1.2em;
+        line-height: 1;
+      }
+
+      .stagnation-bar {
+        border: 1px solid rgba(var(--c-accent), 0.4);
+        background: linear-gradient(135deg, rgba(var(--c-accent), 0.08) 0%, rgba(var(--c-surf), 0.9) 100%);
+        border-radius: var(--r-card);
+        padding: 12px;
+        margin-bottom: 12px;
+        color: rgb(var(--text-adapt));
+      }
+      .stagnation-bar.active {
+        animation: alert-pulse 2s infinite;
+      }
+      @keyframes alert-pulse {
+        0%,
+        100% {
+          box-shadow: 0 0 5px rgba(var(--c-accent), 0.3);
+        }
+        50% {
+          box-shadow: 0 0 20px rgba(var(--c-accent), 0.8);
+        }
+      }
+      .stag-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+      .stag-title {
+        font-family: var(--f-head);
+        font-weight: 700;
+        color: rgb(var(--c-accent));
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      details.file-npc-card {
+        background: rgba(var(--c-bg), 0.3);
+        border-radius: var(--r-card);
+        margin-bottom: 8px;
+        border: 1px solid rgba(var(--c-border), 0.3);
+      }
+      details.file-npc-card[open] {
+        background: rgba(var(--c-bg), 0.5);
+      }
+      details.file-npc-card > summary {
+        padding: 10px 12px;
+        cursor: pointer;
+        font-weight: bold;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        background: rgba(var(--c-surf), 0.5);
+        transition: 0.2s;
+        color: rgb(var(--c-text));
+        border-radius: var(--r-card);
+        list-style: none;
+      }
+      details.file-npc-card > summary::-webkit-details-marker {
+        display: none;
+      }
+      details.file-npc-card > summary::before {
+        content: '▶';
+        font-size: 0.7em;
+        margin-right: 6px;
+        transition: transform 0.2s;
+        display: inline-block;
+      }
+      details.file-npc-card[open] > summary::before {
+        transform: rotate(90deg);
+      }
+      details.file-npc-card > summary:hover {
+        background: rgba(var(--c-surf), 0.8);
+      }
+      details.file-npc-card[open] > summary {
+        border-bottom: 1px solid rgba(var(--c-border), 0.3);
+        border-radius: var(--r-card) var(--r-card) 0 0;
+      }
+
+      .file-summary-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+      }
+      .file-summary-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 4px;
+      }
+      .imp-tag-pill {
+        font-size: 0.7em;
+        padding: 2px 8px;
+        border-radius: 10px;
+        background: rgba(var(--c-prim), 0.1);
+        border: 1px solid rgba(var(--c-prim), 0.2);
+        color: rgb(var(--c-text));
+      }
+
+      .file-npc-body {
+        padding: 12px;
+        display: grid;
+        gap: 8px;
+      }
+      .file-field {
+        background: rgba(var(--c-surf), 0.3);
+        padding: 8px;
+        border-radius: 6px;
+        border-left: 2px solid rgba(var(--c-prim), 0.3);
+      }
+      .file-key {
+        font-family: var(--f-code);
+        font-size: 0.75em;
+        font-weight: 700;
+        color: var(--badge-col) !important;
+        background: var(--badge-bg) !important;
+        margin-bottom: 4px;
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 4px;
+      }
+      .file-val {
+        font-size: 0.95em;
+        line-height: 1.7;
+        color: rgb(var(--c-text));
+        margin-top: 4px;
+        padding-left: 4px;
+        white-space: pre-line;
+        text-align: left;
+        word-break: break-word;
+      }
+
+      .raw-data-btn {
+        text-align: center;
+        font-size: 0.8em;
+        opacity: 0.5;
+        margin-top: 10px;
+        cursor: pointer;
+        padding: 8px;
+        border: 1px dashed rgba(var(--c-text), 0.2);
+        border-radius: 4px;
+        font-family: var(--f-code);
+        background: rgba(var(--c-bg), 0.3);
+        position: relative;
+        z-index: 10;
+      }
+      .raw-data-btn:hover {
+        opacity: 1;
+        color: rgb(var(--c-prim));
+        border-color: rgb(var(--c-prim));
+        background: rgba(var(--c-prim), 0.1);
+      }
+      .raw-data-box {
+        display: none;
+        margin-top: 10px;
+        padding: 12px;
+        background: rgba(var(--c-bg), 0.75);
+        border: 1px solid rgba(var(--c-border), 0.35);
+        border-radius: 6px;
+        font-family: var(--f-code);
+        font-size: 0.88em;
+        line-height: 1.7;
+        white-space: pre-wrap;
+        overflow-x: auto;
+        max-height: 340px;
+        color: rgb(var(--c-text));
+      }
+      .raw-data-box.show {
+        display: block;
+      }
+
+      .settings-btn-wrapper {
+        text-align: center;
+        margin-top: 8px;
+        padding: 6px;
+        position: relative;
+        z-index: 500;
+      }
+      .settings-trigger {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 8px 18px;
+        cursor: pointer;
+        background: rgba(var(--c-surf), 0.95);
+        border: 1px solid rgba(var(--c-prim), 0.4);
+        border-radius: var(--r-card);
+        color: rgb(var(--c-prim));
+        transition: var(--tr);
+        font-family: var(--f-code);
+        font-weight: 600;
+        font-size: 0.9em;
+        touch-action: manipulation;
+        user-select: none;
+        min-height: 36px;
+        min-width: 140px;
+        box-shadow: 0 4px 15px rgba(var(--c-prim), 0.2);
+      }
+      .settings-trigger:hover,
+      .settings-trigger:active {
+        background: rgba(var(--c-prim), 0.2);
+        border-color: rgb(var(--c-prim));
+        box-shadow: 0 4px 20px rgba(var(--c-prim), 0.4);
+        transform: translateY(-2px);
+      }
+
+      .settings-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.85);
+        z-index: 99999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+      }
+      .settings-modal.on {
+        display: flex;
+      }
+      .set-win {
+        width: 90%;
+        max-width: 400px;
+        background: rgb(var(--c-surf));
+        border: 1px solid rgb(var(--c-border));
+        border-radius: var(--r-card);
+        padding: 20px;
+        box-shadow: var(--shadow);
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+      .set-title {
+        font-family: var(--f-head);
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-bottom: 20px;
+        border-bottom: 1px solid rgba(var(--c-border), 0.5);
+        padding-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: rgb(var(--c-text));
+      }
+      .set-close {
+        cursor: pointer;
+        font-size: 1.5em;
+        opacity: 0.7;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: var(--tr);
+        touch-action: manipulation;
+      }
+      .set-close:hover,
+      .set-close:active {
+        opacity: 1;
+        background: rgba(var(--c-sec), 0.2);
+        color: rgb(var(--c-sec));
+      }
+      .set-group {
+        margin-bottom: 20px;
+        border-bottom: 1px dashed rgba(var(--c-border), 0.3);
+        padding-bottom: 10px;
+      }
+      .set-group-title {
+        font-size: 0.8em;
+        opacity: 0.5;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+        color: rgb(var(--c-text));
+      }
+      .set-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        font-size: 0.9em;
+        color: rgb(var(--c-text));
+      }
+      .set-row select,
+      .set-row input[type='checkbox'] {
+        min-height: 30px;
+        min-width: 30px;
+      }
+      .set-btn {
+        width: 100%;
+        padding: 12px;
+        background: rgb(var(--c-prim));
+        color: #000;
+        font-weight: bold;
+        border: none;
+        cursor: pointer;
+        margin-top: 5px;
+        border-radius: var(--r-card);
+        font-size: 1em;
+        touch-action: manipulation;
+      }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .hl-text {
+        color: rgb(var(--c-prim));
+        font-weight: bold;
+      }
+      .quote-box {
+        text-align: center;
+        font-style: italic;
+        opacity: 0.7;
+        margin: 10px 0;
+        font-size: 0.9em;
+        background: rgba(var(--c-bg), 0.3);
+        padding: 5px;
+        border-radius: 4px;
+      }
+      .eval-bar {
+        display: grid;
+        gap: 8px;
+        padding: 10px;
+        background: rgba(var(--c-surf), 0.5);
+        border-left: 3px solid rgb(var(--c-prim));
+        border-radius: 0 var(--r-card) var(--r-card) 0;
+        margin-bottom: 15px;
+        font-size: 0.9em;
+        backdrop-filter: blur(5px);
+        color: rgb(var(--c-text));
+      }
+      .eval-label {
+        font-family: var(--f-code);
+        margin-right: 5px;
+      }
+      .verify-bar {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 5px;
+      }
+      .verify-btn {
+        font-size: 0.75em;
+        padding: 2px 8px;
+        border: 1px solid rgba(var(--c-prim), 0.5);
+        border-radius: 4px;
+        color: rgb(var(--c-prim));
+        cursor: pointer;
+        background: rgba(0, 0, 0, 0.2);
+      }
+      .verify-btn:hover {
+        background: rgba(var(--c-prim), 0.1);
+      }
+
+      .summary-p {
+        margin-bottom: 6px;
+        line-height: 1.5;
+      }
+      .hl-name {
+        color: rgb(var(--c-prim));
+        font-weight: bold;
+        background: rgba(var(--c-prim), 0.1);
+        padding: 0 2px;
+        border-radius: 2px;
+      }
+
+      .debug-info {
+        background: rgba(0, 0, 0, 0.8);
+        color: #0f0;
+        font-family: var(--f-code);
+        font-size: 0.7em;
+        padding: 8px;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        white-space: pre-wrap;
+        max-height: 100px;
+        overflow-y: auto;
+      }
+
+      @media (min-width: 768px) {
+        body {
+          font-size: 13px !important;
+        }
+        .app {
+          max-width: 900px;
+          width: 95%;
+        }
+        .npc-grid {
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          gap: 12px;
+        }
+      }
+
+      @media (min-width: 1200px) {
+        body {
+          font-size: 14px !important;
+        }
+        .app {
+          max-width: 1400px;
+        }
+        .npc-grid {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 15px;
+        }
+        .main-interface {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 2px;
+          align-items: start;
+        }
+        .quote-box,
+        .theme-bar,
+        #quick-status-display,
+        #timestamp-bar,
+        #user-input-display,
+        .module-wrapper[data-id='mem'],
+        .module-wrapper[data-id='npc'],
+        .settings-btn-wrapper {
+          grid-column: 1 / -1;
+        }
+      }
+
+      /* ===== 紧凑模式：减少模块间距 ===== */
+
+      /* 每个栏目标题之间的空隙 */
+      .section-header {
+        margin: 8px 0 4px;
+        padding: 7px 10px;
+      }
+
+      /* 展开内容限高 + 内滚，避免占满屏 */
+      .section-body {
+        max-height: 360px;
+        overflow-y: auto;
+      }
+      .section-body.closed {
+        overflow: hidden;
+      }
+
+      /* 顶部概览胶囊 */
+      .overview-rows {
+        display: grid;
+        gap: 6px;
+      }
+      .overview-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .overview-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 8px;
+        border-radius: 10px;
+        background: rgba(var(--c-bg), 0.4);
+        border: 1px solid rgba(var(--c-border), 0.3);
+        font-size: 0.85em;
+        color: rgb(var(--c-text));
+      }
+
+      /* 折叠块之间空隙 */
+      .collapsible-section {
+        margin-bottom: 6px;
+      }
+
+      /* 卡片内容更紧凑 */
+      .card,
+      .review-card {
+        padding: 12px;
+        margin-bottom: 8px;
+      }
+
+      /* 顶部快速状态条更紧凑 */
+      .quick-status-bar {
+        padding: 6px 10px;
+        margin-bottom: 6px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+      }
+
+      /* 时间条更紧凑 */
+      .timeline-bar {
+        padding: 6px 10px;
+        margin: 2px 0 0;
+      }
+
+      /* 主体网格背景区域更紧凑 */
+      .main-interface {
+        padding: 4px;
+      }
+
+      /* 设置按钮区域别留太多白 */
+      .settings-btn-wrapper {
+        margin-top: 8px;
+        padding: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <textarea id="input-buffer">$1</textarea>
+
+    <div id="app" class="app" data-theme="sakura-day" data-font="sans">
+      <div class="capsule-bar">
+        <div class="laser-container">
+          <div class="laser-mask"></div>
+          <div class="laser-beam"></div>
+          <div class="laser-beam sec"></div>
+        </div>
+        <div class="capsule-top">
+          <div class="capsule-toggle" id="capsule-toggle-btn">
+            <i class="fa-solid fa-bars-staggered"></i>
+          </div>
+          <div class="data-grid">
+            <div class="data-cell">
+              <span class="data-label">在场</span><span class="data-val hl" id="cap-npc">0</span>
+            </div>
+            <div class="data-cell">
+              <span class="data-label">回忆</span><span class="data-val" id="cap-rec">0</span>
+            </div>
+            <div class="data-cell">
+              <span class="data-label">档案</span><span class="data-val" id="cap-mem">0</span>
+            </div>
+            <div class="data-cell">
+              <span class="data-label">大纲</span><span class="data-val" id="cap-out">0</span>
+            </div>
+          </div>
+        </div>
+        <div id="quick-status-display" style="padding: 6px 8px 8px"></div>
+      </div>
+
+      <div class="main-interface">
+        <div id="debug-display"></div>
+        <div id="user-input-display"></div>
+        <div class="quote-box" id="quote-display">SYSTEM READY...</div>
+        <div id="timestamp-bar" style="display: none"></div>
+
+        <div class="module-wrapper" data-id="mem">
+          <div class="section-header" id="sec-header-mem">
+            <div class="section-title"><i class="fa-solid fa-database"></i> 档案 · ARCHIVE</div>
+            <div class="section-sub">RECALLED MEMORY</div>
+          </div>
+          <div class="section-body" id="sec-mem">
+            <div class="verify-bar">
+              <div class="verify-btn" id="verify-btn"><i class="fa-solid fa-check-double"></i> DATA VERIFY</div>
+            </div>
+            <div class="mem-grid" id="mem-list"></div>
+            <div id="mem-detail-container" class="mem-detail-box"></div>
+            <div id="memory-graph-container"></div>
+          </div>
+        </div>
+
+        <div class="module-wrapper" data-id="ch">
+          <div class="section-header" id="sec-header-ch">
+            <div class="section-title"><i class="fa-solid fa-crosshairs"></i> 剧目 · THEATER</div>
+            <div class="section-sub">CURRENT OBJECTIVES</div>
+          </div>
+          <div class="section-body" id="sec-ch"><div id="ch-content"></div></div>
+        </div>
+
+        <div class="module-wrapper" data-id="sc">
+          <div class="section-header" id="sec-header-sc">
+            <div class="section-title"><i class="fa-solid fa-layer-group"></i> 场景 · IMMERSION</div>
+            <div class="section-sub">ATMOSPHERE & DYNAMICS</div>
+          </div>
+          <div class="section-body" id="sec-sc"><div id="sc-content"></div></div>
+        </div>
+
+        <div class="module-wrapper" data-id="npc">
+          <div class="section-header" id="sec-header-npc">
+            <div class="section-title"><i class="fa-solid fa-users-viewfinder"></i> 人物 · MASQUERADE</div>
+            <div class="section-sub">ENTITY TRACKING</div>
+          </div>
+          <div class="section-body" id="sec-npc">
+            <div class="npc-tabs">
+              <div class="npc-tab active" id="tab-on">在场 (0)</div>
+              <div class="npc-tab" id="tab-off">幕后 (0)</div>
+            </div>
+            <div id="eval-display"></div>
+            <div id="npc-list" class="npc-grid"></div>
+          </div>
+        </div>
+
+        <div class="module-wrapper" data-id="review">
+          <div class="section-header" id="sec-header-review">
+            <div class="section-title"><i class="fa-solid fa-comments"></i> 导演 · DIRECTOR</div>
+            <div class="section-sub">ALPHONSE & EDWARD</div>
+          </div>
+          <div class="section-body" id="sec-review"><div id="review-content"></div></div>
+        </div>
+
+        <div class="module-wrapper" data-id="file">
+          <div class="section-header" id="sec-header-file">
+            <div class="section-title"><i class="fa-solid fa-hdd"></i> 系统 · FILE ARCHIVE</div>
+            <div class="section-sub">PERSISTENT STATE</div>
+          </div>
+          <div class="section-body" id="sec-file" style="padding: 10px"><div id="file-content"></div></div>
+        </div>
+
+        <div class="settings-btn-wrapper">
+          <div class="settings-trigger" id="settings-trigger-btn">
+            <i class="fa-solid fa-sliders"></i> SYSTEM CONFIG
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-modal" id="settings">
+      <div class="set-win">
+        <div class="set-title">
+          <span><i class="fa-solid fa-cog"></i> 系统配置</span>
+          <span class="set-close" id="settings-close-btn">×</span>
+        </div>
+        <div class="set-group">
+          <div class="set-group-title">外观</div>
+          <div class="set-row">
+            <span>主题</span
+            ><select id="cfg-theme" style="padding: 5px; border-radius: 4px">
+              <option value="sakura-day">Sakura Day</option>
+              <option value="sakura-night">Sakura Night</option>
+              <option value="aqua">Aqua</option>
+              <option value="forest">Forest</option>
+              <option value="cyber">Cyber</option>
+              <option value="moonlight">Moonlight</option>
+              <option value="ink">Ink</option>
+              <option value="terminal">Terminal</option>
+            </select>
+          </div>
+          <div class="set-row">
+            <span>字体</span
+            ><select id="cfg-font" style="padding: 5px; border-radius: 4px">
+              <option value="sans">Noto Sans</option>
+              <option value="serif">Serif</option>
+              <option value="mono">Monospace</option>
+              <option value="art">Calligraphy</option>
+            </select>
+          </div>
+          <div class="set-row" style="align-items: flex-start">
+            <span>顶栏配色</span>
+            <div class="theme-bar" style="margin: 0">
+              <div class="theme-dot" style="background: #ffb7c5" data-theme="sakura-day" title="Sakura Day"></div>
+              <div class="theme-dot" style="background: #452030" data-theme="sakura-night" title="Sakura Night"></div>
+              <div class="theme-dot" style="background: #e0f7fa" data-theme="aqua" title="Aqua"></div>
+              <div class="theme-dot" style="background: #e0f2f0" data-theme="forest" title="Forest"></div>
+              <div class="theme-dot" style="background: #0f1419" data-theme="cyber" title="Cyber"></div>
+              <div class="theme-dot" style="background: #2d204a" data-theme="moonlight" title="Moonlight"></div>
+              <div
+                class="theme-dot"
+                style="background: #fff; border: 2px solid #000"
+                data-theme="ink"
+                title="Ink"
+              ></div>
+            </div>
+          </div>
+        </div>
+        <div class="set-group">
+          <div class="set-group-title">默认折叠</div>
+          <div class="set-row"><span>全局</span><input type="checkbox" id="cfg-fold" /></div>
+          <div class="set-row"><span>档案</span><input type="checkbox" id="cfg-fold-mem" /></div>
+          <div class="set-row"><span>剧目</span><input type="checkbox" id="cfg-fold-ch" /></div>
+          <div class="set-row"><span>场景</span><input type="checkbox" id="cfg-fold-sc" /></div>
+          <div class="set-row"><span>人物</span><input type="checkbox" id="cfg-fold-npc" /></div>
+          <div class="set-row"><span>导演</span><input type="checkbox" id="cfg-fold-review" /></div>
+          <div class="set-row"><span>系统</span><input type="checkbox" id="cfg-fold-file" /></div>
+        </div>
+        <div class="set-group">
+          <div class="set-group-title">调试</div>
+          <div class="set-row"><span>Debug显示</span><input type="checkbox" id="cfg-debug" /></div>
+        </div>
+        <div class="set-group">
+          <div class="set-group-title">显示</div>
+          <div class="set-row"><span>全知手机版</span><input type="checkbox" id="cfg-quote" /></div>
+        </div>
+        <button class="set-btn" id="settings-save-btn">保存并退出</button>
+        <button
+          class="set-btn"
+          style="background: rgba(255, 50, 50, 0.2); color: rgb(255, 50, 50); margin-top: 5px"
+          id="reset-btn"
+        >
+          重置系统
+        </button>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        'use strict';
+
+        const $ = id => document.getElementById(id);
+        const C = s => (s ? s.replace(/<[^>]+>/g, '').trim() : '');
+        const R = (s, k) => (s.match(new RegExp(`<${k}[^>]*>([\\s\\S]*?)<\\/${k}>`, 'i')) || [])[1] || '';
+        const A = (s, k) => (s.match(new RegExp(`${k}=['"]([^'"]+)['"]`, 'i')) || [])[1] || '';
+
+        const isUserName = name => {
+          if (!name) return false;
+          const n = name.toLowerCase().trim();
+          return n === 'user' || n === '用户' || n === '{{user}}' || n === '玩家';
+        };
+
+        const parseComment = (s, prefix) => {
+          const regex = new RegExp(`<!--${prefix}=['"]([^'"]+)['"]([^>]*)-->`, 'gi');
+          const results = [];
+          let match;
+          while ((match = regex.exec(s)) !== null) {
+            if (!isUserName(match[1])) {
+              results.push({ name: match[1], attrs: match[2] || '', fullMatch: match[0] });
+            }
+          }
+          return results;
+        };
+
+        const parseKV = attrStr => {
+          const result = {};
+          const regex = /(\S+?)=([^\s]+)/g;
+          let match;
+          while ((match = regex.exec(attrStr)) !== null) {
+            result[match[1]] = match[2].replace(/["']/g, '');
+          }
+          return result;
+        };
+
+        const getStatusFromContent = text => {
+          if (text.includes('●') || text.toLowerCase().includes('完成')) return 'done';
+          if (text.includes('◐') || text.toLowerCase().includes('进行')) return 'progress';
+          if (text.includes('✗') || text.toLowerCase().includes('失败')) return 'failed';
+          return 'pending';
+        };
+
+        const getTagContent = (text, tagName) => {
+          const regex = new RegExp(`<${tagName}(?=\\s|>)[^>]*>([\\s\\S]*?)<\\/${tagName}>`, 'i');
+          const match = text.match(regex);
+          return match ? match[1].trim() : null;
+        };
+
+        const emotionToEmoji = emotion => {
+          if (!emotion) return '😐';
+          const emo = emotion.toLowerCase();
+          if (/开心|高兴|愉快|快乐|喜|满足|雀跃/.test(emo)) return '😊';
+          if (/愤怒|生气|恼火|怒/.test(emo)) return '😠';
+          if (/悲伤|难过|伤心|哀|不舍/.test(emo)) return '😢';
+          if (/紧张|焦虑|不安|慌/.test(emo)) return '😰';
+          if (/害怕|恐惧|惊恐/.test(emo)) return '😨';
+          if (/惊讶|震惊|意外/.test(emo)) return '😮';
+          if (/困惑|迷惑|疑惑/.test(emo)) return '🤔';
+          if (/平静|冷静|淡定/.test(emo)) return '😌';
+          if (/厌恶|嫌弃|反感/.test(emo)) return '😒';
+          if (/期待|兴奋|激动/.test(emo)) return '🤩';
+          if (/无聊|无趣|乏味/.test(emo)) return '😑';
+          if (/尴尬|羞涩|害羞|慵懒/.test(emo)) return '😳';
+          if (/得意|自豪|骄傲/.test(emo)) return '😏';
+          if (/担忧|担心|忧虑/.test(emo)) return '😟';
+          if (/疲惫|累|倦/.test(emo)) return '😩';
+          if (/撒娇|依赖|黏人/.test(emo)) return '🥺';
+          return '😐';
+        };
+
+        const cleanUserInput = text => {
+          if (!text) return '';
+          return text
+            .replace(/以上是用户的本轮输入[。.]*[\s\S]*/gi, '')
+            .replace(/以下是用户的本轮输入[。.：:]*/gi, '')
+            .replace(/以下是正文写作指导[：:][\s\S]*/gi, '')
+            .replace(/【关系与互动】[\s\S]*/gi, '')
+            .replace(/【NPC行为执行】[\s\S]*/gi, '')
+            .replace(/【约束执行】[\s\S]*/gi, '')
+            .replace(/<本轮用户输入>[\s\S]*<\/本轮用户输入>/gi, '')
+            .replace(/<用户本轮输入>[\s\S]*<\/用户本轮输入>/gi, '')
+            .trim();
+        };
+
+        const DB = {
+          init: () =>
+            new Promise(res => {
+              const r = indexedDB.open('BaizeData_V10', 1);
+              r.onupgradeneeded = e => {
+                if (!e.target.result.objectStoreNames.contains('photos'))
+                  e.target.result.createObjectStore('photos', { keyPath: 'name' });
+              };
+              r.onsuccess = e => res(e.target.result);
+            }),
+          savePhoto: (n, b) =>
+            DB.init().then(db => {
+              db.transaction('photos', 'readwrite').objectStore('photos').put({ name: n, blob: b });
+            }),
+          deletePhoto: n =>
+            DB.init().then(db => {
+              db.transaction('photos', 'readwrite').objectStore('photos').delete(n);
+            }),
+          getPhoto: n =>
+            DB.init().then(
+              db =>
+                new Promise(res => {
+                  const req = db.transaction('photos', 'readonly').objectStore('photos').get(n);
+                  req.onsuccess = () => res(req.result ? req.result.blob : null);
+                }),
+            ),
+          clear: () =>
+            DB.init().then(db => {
+              db.transaction('photos', 'readwrite').objectStore('photos').clear();
+            }),
+        };
+
+        /* ========== 核心修复 V6.2：NativeDataFetcher ========== */
+        const NativeDataFetcher = {
+          getContext() {
+            if (typeof getContext === 'function')
+              try {
+                return getContext();
+              } catch (e) {}
+            if (window.SillyTavern?.getContext)
+              try {
+                return window.SillyTavern.getContext();
+              } catch (e) {}
+            if (window.parent !== window) {
+              if (window.parent.SillyTavern?.getContext)
+                try {
+                  return window.parent.SillyTavern.getContext();
+                } catch (e) {}
+              if (typeof window.parent.getContext === 'function')
+                try {
+                  return window.parent.getContext();
+                } catch (e) {}
+            }
+            return null;
+          },
+          getChat() {
+            const ctx = this.getContext();
+            return ctx?.chat || [];
+          },
+
+          /* 核心修复：找第一个非空且长度>=2的行作为特征 */
+          findCurrentMessageIndex(txt) {
+            const chat = this.getChat();
+            if (!chat.length || !txt) return -1;
+
+            const lines = txt.split('\n');
+            let featureLine = '';
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (trimmed.length >= 2) {
+                featureLine = trimmed;
+                break;
+              }
+            }
+
+            if (!featureLine) {
+              // 如果还是找不到，用整个文本的前50字符
+              featureLine = txt
+                .replace(/[\n\r\s]+/g, ' ')
+                .trim()
+                .slice(0, 50);
+            }
+
+            if (!featureLine || featureLine.length < 2) return -1;
+
+            for (let i = chat.length - 1; i >= 0; i--) {
+              const msg = chat[i];
+              if (!msg.is_user) continue;
+
+              const mes = msg.mes || '';
+              if (mes.includes(featureLine)) {
+                return i;
+              }
+            }
+            return -1;
+          },
+
+          getFileFromIndex(idx) {
+            const chat = this.getChat();
+            if (idx < 0 || idx >= chat.length) return '';
+
+            const msg = chat[idx];
+            const qrf = msg.extra?.qrf_plot || msg.qrf_plot || '';
+            const match = qrf.match(/<file[^>]*>([\s\S]*?)<\/file>/i);
+            return match ? match[1].trim() : '';
+          },
+
+          getReviewsFromIndex(idx) {
+            const chat = this.getChat();
+            if (idx < 0 || idx >= chat.length) return [];
+
+            const msg = chat[idx];
+            const qrf = msg.extra?.qrf_plot || msg.qrf_plot || '';
+            const results = [];
+            const regex = /<review\s+npc=['"]([^'"]+)['"][^>]*>([\s\S]*?)<\/review>/gi;
+            let match;
+            while ((match = regex.exec(qrf)) !== null) {
+              results.push({ npc: match[1], content: match[2].trim() });
+            }
+            return results;
+          },
+
+          getSceneDirectionFromIndex(idx) {
+            const chat = this.getChat();
+            if (idx < 0 || idx >= chat.length) return '';
+
+            const msg = chat[idx];
+            const qrf = msg.extra?.qrf_plot || msg.qrf_plot || '';
+            const match = qrf.match(/<scene_direction[^>]*>([\s\S]*?)<\/scene_direction>/i);
+            return match ? match[1].trim() : '';
+          },
+
+          getRecallFromIndex(idx) {
+            const chat = this.getChat();
+            if (idx < 0 || idx >= chat.length) return '';
+
+            const msg = chat[idx];
+            const qrf = msg.extra?.qrf_plot || msg.qrf_plot || '';
+            const match = qrf.match(/<recall[^>]*>([\s\S]*?)<\/recall>/i);
+            return match ? match[1].trim() : '';
+          },
+
+          extractTag(tagName, options = {}) {
+            const { searchCount = 10, allMatches = false, includeAttrs = true } = options;
+            const chat = this.getChat();
+            if (!chat.length) return allMatches ? [] : '';
+            const attrPart = includeAttrs ? '(?:\\s[^>]*)?' : '';
+            const regex = new RegExp(`<${tagName}${attrPart}>([\\s\\S]*?)<\\/${tagName}>`, 'gi');
+            const results = [];
+            const limit = Math.max(0, chat.length - searchCount);
+            for (let i = chat.length - 1; i >= limit; i--) {
+              const msg = chat[i];
+              const sources = [msg.mes, msg.extra?.qrf_plot, msg.qrf_plot].filter(Boolean);
+              for (const source of sources) {
+                let match;
+                while ((match = regex.exec(source)) !== null) {
+                  results.push({ content: match[1].trim(), fullMatch: match[0], msgIndex: i, isUser: msg.is_user });
+                  if (!allMatches) return results[0].content;
+                }
+                regex.lastIndex = 0;
+              }
+            }
+            return allMatches ? results : '';
+          },
+
+          getSceneDirection() {
+            return this.extractTag('scene_direction');
+          },
+          getRecall() {
+            return this.extractTag('recall');
+          },
+
+          getUserInput() {
+            const chat = this.getChat();
+            if (!chat.length) return '';
+            for (let i = chat.length - 1; i >= 0; i--) {
+              if (chat[i].is_user) return chat[i].mes || '';
+            }
+            return '';
+          },
+        };
+
+        async function getAllEntries() {
+          try {
+            if (typeof getVariables === 'function') {
+              const chatVars = await getVariables({ type: 'chat' });
+              let wb = chatVars?.selectedWorldBook;
+              if (!wb && typeof getCurrentCharPrimaryLorebook === 'function')
+                wb = await getCurrentCharPrimaryLorebook();
+              if (wb && typeof getLorebookEntries === 'function') return await getLorebookEntries(wb);
+            }
+          } catch (e) {}
+          return [];
+        }
+
+        async function queryAutoCardUpdaterDB(amId) {
+          try {
+            const api = window.AutoCardUpdaterAPI || window.parent?.AutoCardUpdaterAPI;
+            if (api && api.exportTableAsJson) {
+              const dbData = api.exportTableAsJson();
+              const amLower = amId.toLowerCase();
+              for (const sheetId in dbData) {
+                const sheet = dbData[sheetId];
+                if (!sheet.content) continue;
+                const rowIndex = sheet.content.findIndex(
+                  (row, idx) => idx > 0 && row.some(cell => String(cell).toLowerCase() === amLower),
+                );
+                if (rowIndex > -1)
+                  return { found: true, source: sheet.name, headers: sheet.content[0], data: sheet.content[rowIndex] };
+              }
+            }
+          } catch (e) {}
+          return { found: false };
+        }
+
+        const App = {
+          d: {
+            theme: 'sakura-day',
+            font: 'sans',
+            defaultFolded: true,
+            foldedState: true,
+            tab: 'on',
+            favs: [],
+            defaultFolds: { mem: true, ch: true, sc: true, npc: true, file: true, review: true },
+            foldsState: { mem: true, ch: true, sc: true, npc: true, file: true, review: true },
+            collapsedSections: { userInput: true, memoryGraph: true },
+            debugMode: false,
+            showQuote: true,
+            qs: ['SYSTEM READY.', 'AWAITING INPUT.', 'REBRON V10.6.2', '全知手机版'],
+          },
+          stats: { archiveCount: 0, outlineCount: 0, recallCount: 0 },
+          npcs: { on: [], off: [] },
+          memData: { recallIds: [], entries: [] },
+          npcMemoryMap: {},
+          reviewData: [],
+          userInput: '',
+          userInputEdited: '',
+          isEditing: false,
+          currentLocation: '',
+          timeInfo: { time: '', deadline: '', skip: '' },
+          qIdx: 0,
+          debugMode: false,
+
+          init() {
+            const s = localStorage.getItem('baize_v10_cfg');
+            if (s)
+              try {
+                Object.assign(this.d, JSON.parse(s));
+              } catch (e) {}
+            this.setTheme(this.d.theme);
+            this.setFont(this.d.font);
+            if (this.d.foldedState === undefined) this.d.foldedState = this.d.defaultFolded;
+            if (this.d.foldsState === undefined) this.d.foldsState = { ...this.d.defaultFolds };
+            if (this.d.foldedState) $('app').classList.add('folded');
+            $('cfg-theme').value = this.d.theme;
+            $('cfg-font').value = this.d.font;
+            $('cfg-fold').checked = this.d.defaultFolded;
+            this.debugMode = !!this.d.debugMode;
+            if ($('cfg-debug')) $('cfg-debug').checked = this.debugMode;
+            if ($('cfg-quote')) $('cfg-quote').checked = this.d.showQuote !== false;
+            const quoteBox = $('quote-display');
+            if (quoteBox) quoteBox.style.display = this.d.showQuote === false ? 'none' : '';
+            ['mem', 'ch', 'sc', 'npc', 'file', 'review'].forEach(k => {
+              const el = $(`cfg-fold-${k}`);
+              if (el) {
+                el.checked = this.d.defaultFolds[k];
+                if (this.d.foldsState[k]) $(`sec-${k}`).classList.add('closed');
+              }
+            });
+
+            this.d.tab = 'on';
+            this.setNpcTabActive('on');
+
+            this.bindEvents();
+            this.parse();
+            this.cycleQuote();
+            new MutationObserver(() => this.parse()).observe($('input-buffer'), {
+              attributes: true,
+              childList: true,
+              subtree: true,
+            });
+          },
+
+          bindEvents() {
+            // 折叠按钮
+            $('capsule-toggle-btn')?.addEventListener('click', () => this.toggleFold());
+
+            // 主题点
+            document.querySelectorAll('.theme-dot').forEach(dot => {
+              dot.addEventListener('click', () => this.setTheme(dot.dataset.theme));
+            });
+
+            // 引言
+            $('quote-display')?.addEventListener('click', () => this.cycleQuote());
+
+            // 设置
+            $('settings-trigger-btn')?.addEventListener('click', () => this.toggleSettings());
+            $('settings-close-btn')?.addEventListener('click', () => this.toggleSettings());
+            $('settings-save-btn')?.addEventListener('click', () => this.toggleSettings());
+            $('settings')?.addEventListener('click', e => {
+              if (e.target.id === 'settings') this.toggleSettings();
+            });
+            $('reset-btn')?.addEventListener('click', () => this.reset());
+
+            // 配置下拉
+            $('cfg-theme')?.addEventListener('change', e => this.setTheme(e.target.value));
+            $('cfg-font')?.addEventListener('change', e => this.setFont(e.target.value));
+            $('cfg-fold')?.addEventListener('change', e => this.setDefaultFoldState(e.target.checked));
+            $('cfg-debug')?.addEventListener('change', e => {
+              this.debugMode = e.target.checked;
+              this.d.debugMode = this.debugMode;
+              this.save();
+              this.parse();
+            });
+            $('cfg-quote')?.addEventListener('change', e => {
+              this.d.showQuote = e.target.checked;
+              const quoteBox = $('quote-display');
+              if (quoteBox) quoteBox.style.display = this.d.showQuote ? '' : 'none';
+              this.save();
+            });
+            ['mem', 'ch', 'sc', 'npc', 'file', 'review'].forEach(k => {
+              $(`cfg-fold-${k}`)?.addEventListener('change', e => this.setDefaultFold(k, e.target.checked));
+            });
+
+            // Section headers
+            ['mem', 'ch', 'sc', 'npc', 'file', 'review'].forEach(k => {
+              $(`sec-header-${k}`)?.addEventListener('click', () => this.toggleSec(k));
+            });
+
+            // Tabs
+            $('tab-on')?.addEventListener('click', e => this.switchTab(e, 'on'));
+            $('tab-off')?.addEventListener('click', e => this.switchTab(e, 'off'));
+
+            // Verify
+            $('verify-btn')?.addEventListener('click', () => this.verifyData());
+          },
+
+          async parse() {
+            let txt = $('input-buffer').value || '';
+
+            let userInputContent = NativeDataFetcher.getUserInput();
+            if (!userInputContent) {
+              userInputContent = getTagContent(txt, '本轮用户输入') || getTagContent(txt, '用户本轮输入') || '';
+              if (!userInputContent) {
+                const regex =
+                  /(?:以上是用户的|以下是用户的本轮输入|本轮输入。)[：:]?\s*([\s\S]*?)(?:<|以上是用户|以下是正文|$)/;
+                const match = txt.match(regex);
+                if (match) userInputContent = match[1].trim();
+              }
+            }
+            userInputContent = cleanUserInput(userInputContent);
+            this.userInput = userInputContent;
+            this.userInputEdited = userInputContent;
+            this.isEditing = false;
+
+            /* ========== 核心：精确定位当前楼层 ========== */
+            const currentIdx = NativeDataFetcher.findCurrentMessageIndex(txt);
+
+            // 从当前楼的 qrf_plot 抓取
+            const fileContent = NativeDataFetcher.getFileFromIndex(currentIdx);
+            this.reviewData = NativeDataFetcher.getReviewsFromIndex(currentIdx);
+
+            let sceneContent = NativeDataFetcher.getSceneDirectionFromIndex(currentIdx);
+            let recallContent = NativeDataFetcher.getRecallFromIndex(currentIdx);
+
+            // fallback
+            if (!sceneContent) sceneContent = R(txt, 'scene_direction') || NativeDataFetcher.getSceneDirection();
+            if (!recallContent) recallContent = R(txt, 'recall') || NativeDataFetcher.getRecall();
+
+            // Debug
+            if (this.debugMode) {
+              $('debug-display').innerHTML =
+                `<div class="debug-info">[DEBUG] 楼层=${currentIdx} | file=${fileContent.length}字 | reviews=${this.reviewData.length}条 | scene=${sceneContent.length}字</div>`;
+            } else {
+              $('debug-display').innerHTML = '';
+            }
+
+            const fileSource = fileContent + '\n' + sceneContent || txt;
+            const recallIds = (recallContent.match(/AM\d+/gi) || []).map(x => x.toUpperCase());
+
+            const entries = await getAllEntries();
+            const amEntries = entries.filter(e => {
+              const keys = e.keys || (e.key ? (Array.isArray(e.key) ? e.key : [e.key]) : []);
+              return keys.some(k => /^AM\d+$/i.test(k));
+            });
+            this.memData = { recallIds, entries: amEntries };
+
+            const memList = recallIds
+              .map(id => `<div class="mem-capsule" data-id="${id}"><i class="fa-solid fa-microchip"></i> ${id}</div>`)
+              .join('');
+            $('mem-list').innerHTML =
+              memList ||
+              `<div style="opacity:0.5;padding:10px;text-align:center;grid-column:1/-1">NO RECALL DATA</div>`;
+
+            // 给 mem-capsule 绑定事件
+            document.querySelectorAll('.mem-capsule').forEach(el => {
+              el.addEventListener('click', () => this.showMemDetail(el.dataset.id, el));
+            });
+
+            const sceneDir = sceneContent || R(txt, 'scene_direction');
+
+            this.parseTimeAndLocation(sceneDir);
+            this.parseChapter(sceneDir, fileSource);
+            this.parseScene(sceneDir);
+            this.parseNPCs(sceneDir, fileSource);
+            this.renderReview();
+            this.parseFileArchive(fileSource);
+            await this.buildNpcMemoryGraph();
+
+            this.renderUserInput();
+
+            let archiveCount = recallIds.length,
+              outlineCount = recallIds.length;
+            try {
+              const api = window.AutoCardUpdaterAPI || window.parent?.AutoCardUpdaterAPI;
+              if (api && api.exportTableAsJson) {
+                const dbData = api.exportTableAsJson();
+                for (const sheetId in dbData) {
+                  const sheet = dbData[sheetId];
+                  if (!sheet.content) continue;
+                  if (sheet.name === '总结表') archiveCount = Math.max(0, sheet.content.length - 1);
+                  if (sheet.name === '总体大纲') outlineCount = Math.max(0, sheet.content.length - 1);
+                }
+              }
+            } catch (e) {}
+
+            $('cap-npc').innerText = this.npcs.on.length;
+            $('cap-rec').innerText = recallIds.length;
+            $('cap-mem').innerText = archiveCount;
+            $('cap-out').innerText = outlineCount;
+            $('tab-on').innerText = `在场 (${this.npcs.on.length})`;
+            $('tab-off').innerText = `幕后 (${this.npcs.off.length})`;
+            this.stats = { archiveCount, outlineCount, recallCount: recallIds.length };
+            this.renderQuickStatus();
+            this.setNpcTabActive(this.d.tab);
+            this.renderNpcList();
+          },
+
+          parseTimeAndLocation(sceneDir) {
+            this.timeInfo = { time: '', deadline: '', skip: '' };
+            this.currentLocation = '';
+            const timeMatch = sceneDir.match(/【时空】([^【\n]+)/i);
+            if (timeMatch) {
+              const timeStr = timeMatch[1];
+              const dayMatch = timeStr.match(/Day\s*\d+[,，]?\s*\d{1,2}[：:]\d{2}/i);
+              if (dayMatch) this.timeInfo.time = dayMatch[0].trim();
+              const deadlineMatch = timeStr.match(/期限[=＝]([^|｜\n]+)/i);
+              if (deadlineMatch) this.timeInfo.deadline = deadlineMatch[1].trim();
+              const skipMatch = timeStr.match(/跳跃[=＝]([^|｜\n]+)/i);
+              if (skipMatch && skipMatch[1].trim() !== '无') this.timeInfo.skip = skipMatch[1].trim();
+            }
+            if (!this.timeInfo.time) {
+              const tsTag = R(sceneDir, 'timestamp') || '';
+              if (tsTag) this.timeInfo.time = C(tsTag);
+              const skipTag = R(sceneDir, 'timeskip_detected') || '';
+              if (skipTag && skipTag !== '无') this.timeInfo.skip = C(skipTag);
+            }
+            const sceneMatch = sceneDir.match(/【场景】([^—–\-\n]+)/i);
+            if (sceneMatch) {
+              let loc = sceneMatch[1].trim();
+              if (loc.length > 20) loc = loc.substring(0, 20) + '...';
+              this.currentLocation = loc;
+            }
+            if (!this.currentLocation) {
+              const focusMatch = sceneDir.match(/<scene\s+focus=['"]([^'"]+)['"]/i);
+              if (focusMatch) {
+                let focus = focusMatch[1];
+                const abstractWords = [
+                  '情感',
+                  '确认',
+                  '接纳',
+                  '互动',
+                  '对话',
+                  '交流',
+                  '关系',
+                  '发展',
+                  '推进',
+                  '初次',
+                  '表达',
+                  '回应',
+                ];
+                const isAbstract = abstractWords.some(w => focus.includes(w));
+                if (!isAbstract && focus.length <= 20) this.currentLocation = focus;
+              }
+            }
+          },
+
+          renderTimeline() {
+            const container = $('timestamp-bar');
+            if (container) container.innerHTML = '';
+          },
+
+          renderQuickStatus() {
+            const container = $('quick-status-display');
+            if (this.npcs.on.length === 0 && !this.currentLocation && !this.timeInfo.time) {
+              container.innerHTML = '';
+              return;
+            }
+            let npcHtml = this.npcs.on
+              .map(npc => {
+                const emoji = emotionToEmoji(npc.emotion);
+                return `<div class="quick-npc-item" title="${npc.emotion || '未知情绪'}"><span class="quick-npc-emoji">${emoji}</span><span class="quick-npc-name">${npc.n}</span></div>`;
+              })
+              .join('');
+            let locationHtml = this.currentLocation
+              ? `<div class="quick-location"><i class="fa-solid fa-location-dot"></i> ${this.currentLocation}</div>`
+              : '';
+            let timelineHtml = '';
+            if (this.timeInfo.time) {
+              let tagsHtml = '';
+              if (this.timeInfo.deadline)
+                tagsHtml += `<span class="timeline-tag"><i class="fa-solid fa-hourglass-half"></i> ${this.timeInfo.deadline}</span>`;
+              if (this.timeInfo.skip)
+                tagsHtml += `<span class="timeline-tag warn"><i class="fa-solid fa-forward"></i> ${this.timeInfo.skip}</span>`;
+              timelineHtml = `<div class="timeline-bar">
+                    <div class="timeline-icon"><i class="fa-regular fa-clock"></i></div>
+                    <div class="timeline-content">
+                        <div class="timeline-main">${this.timeInfo.time}</div>
+                        <div class="timeline-sub">${tagsHtml}</div>
+                    </div>
+                    <div class="timeline-particles"><div class="timeline-particle"></div><div class="timeline-particle"></div><div class="timeline-particle"></div><div class="timeline-particle"></div></div>
+                </div>`;
+            }
+            container.innerHTML = `<div class="quick-status-bar">
+                <div class="quick-status-row">
+                    <div class="quick-npc-emotions">${npcHtml || '<span style="opacity:0.5">无在场角色</span>'}</div>
+                    ${this.currentLocation ? locationHtml : ''}
+                </div>
+                ${timelineHtml}
+            </div>`;
+          },
+
+          renderUserInput() {
+            const container = $('user-input-display');
+            if (!this.userInput && this.npcs.on.length === 0) {
+              container.innerHTML = '';
+              return;
+            }
+            const escaped = (this.userInputEdited || this.userInput || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const isClosed = this.d.collapsedSections?.userInput !== false;
+            let npcChipsHtml = '';
+            if (this.npcs.on.length > 0) {
+              const chips = this.npcs.on
+                .map(
+                  npc =>
+                    `<div class="npc-name-chip" data-name="${npc.n}"><i class="fa-solid fa-comment"></i> ${npc.n}</div>`,
+                )
+                .join('');
+              npcChipsHtml = `<div class="npc-names-editor"><div class="npc-names-label"><i class="fa-solid fa-users"></i> 本轮角色（点击插入对话）</div><div class="npc-names-grid">${chips}</div></div>`;
+            }
+            container.innerHTML = `<div class="collapsible-section user-input-section ${isClosed ? 'closed' : ''}" id="user-input-section">
+                <div class="collapsible-header" id="user-input-header">
+                    <div class="header-title"><i class="fa-solid fa-keyboard"></i> 用户本轮输入</div>
+                    <div style="display:flex;align-items:center;gap:10px">
+                        <div class="user-input-actions">
+                            <div class="user-input-btn" id="edit-btn"><i class="fa-solid fa-pen"></i> 修改</div>
+                            <div class="user-input-btn save-btn" id="save-btn" style="display:none"><i class="fa-solid fa-check"></i> 保存</div>
+                            <div class="user-input-btn" id="copy-btn"><i class="fa-solid fa-copy"></i> 复制</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                    </div>
+                </div>
+                <div class="collapsible-body" style="max-height:${isClosed ? '0' : '500px'}">
+                    <div class="collapsible-body-inner">
+                        <div class="user-input-content" id="user-input-content">${escaped || '<span style="opacity:0.5">无用户输入</span>'}</div>
+                        <textarea class="user-input-textarea" id="user-input-textarea">${this.userInputEdited || this.userInput || ''}</textarea>
+                        ${npcChipsHtml}
+                    </div>
+                </div>
+            </div>`;
+
+            // 绑定事件
+            $('user-input-header')?.addEventListener('click', e => {
+              if (!e.target.closest('.user-input-actions')) this.toggleCollapsible('userInput');
+            });
+            $('edit-btn')?.addEventListener('click', e => {
+              e.stopPropagation();
+              this.toggleEditMode();
+            });
+            $('save-btn')?.addEventListener('click', e => {
+              e.stopPropagation();
+              this.saveUserInput();
+            });
+            $('copy-btn')?.addEventListener('click', e => {
+              e.stopPropagation();
+              this.copyUserInput();
+            });
+            document.querySelectorAll('.npc-name-chip').forEach(chip => {
+              chip.addEventListener('click', () => this.insertNpcDialog(chip.dataset.name));
+            });
+          },
+
+          toggleCollapsible(sectionId) {
+            if (!this.d.collapsedSections) this.d.collapsedSections = {};
+            this.d.collapsedSections[sectionId] = !this.d.collapsedSections[sectionId];
+            this.save();
+            const section = document.querySelector(
+              `#${sectionId === 'userInput' ? 'user-input-section' : 'memory-graph-section'}`,
+            );
+            if (section) {
+              section.classList.toggle('closed');
+              const body = section.querySelector('.collapsible-body');
+              if (body) body.style.maxHeight = section.classList.contains('closed') ? '0' : '500px';
+            }
+          },
+
+          insertNpcDialog(npcName) {
+            const section = $('user-input-section');
+            if (section && section.classList.contains('closed')) this.toggleCollapsible('userInput');
+            setTimeout(() => {
+              const textarea = $('user-input-textarea');
+              if (!this.isEditing) {
+                this.isEditing = true;
+                section?.classList.add('editing');
+                $('edit-btn').innerHTML = '<i class="fa-solid fa-xmark"></i> 取消';
+                $('edit-btn').classList.add('active');
+                $('save-btn').style.display = 'flex';
+              }
+              const insertText = `我对${npcName}说"`;
+              const cursorPos = textarea.selectionStart;
+              const before = textarea.value.substring(0, cursorPos);
+              const after = textarea.value.substring(cursorPos);
+              textarea.value = before + insertText + after;
+              textarea.focus();
+              textarea.selectionStart = textarea.selectionEnd = cursorPos + insertText.length;
+              this.userInputEdited = textarea.value;
+            }, 100);
+          },
+
+          toggleEditMode() {
+            this.isEditing = !this.isEditing;
+            const section = $('user-input-section'),
+              editBtn = $('edit-btn'),
+              saveBtn = $('save-btn');
+            if (this.isEditing) {
+              section?.classList.add('editing');
+              editBtn.innerHTML = '<i class="fa-solid fa-xmark"></i> 取消';
+              editBtn.classList.add('active');
+              saveBtn.style.display = 'flex';
+              $('user-input-textarea').focus();
+            } else {
+              section?.classList.remove('editing');
+              editBtn.innerHTML = '<i class="fa-solid fa-pen"></i> 修改';
+              editBtn.classList.remove('active');
+              saveBtn.style.display = 'none';
+              $('user-input-textarea').value = this.userInputEdited;
+            }
+          },
+
+          saveUserInput() {
+            const textarea = $('user-input-textarea');
+            this.userInputEdited = textarea.value;
+            const escaped = this.userInputEdited.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            $('user-input-content').innerHTML = escaped || '<span style="opacity:0.5">无用户输入</span>';
+            this.isEditing = false;
+            $('user-input-section')?.classList.remove('editing');
+            $('edit-btn').innerHTML = '<i class="fa-solid fa-pen"></i> 修改';
+            $('edit-btn').classList.remove('active');
+            $('save-btn').style.display = 'none';
+          },
+
+          copyUserInput() {
+            let copyText = this.userInputEdited || this.userInput || '';
+            navigator.clipboard.writeText(copyText).then(() => {
+              const btn = $('copy-btn');
+              btn.innerHTML = '<i class="fa-solid fa-check"></i> 已复制';
+              setTimeout(() => {
+                btn.innerHTML = '<i class="fa-solid fa-copy"></i> 复制';
+              }, 2000);
+            });
+          },
+
+          async buildNpcMemoryGraph() {
+            const allNpcs = [...this.npcs.on, ...this.npcs.off]
+              .map(n => n.n)
+              .filter(n => n && n.length > 1 && !isUserName(n));
+            const npcMemoryMap = {};
+            for (const amId of this.memData.recallIds) {
+              let content = '';
+              const dbResult = await queryAutoCardUpdaterDB(amId);
+              if (dbResult.found) content = dbResult.data.join(' ');
+              else {
+                const entry = this.memData.entries.find(e => {
+                  const keys = e.keys || (e.key ? (Array.isArray(e.key) ? e.key : [e.key]) : []);
+                  return keys.some(k => k.toUpperCase() === amId);
+                });
+                if (entry) content = entry.content || '';
+              }
+              allNpcs.forEach(npcName => {
+                if (content.includes(npcName)) {
+                  if (!npcMemoryMap[npcName]) npcMemoryMap[npcName] = [];
+                  if (!npcMemoryMap[npcName].includes(amId)) npcMemoryMap[npcName].push(amId);
+                }
+              });
+            }
+            this.npcMemoryMap = npcMemoryMap;
+            this.renderMemoryGraph();
+          },
+
+          renderMemoryGraph() {
+            const container = $('memory-graph-container');
+            const entries = Object.entries(this.npcMemoryMap).filter(
+              ([name, codes]) => codes.length > 0 && !isUserName(name),
+            );
+            if (entries.length === 0) {
+              container.innerHTML = '';
+              return;
+            }
+            entries.sort((a, b) => b[1].length - a[1].length);
+            const isClosed = this.d.collapsedSections?.memoryGraph !== false;
+            let groupsHtml = entries
+              .map(([npcName, codes]) => {
+                return `<div class="npc-memory-group">
+                    <div class="npc-memory-name"><i class="fa-solid fa-user"></i> ${npcName} <span style="opacity:0.6;font-size:0.8em">(${codes.length})</span></div>
+                    <div class="npc-memory-codes">${codes.map(code => `<div class="npc-memory-code" data-code="${code}">${code}</div>`).join('')}</div>
+                </div>`;
+              })
+              .join('');
+            container.innerHTML = `<div class="collapsible-section memory-graph-section ${isClosed ? 'closed' : ''}" id="memory-graph-section">
+                <div class="collapsible-header" id="memory-graph-header">
+                    <div class="header-title"><i class="fa-solid fa-diagram-project"></i> NPC记忆关联 (${entries.length})</div>
+                    <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                </div>
+                <div class="collapsible-body" style="max-height:${isClosed ? '0' : '500px'}"><div class="collapsible-body-inner">${groupsHtml}</div></div>
+            </div>`;
+
+            $('memory-graph-header')?.addEventListener('click', () => this.toggleCollapsible('memoryGraph'));
+            document.querySelectorAll('.npc-memory-code').forEach(el => {
+              el.addEventListener('click', () => this.showMemDetail(el.dataset.code, el));
+            });
+          },
+
+          parseChapter(sceneDir, fileSource) {
+            let chName = '',
+              chType = '',
+              chUrg = '',
+              chProg = '';
+            const chapterMatch = sceneDir.match(/<!--chapter:\s*([^-]+)/i);
+            if (chapterMatch) chName = chapterMatch[1].trim();
+            const typeMatch = sceneDir.match(/【类型】([^|｜\n]+)/i);
+            if (typeMatch) {
+              const typeParts = typeMatch[1].split(/[|｜]/);
+              chType = typeParts[0]?.trim() || '';
+              const diffMatch = typeMatch[1].match(/难度[=＝]([^|｜\n]+)/i);
+              if (diffMatch) chUrg = diffMatch[1].trim();
+            }
+            const objs = [];
+            const progressMatch = sceneDir.match(/【进行中】([\s\S]*?)(?=【|登场:|$)/i);
+            if (progressMatch) {
+              const lines = progressMatch[1].split('\n').filter(l => l.trim());
+              lines.forEach(line => {
+                const m = line.match(/[-•]\s*\[([^\]]+)\]\s*(.+?)(?:→|$)/i);
+                if (m) objs.push({ id: '', weight: m[1], status: '◐', content: m[2].trim() });
+              });
+            }
+            let chTag = (sceneDir.match(/<chapter\s+[^>]*>[\s\S]*?<\/chapter>/i) || [])[0] || '';
+            if (chTag) {
+              if (!chName) chName = A(chTag, 'name') || 'UNKNOWN';
+              if (!chType) chType = A(chTag, 'type') || '混合';
+              if (!chUrg) chUrg = A(chTag, 'urgency') || '普通';
+              chProg = A(chTag, 'progress') || '0/0';
+              const objRegex = /objective\[([^\]]+)\]:\s*(.+)/gi;
+              let objMatch;
+              while ((objMatch = objRegex.exec(chTag)) !== null) {
+                const parts = objMatch[1].split('/');
+                let id = parts[0] || '',
+                  weight = parts[1] || '',
+                  status = parts[2] || '';
+                if (/^[●○◐✗]$/.test(weight)) {
+                  status = weight;
+                  weight = '';
+                }
+                objs.push({ id, weight, status, content: objMatch[2].trim() });
+              }
+            }
+            if (objs.length > 0 || chName)
+              this.renderChapterContent({ current: chName, type: chType, urgency: chUrg, progress: chProg }, objs);
+            else
+              $('ch-content').innerHTML =
+                `<div style="opacity:0.5;padding:10px;text-align:center">NO CHAPTER DATA</div>`;
+          },
+
+          renderChapterContent(data, objs) {
+            const progressParts = (data.progress || '0/0').split('/');
+            const current = parseInt(progressParts[0]) || 0,
+              total = parseInt(progressParts[1]) || 1;
+            const progressPercent = Math.min(100, (current / total) * 100);
+            const pendingObjs = [],
+              doneObjs = [];
+            objs.forEach(o => {
+              const status = getStatusFromContent(o.status + o.content);
+              (status === 'done' ? doneObjs : pendingObjs).push({ ...o, parsedStatus: status });
+            });
+            let html = `<div class="ch-meta">
+                <div class="ch-meta-item"><span class="ch-label">NAME</span><span class="ch-val hl-text">${data.current || 'UNKNOWN'}</span></div>
+                <div class="ch-meta-item"><span class="ch-label">TYPE</span><span class="ch-val">${data.type || '混合'}</span></div>
+                <div class="ch-meta-item"><span class="ch-label">URGENCY</span><span class="ch-val ${data.urgency === '危机' || data.urgency === '紧迫' ? 'urg-high' : ''}">${data.urgency || '普通'}</span></div>
+            </div>`;
+            if (data.progress && data.progress !== '0/0') {
+              html += `<div class="progress-container"><div class="progress-header"><span class="progress-label">章节进度</span><span class="progress-text">${current}/${total}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${progressPercent}%"></div></div></div>`;
+            }
+            const renderObj = o => {
+              const statusIcon =
+                o.parsedStatus === 'done'
+                  ? 'fa-circle-check'
+                  : o.parsedStatus === 'progress'
+                    ? 'fa-circle-half-stroke'
+                    : o.parsedStatus === 'failed'
+                      ? 'fa-circle-xmark'
+                      : 'fa-circle';
+              const isDone = o.parsedStatus === 'done';
+              let cleanContent = o.content
+                .replace(/^[\s\u200b\u200c\u200d\u2060\ufeff●○◐✗•·\-][\s\u200b]*/g, '')
+                .trim()
+                .replace(/^\[.*?\]\s*/, '');
+              return `<div class="obj-row ${isDone ? 'done' : ''}"><div class="obj-status ${o.parsedStatus}"><i class="fa-solid ${statusIcon}"></i></div><div class="obj-content"><div class="obj-text ${isDone ? 'done-text' : ''}">${cleanContent}</div><div class="obj-meta">${o.weight ? `<span class="obj-tag">${o.weight}</span>` : ''}</div></div></div>`;
+            };
+            html += pendingObjs.map(renderObj).join('');
+            if (doneObjs.length > 0) {
+              html += `<div class="completed-section" id="completed-section"><div class="completed-header"><span><i class="fa-solid fa-check-circle"></i> 已完成 (${doneObjs.length})</span><i class="fa-solid fa-chevron-down"></i></div><div class="completed-body"><div class="completed-body-inner">${doneObjs.map(renderObj).join('')}</div></div></div>`;
+            }
+            $('ch-content').innerHTML = `<div class="card">${html}</div>`;
+
+            $('completed-section')
+              ?.querySelector('.completed-header')
+              ?.addEventListener('click', function () {
+                this.parentElement.classList.toggle('open');
+              });
+          },
+
+          parseScene(sceneDir) {
+            let scHtml = '';
+            const atmosphereMatch = sceneDir.match(/【氛围】([^【\n]+)/i);
+            if (atmosphereMatch)
+              scHtml += `<div class="card"><div class="kv"><span class="kv-k">氛围</span><span class="hl-text">${atmosphereMatch[1].trim()}</span></div></div>`;
+            const scMatch = sceneDir.match(
+              /<scene\s+focus=['"]([^'"]+)['"](?:\s+pacing=['"]([^'"]+)['"])?[^>]*>([\s\S]*?)<\/scene>/i,
+            );
+            if (scMatch) {
+              const affordance = C(R(scMatch[3], 'affordance')) || '',
+                details = C(R(scMatch[3], 'details')) || '';
+              scHtml += `<div class="card"><div class="kv"><span class="kv-k">FOCUS</span><span class="hl-text">${scMatch[1]}</span></div><div class="kv"><span class="kv-k">PACING</span><span>${scMatch[2] || '-'}</span></div>${affordance ? `<div class="kv"><span class="kv-k">AFFORD</span><span>${affordance}</span></div>` : ''}${details ? `<div class="kv"><span class="kv-k">DETAILS</span><span>${details}</span></div>` : ''}</div>`;
+            }
+            const dynTag = sceneDir.match(/<dynamics[^>]*>([\s\S]*?)<\/dynamics>/i);
+            if (dynTag) {
+              const interplay = C(R(dynTag[1], 'interplay')) || C(dynTag[1]);
+              if (interplay)
+                scHtml += `<div class="card"><div class="kv"><span class="kv-k">DYNAMICS</span><span style="white-space:pre-wrap">${interplay}</span></div></div>`;
+            }
+            const evalTag = R(sceneDir, 'entry_evaluation') || '';
+            if (evalTag) {
+              const present = C(R(evalTag, 'present')) || (evalTag.match(/present:\s*(.+)/i) || [])[1] || '';
+              const entering = C(R(evalTag, 'entering')) || (evalTag.match(/entering:\s*(.+)/i) || [])[1] || '';
+              const offstage = C(R(evalTag, 'offstage')) || (evalTag.match(/offstage:\s*(.+)/i) || [])[1] || '';
+              if (present || entering || offstage)
+                $('eval-display').innerHTML =
+                  `<div class="eval-bar">${present ? `<div><span class="eval-label">Present:</span> ${present}</div>` : ''}${entering ? `<div><span class="eval-label">Entering:</span> ${entering}</div>` : ''}${offstage ? `<div><span class="eval-label">Offstage:</span> ${offstage}</div>` : ''}</div>`;
+              else $('eval-display').innerHTML = '';
+            }
+            $('sc-content').innerHTML = scHtml || `<div style="opacity:0.5;padding:10px">NO SCENE DATA</div>`;
+          },
+
+          parseNPCs(sceneDir, fileSource) {
+            this.npcs.on = [];
+            this.npcs.off = [];
+            const presentMatch = sceneDir.match(/登场:\s*在场[=＝]([^|｜\n]+)/i);
+            if (presentMatch) {
+              const names = presentMatch[1]
+                .split(/[,，、]/)
+                .map(n => n.trim())
+                .filter(n => n && !isUserName(n));
+              names.forEach(name => {
+                let npcMatch = sceneDir.match(
+                  new RegExp(
+                    `<!--登场NPC=['"]${name}['"]([^>]*)-->[\\s\\S]*?(?=<!--登场NPC=|<!--未登场|<offstage|<scene|<dynamics|$)`,
+                    'i',
+                  ),
+                );
+                if (!npcMatch)
+                  npcMatch = sceneDir.match(
+                    new RegExp(
+                      `<!--NPC=['"]${name}['"]([^>]*)-->[\\s\\S]*?(?=<!--NPC=|<!--未登场|<offstage|<scene|<dynamics|$)`,
+                      'i',
+                    ),
+                  );
+                let attrs = {},
+                  npcContent = '';
+                if (npcMatch) {
+                  attrs = parseKV(npcMatch[1]);
+                  npcContent = npcMatch[0];
+                }
+                const relationMatch = (npcMatch?.[1] || '').match(/关系[=＝]([^\s]+)/i);
+                const emotionMatch = (npcMatch?.[1] || '').match(/情绪[=＝]([^\s]+)/i);
+                const wantMatch = npcContent.match(/want\[([LS])\]:\s*(.+?)(?=\n|$)/i);
+                const beneathMatch = npcContent.match(/beneath\[(\d)\]:\s*(.+?)(?=\n|$)/i);
+                const nowMatch = npcContent.match(/now:\s*(.+?)(?=\n|$)/i);
+                const beatMatch = npcContent.match(/beat:\s*(.+?)(?=\n|$)/i);
+                const handoffMatch = npcContent.match(/handoff:\s*(.+?)(?=\n|$)/i);
+                const initMatch = npcContent.match(/initiative\[([^\]]*)\]:\s*(.+?)(?=\n|$)/i);
+                this.npcs.on.push({
+                  n: name,
+                  relation: relationMatch ? relationMatch[1] : attrs['关系'] || '',
+                  emotion: emotionMatch ? emotionMatch[1].split('→')[0] : attrs['情绪'] || '',
+                  want: wantMatch ? { type: wantMatch[1], content: wantMatch[2].trim() } : null,
+                  beneath: beneathMatch ? { level: parseInt(beneathMatch[1]), content: beneathMatch[2].trim() } : null,
+                  now: nowMatch ? nowMatch[1].trim() : '',
+                  beat: beatMatch ? beatMatch[1].trim() : '',
+                  handoff: handoffMatch ? handoffMatch[1].trim() : '',
+                  initiative: initMatch ? { tags: initMatch[1], content: initMatch[2].trim() } : null,
+                  f: this.d.favs.includes(name),
+                  isMain: relationMatch && !['陌生', '陌生人'].includes(relationMatch[1]),
+                  b: npcContent,
+                });
+              });
+            }
+            if (this.npcs.on.length === 0) {
+              parseComment(sceneDir, '登场NPC').forEach(npc => {
+                if (isUserName(npc.name)) return;
+                const attrs = parseKV(npc.attrs),
+                  name = npc.name;
+                const startIdx = sceneDir.indexOf(npc.fullMatch) + npc.fullMatch.length;
+                let endIdx = sceneDir.length;
+                const nextNpcMatch = sceneDir.slice(startIdx).match(/<!--(?:登场NPC|未登场NPC|NPC)=/);
+                const nextTagMatch = sceneDir.slice(startIdx).match(/<(?:offstage|scene|dynamics|\/scene_direction)/i);
+                if (nextNpcMatch) endIdx = startIdx + nextNpcMatch.index;
+                if (nextTagMatch && startIdx + nextTagMatch.index < endIdx) endIdx = startIdx + nextTagMatch.index;
+                const npcContent = sceneDir.slice(startIdx, endIdx);
+                const wantMatch = npcContent.match(/want\[([LS])\]:\s*(.+?)(?=\n|$)/i);
+                const beneathMatch = npcContent.match(/beneath\[(\d)\]:\s*(.+?)(?=\n|$)/i);
+                const nowMatch = npcContent.match(/now:\s*(.+?)(?=\n|$)/i);
+                const beatMatch = npcContent.match(/beat:\s*(.+?)(?=\n|$)/i);
+                const handoffMatch = npcContent.match(/handoff:\s*(.+?)(?=\n|$)/i);
+                const initMatch = npcContent.match(/initiative\[([^\]]*)\]:\s*(.+?)(?=\n|$)/i);
+                this.npcs.on.push({
+                  n: name,
+                  relation: attrs['关系'] || '',
+                  emotion: attrs['情绪'] || '',
+                  want: wantMatch ? { type: wantMatch[1], content: wantMatch[2].trim() } : null,
+                  beneath: beneathMatch ? { level: parseInt(beneathMatch[1]), content: beneathMatch[2].trim() } : null,
+                  now: nowMatch ? nowMatch[1].trim() : '',
+                  beat: beatMatch ? beatMatch[1].trim() : '',
+                  handoff: handoffMatch ? handoffMatch[1].trim() : '',
+                  initiative: initMatch ? { tags: initMatch[1], content: initMatch[2].trim() } : null,
+                  f: this.d.favs.includes(name),
+                  isMain: attrs['关系'] && !['陌生', '陌生人'].includes(attrs['关系']),
+                  b: npcContent,
+                });
+              });
+            }
+            const offstageTag = R(sceneDir, 'offstage') || '';
+            if (offstageTag) {
+              parseComment(offstageTag, '未登场NPC').forEach(npc => {
+                if (isUserName(npc.name)) return;
+                const name = npc.name;
+                const startIdx = offstageTag.indexOf(npc.fullMatch) + npc.fullMatch.length;
+                let endIdx = offstageTag.length;
+                const nextMatch = offstageTag.slice(startIdx).match(/<!--未登场NPC=/);
+                if (nextMatch) endIdx = startIdx + nextMatch.index;
+                const npcContent = offstageTag.slice(startIdx, endIdx);
+                const nowMatch = npcContent.match(/now:\s*(.+?)(?=\n|$)/i);
+                const wantBeneathMatch = npcContent.match(/want_beneath:\s*(.+?)(?=\n|$)/i);
+                const cogMatch = npcContent.match(/cognitive:\s*(.+?)(?=\n|$)/i);
+                const entryMatch = npcContent.match(/entry_prediction:\s*(.+?)(?=\n|$)/i);
+                const autoMatch = npcContent.match(/autonomous_action:\s*(.+?)(?=\n|$)/i);
+                const plotMatch = npcContent.match(/plot_relevance:\s*(.+?)(?=\n|$)/i);
+                this.npcs.off.push({
+                  n: name,
+                  now: nowMatch ? nowMatch[1].trim() : '',
+                  want_beneath: wantBeneathMatch ? wantBeneathMatch[1].trim() : '',
+                  cognitive: cogMatch ? cogMatch[1].trim() : '',
+                  entry_prediction: entryMatch ? entryMatch[1].trim() : '',
+                  autonomous_action: autoMatch ? autoMatch[1].trim() : '',
+                  plot_relevance: plotMatch ? plotMatch[1].trim() : '',
+                  f: this.d.favs.includes(name),
+                  isOff: true,
+                  b: npcContent,
+                });
+              });
+            }
+          },
+
+          renderReview() {
+            if (this.reviewData.length > 0) {
+              $('review-content').innerHTML = this.reviewData
+                .map(r => {
+                  const alphonseMatch = r.content.match(/\[阿尔\]\s*([\s\S]*?)(?=\[爱德华\]|$)/i);
+                  const edwardMatch = r.content.match(/\[爱德华\]\s*([\s\S]*?)$/i);
+                  const alphonse = alphonseMatch ? alphonseMatch[1].trim() : '';
+                  const edward = edwardMatch ? edwardMatch[1].trim() : '';
+                  const renderText = text =>
+                    text
+                      ? text
+                          .split(/\n+/)
+                          .filter(t => t.trim())
+                          .map(p => `<div class="review-bubble">${p.trim()}</div>`)
+                          .join('')
+                      : '';
+                  return `<div class="review-card"><div class="review-header"><i class="fa-solid fa-theater-masks"></i> ${r.npc}</div>
+                        ${alphonse ? `<div class="review-speaker alphonse"><div class="review-avatar">阿</div><div class="review-content">${renderText(alphonse)}</div></div>` : ''}
+                        ${edward ? `<div class="review-speaker edward"><div class="review-avatar">爱</div><div class="review-content">${renderText(edward)}</div></div>` : ''}</div>`;
+                })
+                .join('');
+            } else {
+              $('review-content').innerHTML =
+                `<div style="opacity:0.5;padding:10px;text-align:center">NO DIRECTOR REVIEW</div>`;
+            }
+          },
+
+          parseFileArchive(txt) {
+            let fileHtml = '';
+            const abilityMatch = txt.match(/<!--\s*本轮能力判定\s*-->([\s\S]*?)(?=<!--|<review|$)/i);
+            if (abilityMatch) {
+              const check = (abilityMatch[1].match(/ability_check:\s*(.+)/i) || [])[1] || '';
+              const trigger = (abilityMatch[1].match(/trigger:\s*(.+)/i) || [])[1] || '';
+              const result = (abilityMatch[1].match(/result:\s*(.+)/i) || [])[1] || '';
+              if (check || result)
+                fileHtml += `<div class="ability-card"><div class="ability-title"><i class="fa-solid fa-wand-magic-sparkles"></i> ABILITY CHECK</div><div class="kv"><span class="kv-k">CHECK</span><span class="hl-text">${check.trim()}</span></div>${trigger ? `<div class="kv"><span class="kv-k">TRIGGER</span><span>${trigger.trim()}</span></div>` : ''}<div class="kv"><span class="kv-k">RESULT</span><span>${result.trim()}</span></div></div>`;
+            }
+            const npcArchives = parseComment(txt, 'NPC档案');
+            if (npcArchives.length > 0) {
+              const renderField = (key, val) =>
+                val
+                  ? `<div class="file-field"><div class="file-key">${key}</div><div class="file-val">${val}</div></div>`
+                  : '';
+              let npcStateHtml = npcArchives
+                .map(npc => {
+                  const startIdx = txt.indexOf(npc.fullMatch) + npc.fullMatch.length;
+                  let endIdx = txt.length;
+                  const nextMatch = txt.slice(startIdx).match(/<!--/);
+                  if (nextMatch) endIdx = startIdx + nextMatch.index;
+                  const content = txt.slice(startIdx, endIdx);
+                  const get = key => {
+                    const regex = new RegExp(`${key}(?:\\(.*?\\))?[:=：＝]\\s*(.+?)(?=\\n[^\\s]+[:=：＝]|$)`, 'i');
+                    const m = content.match(regex);
+                    return m ? m[1].trim() : '';
+                  };
+                  const updateStatus = npc.attrs.match(/[（(]([IUM])[）)]/)?.[1] || '';
+                  const statusLabel = updateStatus === 'I' ? '首次' : updateStatus === 'U' ? '更新' : '';
+                  const relationTemp = get('关系温度');
+                  const impTagsRaw = get('印象标签') || get('impression_tags') || get('印象');
+                  let impTagsHtml = '';
+                  if (impTagsRaw && impTagsRaw.length > 2)
+                    impTagsHtml =
+                      `<div class="file-summary-tags">` +
+                      impTagsRaw
+                        .split(/[|｜]/)
+                        .map(t => t.trim())
+                        .filter(t => t)
+                        .map(t => `<span class="imp-tag-pill">${t}</span>`)
+                        .join('') +
+                      `</div>`;
+                  const fields = {
+                    外在表象: get('外在表象'),
+                    形成原因: get('形成原因'),
+                    内心渴望: get('内心渴望'),
+                    防御机制: get('防御机制'),
+                    当前困境: get('当前困境'),
+                    深层恐惧: get('深层恐惧'),
+                    身份档案: get('身份档案') || get('身份'),
+                    认知边界: get('认知边界') || get('认知'),
+                    深层欲望: get('深层欲望'),
+                    核心需求: get('核心需求'),
+                    长线目标: get('长线目标'),
+                    状态: get('状态'),
+                  };
+                  let fieldsHtml = Object.entries(fields)
+                    .map(([k, v]) => renderField(k, v))
+                    .join('');
+                  return `<details class="file-npc-card"><summary><div class="file-summary-top"><span>${npc.name} ${statusLabel ? `<span style="color:rgb(var(--c-accent));font-size:0.8em">[${statusLabel}]</span>` : ''}</span>${relationTemp ? `<span style="font-size:0.8em;color:rgb(var(--c-sec))"><i class="fa-solid fa-heart"></i> ${relationTemp}</span>` : ''}</div>${impTagsHtml}</summary><div class="file-npc-body">${fieldsHtml || '<div style="opacity:0.5">无详细数据</div>'}</div></details>`;
+                })
+                .join('');
+              fileHtml += `<div class="card"><div class="section-title" style="margin-bottom:10px"><i class="fa-solid fa-address-book"></i> NPC档案 (${npcArchives.length})</div><div style="max-height:500px;overflow-y:auto">${npcStateHtml}</div></div>`;
+            }
+            $('file-content').innerHTML =
+              fileHtml || '<div style="opacity:0.5;padding:10px;text-align:center">NO FILE DATA</div>';
+            $('file-content').innerHTML +=
+              `<div class="raw-data-btn" id="raw-data-btn">[DEV] RAW DATA</div><div class="raw-data-box" id="raw-data-box">${txt.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>`;
+
+            $('raw-data-btn')?.addEventListener('click', () => {
+              $('raw-data-box').classList.toggle('show');
+            });
+          },
+
+          renderNpcList() {
+            const list = this.d.tab === 'on' ? this.npcs.on : this.npcs.off;
+            list.sort((a, b) => (b.f ? 1 : 0) - (a.f ? 1 : 0) || (b.isMain ? 1 : 0) - (a.isMain ? 1 : 0));
+            Promise.all(
+              list.map(async (n, i) => {
+                const isOff = n.isOff,
+                  badge = isOff ? 'OFF' : n.isMain ? 'MAIN' : 'SEC',
+                  badgeClass = isOff ? 'off' : n.isMain ? 'main' : 'sec';
+                let bodyHtml = '';
+                const row = (k, v) =>
+                  v
+                    ? `<div class="kv"><span class="kv-k">${k}</span><span class="kv-v">${v.replace(/\n/g, '<br>')}</span></div>`
+                    : '';
+                if (isOff) {
+                  bodyHtml +=
+                    row('此刻', n.now) +
+                    row('欲念', n.want_beneath) +
+                    row('认知', n.cognitive) +
+                    row('登场', n.entry_prediction);
+                  if (n.autonomous_action) bodyHtml += row('行动', n.autonomous_action);
+                  if (n.plot_relevance) bodyHtml += row('关联', n.plot_relevance);
+                } else {
+                  if (n.want) bodyHtml += row('欲念', `[${n.want.type}] ${n.want.content}`);
+                  if (n.beneath) {
+                    let bc = '';
+                    if (n.beneath.content.includes('表层=') || n.beneath.content.includes('深层=')) {
+                      const surface = (n.beneath.content.match(/表层[=＝]([^|｜]+)/) || [])[1],
+                        deep = (n.beneath.content.match(/深层[=＝]([^|｜]+)/) || [])[1];
+                      bc = `<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:rgba(var(--c-prim),0.2);color:rgb(var(--c-prim));font-size:0.8em;font-weight:bold;margin-right:6px">${n.beneath.level}</span>${surface ? `<div style="margin-top:4px"><span style="opacity:0.6">表:</span> ${surface.trim()}</div>` : ''}${deep ? `<div><span style="opacity:0.6">深:</span> ${deep.trim()}</div>` : ''}`;
+                    } else
+                      bc = `<span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:rgba(var(--c-prim),0.2);color:rgb(var(--c-prim));font-size:0.8em;font-weight:bold;margin-right:6px">${n.beneath.level}</span> ${n.beneath.content}`;
+                    bodyHtml += `<div class="kv"><span class="kv-k">潜流</span><span class="kv-v">${bc}</span></div>`;
+                  }
+                  bodyHtml += row('此刻', n.now) + row('应对', n.beat) + row('承启', n.handoff);
+                  if (n.initiative) bodyHtml += row('主动', `[${n.initiative.tags}] ${n.initiative.content}`);
+                }
+                const blob = await DB.getPhoto(n.n),
+                  imgUrl = blob ? URL.createObjectURL(blob) : '';
+                return {
+                  html: `<div class="npc-card ${n.f ? 'pinned' : ''}" data-idx="${i}"><div class="npc-head" style="${imgUrl ? `background-image:url('${imgUrl}');background-size:cover;background-position:center` : ''}"><div style="${imgUrl ? 'background:rgba(0,0,0,0.6);padding:8px;border-radius:3px;width:100%;height:100%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between' : ''}"><div class="npc-head-top"><span class="npc-name">${n.n}</span><div class="npc-meta"><span class="npc-badge ${badgeClass}">${badge}</span></div></div><div class="npc-meta" style="justify-content:flex-end">${n.relation ? `<span class="npc-badge rel">${n.relation}</span>` : ''}${n.emotion ? `<span class="npc-badge emo">${n.emotion}</span>` : ''}</div></div></div><div class="npc-body"><div class="kv-box">${bodyHtml}</div></div><div class="npc-actions"><div class="act-btn ${n.f ? 'active' : ''}" data-action="fav" data-name="${n.n}"><i class="fa-solid fa-thumbtack"></i> ${n.f ? 'PINNED' : 'PIN'}</div><div class="act-btn" data-action="photo" data-idx="${i}"><i class="fa-solid fa-image"></i> PHOTO</div>${imgUrl ? `<div class="act-btn" data-action="delete" data-name="${n.n}"><i class="fa-solid fa-trash"></i></div>` : ''}<input type="file" class="photo-uploader" data-name="${n.n}" style="display:none" accept="image/*"></div></div>`,
+                  idx: i,
+                };
+              }),
+            ).then(results => {
+              $('npc-list').innerHTML = results.map(r => r.html).join('');
+
+              // 绑定事件
+              document.querySelectorAll('.npc-card .npc-head').forEach(head => {
+                head.addEventListener('click', () => {
+                  head.closest('.npc-card').classList.toggle('open');
+                });
+              });
+              document.querySelectorAll('.act-btn[data-action="fav"]').forEach(btn => {
+                btn.addEventListener('click', e => {
+                  e.stopPropagation();
+                  this.toggleFav(btn.dataset.name);
+                });
+              });
+              document.querySelectorAll('.act-btn[data-action="photo"]').forEach(btn => {
+                btn.addEventListener('click', e => {
+                  e.stopPropagation();
+                  const uploader = btn.closest('.npc-actions').querySelector('.photo-uploader');
+                  uploader?.click();
+                });
+              });
+              document.querySelectorAll('.act-btn[data-action="delete"]').forEach(btn => {
+                btn.addEventListener('click', e => {
+                  e.stopPropagation();
+                  this.deletePhoto(btn.dataset.name);
+                });
+              });
+              document.querySelectorAll('.photo-uploader').forEach(uploader => {
+                uploader.addEventListener('change', e => {
+                  const file = e.target.files[0];
+                  if (file) this.uploadPhoto(uploader.dataset.name, file);
+                });
+              });
+            });
+          },
+
+          async showMemDetail(id, clickedEl) {
+            const box = $('mem-detail-container');
+            if (clickedEl?.classList.contains('active')) {
+              box.classList.remove('show');
+              clickedEl.classList.remove('active');
+              return;
+            }
+            box.innerHTML = `<div style="padding:20px;text-align:center;opacity:0.7"><i class="fa-solid fa-spinner fa-spin"></i> LOADING...</div>`;
+            box.classList.add('show');
+            document.querySelectorAll('.mem-capsule,.npc-memory-code').forEach(el => el.classList.remove('active'));
+            if (clickedEl) clickedEl.classList.add('active');
+
+            const highlightNames = text => {
+              if (!text) return '';
+              const allNpcs = [...this.npcs.on, ...this.npcs.off]
+                .map(n => n.n)
+                .filter(n => n && n.length > 1 && !isUserName(n))
+                .sort((a, b) => b.length - a.length);
+              let res = text;
+              allNpcs.forEach(name => {
+                res = res.replace(new RegExp(name, 'g'), `<span class="hl-name">${name}</span>`);
+              });
+              return res;
+            };
+            const parseDialogue = text => {
+              if (!text) return '';
+              const parts = text
+                .split(/([\u4e00-\u9fa5A-Za-z0-9_]+[：:][\s\S]*?)(?=$|[\u4e00-\u9fa5A-Za-z0-9_]+[：:])/g)
+                .filter(p => p.trim());
+              let html = '',
+                lastSpeaker = '',
+                align = 'left';
+              parts.forEach(seg => {
+                const m = seg.match(/^([\u4e00-\u9fa5A-Za-z0-9_]+)[：:]([\s\S]*)$/);
+                if (m) {
+                  if (m[1] !== lastSpeaker && lastSpeaker) align = align === 'left' ? 'right' : 'left';
+                  lastSpeaker = m[1];
+                  html += `<div class="chat-row ${align}"><div class="chat-avatar">${m[1][0]}</div><div class="chat-bubble">${highlightNames(m[2].trim())}</div></div>`;
+                } else if (seg.trim()) html += `<div class="narrative-text">${highlightNames(seg.trim())}</div>`;
+              });
+              return html;
+            };
+
+            const dbResult = await queryAutoCardUpdaterDB(id);
+            if (dbResult.found) {
+              const headers = dbResult.headers,
+                row = dbResult.data;
+              let summaryIdx = headers.findIndex(h => /纪要|摘要|summary|内容/i.test(h)),
+                dialogueIdx = headers.findIndex(h => /重要对话|对话/i.test(h));
+              let kvHtml = '';
+              headers.forEach((h, i) => {
+                if (i === 0 || i === summaryIdx || i === dialogueIdx || /编码索引/i.test(h)) return;
+                kvHtml += `<div class="kv"><span class="kv-k">${h || 'ATTR'}</span><span class="kv-v">${row[i] || '-'}</span></div>`;
+              });
+              box.innerHTML = `<div style="margin-bottom:10px;border-bottom:1px solid rgba(var(--c-prim),0.3);padding-bottom:5px;font-weight:bold;color:rgb(var(--c-prim));display:flex;justify-content:space-between"><span>${id}</span><span style="font-size:0.7em;opacity:0.7;background:rgba(var(--c-prim),0.1);padding:2px 6px;border-radius:4px">DB: ${dbResult.source}</span></div>${kvHtml ? `<div class="mem-meta-box"><div class="kv-box">${kvHtml}</div></div>` : ''}${
+                summaryIdx > -1 && row[summaryIdx]
+                  ? `<div style="margin:10px 0"><div class="mem-meta-key" style="margin-bottom:5px">纪要</div>${highlightNames(
+                      row[summaryIdx],
+                    )
+                      .split('\n')
+                      .map(p => (p.trim() ? `<p class="summary-p">${p}</p>` : ''))
+                      .join('')}</div>`
+                  : ''
+              }${dialogueIdx > -1 && row[dialogueIdx] ? `<div class="chat-box">${parseDialogue(row[dialogueIdx])}</div>` : ''}`;
+              return;
+            }
+            const entry = this.memData.entries.find(e => {
+              const keys = e.keys || (e.key ? (Array.isArray(e.key) ? e.key : [e.key]) : []);
+              return keys.some(k => k.toUpperCase() === id);
+            });
+            if (!entry) {
+              box.innerHTML = `<div style="padding:20px;text-align:center;color:rgb(var(--c-neg))">NOT FOUND</div>`;
+              return;
+            }
+            box.innerHTML = `<div style="margin-bottom:10px;border-bottom:1px solid rgba(var(--c-prim),0.3);padding-bottom:5px;font-weight:bold;color:rgb(var(--c-prim))">${id}</div><div class="chat-box">${parseDialogue(entry.content)}</div>`;
+          },
+
+          verifyData() {
+            const fe = this.memData.recallIds,
+              be = this.memData.entries
+                .map(e =>
+                  (e.keys || (e.key ? (Array.isArray(e.key) ? e.key : [e.key]) : [])).filter(k => /^AM\d+$/i.test(k)),
+                )
+                .flat()
+                .map(k => k.toUpperCase());
+            const missing = fe.filter(id => !be.includes(id));
+            alert(missing.length > 0 ? `⚠️ MISSING: ${missing.join(', ')}` : `✅ ALL ${fe.length} ENTRIES FOUND.`);
+          },
+
+          toggleFav(n) {
+            if (this.d.favs.includes(n)) this.d.favs = this.d.favs.filter(x => x !== n);
+            else this.d.favs.push(n);
+            this.save();
+            this.parse();
+          },
+          switchTab(event, t) {
+            this.d.tab = t;
+            this.setNpcTabActive(t);
+            this.renderNpcList();
+          },
+          setNpcTabActive(t) {
+            document.querySelectorAll('.npc-tab').forEach(tab => tab.classList.remove('active'));
+            const target = t === 'off' ? $('tab-off') : $('tab-on');
+            target?.classList.add('active');
+          },
+          toggleFold() {
+            this.d.foldedState = !this.d.foldedState;
+            this.toggleFoldState(this.d.foldedState);
+          },
+          toggleFoldState(isFolded) {
+            if (isFolded) $('app').classList.add('folded');
+            else $('app').classList.remove('folded');
+            this.d.foldedState = isFolded;
+            this.save();
+          },
+          setDefaultFoldState(v) {
+            this.d.defaultFolded = v;
+            this.save();
+          },
+          setDefaultFold(k, v) {
+            this.d.defaultFolds[k] = v;
+            this.save();
+          },
+          toggleSec(k) {
+            const sec = $(`sec-${k}`);
+            if (sec) {
+              sec.classList.toggle('closed');
+              this.d.foldsState[k] = sec.classList.contains('closed');
+              this.save();
+            }
+          },
+          setTheme(t) {
+            this.d.theme = t;
+            $('app').dataset.theme = t;
+            this.save();
+          },
+          setFont(f) {
+            this.d.font = f;
+            $('app').dataset.font = f;
+            this.save();
+          },
+          toggleSettings() {
+            $('settings').classList.toggle('on');
+          },
+          cycleQuote() {
+            this.qIdx = (this.qIdx + 1) % this.d.qs.length;
+            $('quote-display').innerText = this.d.qs[this.qIdx];
+          },
+          uploadPhoto(n, file) {
+            DB.savePhoto(n, file).then(() => this.parse());
+          },
+          deletePhoto(n) {
+            if (confirm('Remove photo?')) DB.deletePhoto(n).then(() => this.parse());
+          },
+          reset() {
+            if (confirm('RESET ALL?')) {
+              localStorage.removeItem('baize_v10_cfg');
+              DB.clear();
+              location.reload();
+            }
+          },
+          save() {
+            localStorage.setItem('baize_v10_cfg', JSON.stringify(this.d));
+          },
+        };
+
+        window.App = App;
+
+        // 初始化
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', () => App.init());
+        } else {
+          App.init();
+        }
+      })();
+    </script>
+  </body>
+</html>
+```
