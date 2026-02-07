@@ -30,15 +30,12 @@ function getExtensionTypeSafe(name: string): 'local' | 'global' | 'system' | nul
 async function getExtensionVersionApi(
   extensionName: string,
   global: boolean,
-): Promise<
-  | {
-      currentBranchName: string;
-      currentCommitHash: string;
-      isUpToDate: boolean;
-      remoteUrl: string;
-    }
-  | null
-> {
+): Promise<{
+  currentBranchName: string;
+  currentCommitHash: string;
+  isUpToDate: boolean;
+  remoteUrl: string;
+} | null> {
   try {
     const response = await fetch('/api/extensions/version', {
       method: 'POST',

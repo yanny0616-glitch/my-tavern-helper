@@ -408,8 +408,8 @@ function openSettingsModal() {
         $settingsModal?.find('[data-role="test-status"]').text('发送失败：未授权');
         return;
       }
-        try {
-          notifyGenerationDone(getLastMessageId());
+      try {
+        notifyGenerationDone(getLastMessageId());
         $settingsModal?.find('[data-role="test-status"]').text('已发送系统通知');
       } catch (error) {
         console.warn('系统通知发送失败', error);

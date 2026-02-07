@@ -36,15 +36,11 @@ const filteredEntries = computed(() => {
   });
 });
 
-const updateCandidates = computed(() =>
-  state.entries.filter(entry => entry.update?.status === 'update-available'),
-);
+const updateCandidates = computed(() => state.entries.filter(entry => entry.update?.status === 'update-available'));
 
 const updateCount = computed(() => updateCandidates.value.length);
 
-const selectedUpdates = computed(() =>
-  updateCandidates.value.filter(entry => state.updateSelection[entry.name]),
-);
+const selectedUpdates = computed(() => updateCandidates.value.filter(entry => state.updateSelection[entry.name]));
 
 const selectedCount = computed(() => selectedUpdates.value.length);
 
@@ -152,7 +148,9 @@ function clearUpdates() {
 
 async function updateSelected() {
   const targets =
-    selectedCount.value > 0 ? selectedUpdates.value.map(entry => entry.name) : updateCandidates.value.map(entry => entry.name);
+    selectedCount.value > 0
+      ? selectedUpdates.value.map(entry => entry.name)
+      : updateCandidates.value.map(entry => entry.name);
   if (!targets.length || state.updating) {
     return;
   }
@@ -252,13 +250,7 @@ function syncOverlaySize() {
 
 <template>
   <div v-if="state.open" ref="overlayRef" class="em-overlay" @click="onOverlayClick">
-    <div
-      ref="modalRef"
-      class="em-modal"
-      :class="{ dragged: dragged }"
-      :style="modalStyle"
-      @click.stop
-    >
+    <div ref="modalRef" class="em-modal" :class="{ dragged: dragged }" :style="modalStyle" @click.stop>
       <div class="em-root">
         <div class="em-header">
           <div class="em-dragbar" @pointerdown="onDragStart"></div>
@@ -337,10 +329,7 @@ function syncOverlaySize() {
                 :title="state.updateSelection[entry.name] ? '已加入更新队列' : '加入更新队列'"
                 @click="toggleUpdateSelection(entry.name)"
               >
-                <i
-                  class="fa-solid"
-                  :class="state.updateSelection[entry.name] ? 'fa-square-check' : 'fa-square'"
-                ></i>
+                <i class="fa-solid" :class="state.updateSelection[entry.name] ? 'fa-square-check' : 'fa-square'"></i>
               </button>
               <button
                 class="em-toggle-switch"
