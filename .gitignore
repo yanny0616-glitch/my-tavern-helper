@@ -1,4 +1,4 @@
-node_modules
+﻿node_modules
 
 .DS_Store
 Thumbs.db
@@ -14,3 +14,5 @@ components.d.ts
 
 # Runtime / local data
 data_runtime/
+local/
+
