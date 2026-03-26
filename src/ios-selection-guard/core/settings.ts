@@ -23,9 +23,7 @@ export function loadSettings(): FeatureSettings {
     const parsed = JSON.parse(raw) as Partial<FeatureSettings>;
     return {
       enableCrashGuard:
-        typeof parsed.enableCrashGuard === 'boolean'
-          ? parsed.enableCrashGuard
-          : DEFAULT_SETTINGS.enableCrashGuard,
+        typeof parsed.enableCrashGuard === 'boolean' ? parsed.enableCrashGuard : DEFAULT_SETTINGS.enableCrashGuard,
       enableSelectionGuard:
         typeof parsed.enableSelectionGuard === 'boolean'
           ? parsed.enableSelectionGuard

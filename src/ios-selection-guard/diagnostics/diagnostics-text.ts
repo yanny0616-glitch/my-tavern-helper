@@ -4,8 +4,7 @@ export function formatCrashStateForDisplay(state: CrashState): string {
   const now = Date.now();
   const safeModeLeftMs = Math.max(0, state.degradeUntil - now);
   const safeModeLeftMin = Math.ceil(safeModeLeftMs / 60000);
-  const isErrorEvent = (message: string) =>
-    message.startsWith('error ') || message.startsWith('unhandledrejection ');
+  const isErrorEvent = (message: string) => message.startsWith('error ') || message.startsWith('unhandledrejection ');
   const translateEvent = (line: string) => {
     const spaceIdx = line.indexOf(' ');
     const stamp = spaceIdx > 0 ? line.slice(0, spaceIdx) : '';

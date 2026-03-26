@@ -148,9 +148,7 @@ export function formatErrorEventDetails(event: ErrorEvent): string {
   const fullLoc = `${file}:${line}:${col}`;
   const where = shortLoc === fullLoc ? shortLoc : `${shortLoc} (full: ${fullLoc})`;
   const stack =
-    event.error instanceof Error
-      ? (event.error.stack ?? `${event.error.name}: ${event.error.message}`)
-      : '';
+    event.error instanceof Error ? (event.error.stack ?? `${event.error.name}: ${event.error.message}`) : '';
   const tail = stack ? ` stack=${stack.replace(/\s+/g, ' ').slice(0, 500)}` : '';
   return `${message} @ ${where}${tail}`;
 }
