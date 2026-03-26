@@ -1,10 +1,4 @@
-import {
-  CRASH_WINDOW_MS,
-  DEGRADE_FOR_MS,
-  DEGRADE_THRESHOLD,
-  HEARTBEAT_MS,
-  START_GUARD_MS,
-} from '../core/constants';
+import { CRASH_WINDOW_MS, DEGRADE_FOR_MS, DEGRADE_THRESHOLD, HEARTBEAT_MS, START_GUARD_MS } from '../core/constants';
 import { applySafeMode } from '../core/safe-mode';
 import { formatErrorEventDetails, loadState, nowMs, pushEvent, safeStringify, saveState } from '../core/state';
 import { Disposable } from '../core/types';

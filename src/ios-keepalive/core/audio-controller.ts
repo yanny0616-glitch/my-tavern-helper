@@ -109,7 +109,8 @@ export function createKeepAliveController(options: CreateKeepAliveControllerOpti
     nextAudio.setAttribute('playsinline', 'true');
     nextAudio.setAttribute('webkit-playsinline', 'true');
     nextAudio.setAttribute('aria-hidden', 'true');
-    nextAudio.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;';
+    nextAudio.style.cssText =
+      'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;';
 
     nextAudio.addEventListener('play', () => {
       statusText = '播放中';

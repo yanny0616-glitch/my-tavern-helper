@@ -204,19 +204,22 @@ function createFetchNetworkHook(
   p: Window,
   baseFetch: (...args: any[]) => Promise<Response>,
 ): (...args: any[]) => Promise<Response> {
-  return markNetworkHook(async (...args: any[]) => {
-    const input = args[0];
-    const url = typeof input === 'string' ? input : input?.url ?? '';
-    const response = await baseFetch.apply(p, args);
-    try {
-      if (response?.status === 429 && isGenerateRequestUrl(url)) {
-        handleNetwork429('fetch', url);
+  return markNetworkHook(
+    async (...args: any[]) => {
+      const input = args[0];
+      const url = typeof input === 'string' ? input : (input?.url ?? '');
+      const response = await baseFetch.apply(p, args);
+      try {
+        if (response?.status === 429 && isGenerateRequestUrl(url)) {
+          handleNetwork429('fetch', url);
+        }
+      } catch {
+        // ignore
       }
-    } catch {
-      // ignore
-    }
-    return response;
-  }, baseFetch as (...args: any[]) => any) as (...args: any[]) => Promise<Response>;
+      return response;
+    },
+    baseFetch as (...args: any[]) => any,
+  ) as (...args: any[]) => Promise<Response>;
 }
 
 function handleNetwork429(source: 'fetch' | 'xhr', url: string) {
@@ -638,9 +641,11 @@ function startSwipeIntentListener() {
     if (!event.isTrusted) {
       return;
     }
-    const path = (typeof (event as Event & { composedPath?: () => EventTarget[] }).composedPath === 'function'
-      ? (event as Event & { composedPath: () => EventTarget[] }).composedPath()
-      : []) as EventTarget[];
+    const path = (
+      typeof (event as Event & { composedPath?: () => EventTarget[] }).composedPath === 'function'
+        ? (event as Event & { composedPath: () => EventTarget[] }).composedPath()
+        : []
+    ) as EventTarget[];
 
     for (const target of path) {
       if (!(target instanceof Element)) {
@@ -739,41 +744,47 @@ function ensureNetwork429HookInstalled() {
   const currentOpen = xhrProto.open;
   if (typeof currentOpen === 'function' && !isMarkedNetworkHook(currentOpen)) {
     const previousOpen = currentOpen;
-    const wrappedOpen = markNetworkHook(function (this: XMLHttpRequest, method: string, url: string, ...rest: any[]) {
-      try {
-        (this as any)[URL_KEY] = String(url ?? '');
-      } catch {
-        // ignore
-      }
-      return previousOpen.call(this, method, url, ...rest);
-    }, previousOpen as (...args: any[]) => any);
+    const wrappedOpen = markNetworkHook(
+      function (this: XMLHttpRequest, method: string, url: string, ...rest: any[]) {
+        try {
+          (this as any)[URL_KEY] = String(url ?? '');
+        } catch {
+          // ignore
+        }
+        return previousOpen.call(this, method, url, ...rest);
+      },
+      previousOpen as (...args: any[]) => any,
+    );
     xhrProto.open = wrappedOpen;
   }
 
   const currentSend = xhrProto.send;
   if (typeof currentSend === 'function' && !isMarkedNetworkHook(currentSend)) {
     const previousSend = currentSend;
-    const wrappedSend = markNetworkHook(function (this: XMLHttpRequest, ...args: any[]) {
-      try {
-        this.addEventListener(
-          'loadend',
-          () => {
-            try {
-              const url = String((this as any)[URL_KEY] ?? '');
-              if (Number(this.status) === 429 && isGenerateRequestUrl(url)) {
-                handleNetwork429('xhr', url);
+    const wrappedSend = markNetworkHook(
+      function (this: XMLHttpRequest, ...args: any[]) {
+        try {
+          this.addEventListener(
+            'loadend',
+            () => {
+              try {
+                const url = String((this as any)[URL_KEY] ?? '');
+                if (Number(this.status) === 429 && isGenerateRequestUrl(url)) {
+                  handleNetwork429('xhr', url);
+                }
+              } catch {
+                // ignore
               }
-            } catch {
-              // ignore
-            }
-          },
-          { once: true },
-        );
-      } catch {
-        // ignore
-      }
-      return previousSend.apply(this, args);
-    }, previousSend as (...args: any[]) => any);
+            },
+            { once: true },
+          );
+        } catch {
+          // ignore
+        }
+        return previousSend.apply(this, args);
+      },
+      previousSend as (...args: any[]) => any,
+    );
     xhrProto.send = wrappedSend;
   }
 }
@@ -897,9 +908,9 @@ async function triggerSillyTavernRegenerateGenerate() {
   }
 
   try {
-    const helper = (w.TavernHelper ?? (typeof TavernHelper !== 'undefined' ? TavernHelper : null)) as
-      | { generate?: (config: Record<string, any>) => Promise<unknown> | unknown }
-      | null;
+    const helper = (w.TavernHelper ?? (typeof TavernHelper !== 'undefined' ? TavernHelper : null)) as {
+      generate?: (config: Record<string, any>) => Promise<unknown> | unknown;
+    } | null;
     if (helper && typeof helper.generate === 'function') {
       await Promise.resolve(
         helper.generate({
