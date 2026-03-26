@@ -21,6 +21,7 @@ export function registerEntryButtons(controller: CardHubController): () => void 
 
 function registerRoleManagerEntry(controller: CardHubController): (() => void) | null {
   const buttonId = `cardhub-entry-${getScriptId()}`;
+  const openOnce = createOpenOnce(() => controller.open('role'));
   const $existing = $(`#${buttonId}`);
   if ($existing.length) {
     $existing
@@ -28,7 +29,10 @@ function registerRoleManagerEntry(controller: CardHubController): (() => void) |
       .attr('title', '打开 CardHub 角色卡管理器')
       .attr('aria-label', '打开 CardHub 角色卡管理器')
       .empty();
-    return null;
+    const roleDisposer = bindEntryOpen($existing as JQuery<HTMLElement>, openOnce);
+    return () => {
+      roleDisposer();
+    };
   }
 
   const $anchor = findRoleManagerAnchor();
@@ -37,26 +41,19 @@ function registerRoleManagerEntry(controller: CardHubController): (() => void) |
     return null;
   }
 
-  const openOnce = createOpenOnce(() => controller.open('role'));
   const $button = $('<button>')
     .attr('id', buttonId)
     .attr('type', 'button')
     .addClass('menu_button fa-solid fa-rectangle-list cardhub-entry-button')
     .attr('title', '打开 CardHub 角色卡管理器')
-    .attr('aria-label', '打开 CardHub 角色卡管理器')
-    .on('click pointerup touchend', event => {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      openOnce();
-    });
+    .attr('aria-label', '打开 CardHub 角色卡管理器');
 
   $anchor.append($button);
-  const roleDisposer = bindOpenEvents($button[0], openOnce);
+  const roleDisposer = bindEntryOpen($button, openOnce);
 
   return () => {
-    $button.off('click');
-    $button.remove();
     roleDisposer();
+    $button.remove();
   };
 }
 
@@ -103,26 +100,26 @@ function registerMagicMenuEntry(controller: CardHubController): (() => void) | n
 
   const onMenuOpen = () => {
     const $menu = $('#extensionsMenu');
-    if (!$menu || $menu.find(`#${menuId}`).length) {
+    if (!$menu.length) {
       return;
     }
 
     const openOnce = createOpenOnce(() => controller.open('magic'));
+    const $existingEntry = $menu.find(`#${menuId}`).first();
+    if ($existingEntry.length) {
+      bindEntryOpen($existingEntry as JQuery<HTMLElement>, openOnce);
+      return;
+    }
+
     const $entry = $('<div>')
       .attr('id', menuId)
       .addClass('list-group-item flex-container flexGap5 interactable cardhub-menu-entry')
       .attr('role', 'button')
       .attr('tabindex', '0')
-      .html('<i class="fa-solid fa-id-badge" aria-hidden="true"></i><span>角色卡管理器</span>')
-      .on('click pointerup touchend', event => {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        openOnce();
-      });
+      .html('<i class="fa-solid fa-id-badge" aria-hidden="true"></i><span>角色卡管理器</span>');
 
     $menu.append($entry);
-    const entryDisposer = bindOpenEvents($entry[0], openOnce);
-    $entry.data('cardhub-dispose', entryDisposer);
+    bindEntryOpen($entry, openOnce);
   };
 
   $magicButton.on('click.cardhub', () => {
@@ -136,26 +133,47 @@ function registerMagicMenuEntry(controller: CardHubController): (() => void) | n
   return () => {
     observer.disconnect();
     $magicButton.off('click.cardhub');
-    $(`#${menuId}`).remove();
+    const $entry = $(`#${menuId}`);
+    runDispose($entry);
+    $entry.remove();
   };
 }
 
-function bindOpenEvents(target: HTMLElement, handler: () => void): () => void {
-  const wrapped = (event: Event) => {
+function bindEntryOpen($target: JQuery<HTMLElement>, handler: () => void): () => void {
+  runDispose($target);
+
+  const wrapped = (event: JQuery.Event) => {
+    if (event.type === 'keydown') {
+      const keyboardEvent = event as JQuery.KeyDownEvent;
+      if (keyboardEvent.key !== 'Enter' && keyboardEvent.key !== ' ') {
+        return;
+      }
+    }
     event.preventDefault();
     event.stopImmediatePropagation();
     handler();
   };
 
-  target.addEventListener('pointerdown', wrapped, { capture: true });
-  target.addEventListener('mousedown', wrapped, { capture: true });
-  target.addEventListener('touchstart', wrapped, { capture: true });
+  $target
+    .off('.cardhub-open')
+    .on('click.cardhub-open', wrapped)
+    .on('pointerup.cardhub-open', wrapped)
+    .on('touchend.cardhub-open', wrapped)
+    .on('keydown.cardhub-open', wrapped);
 
-  return () => {
-    target.removeEventListener('pointerdown', wrapped, { capture: true } as AddEventListenerOptions);
-    target.removeEventListener('mousedown', wrapped, { capture: true } as AddEventListenerOptions);
-    target.removeEventListener('touchstart', wrapped, { capture: true } as AddEventListenerOptions);
+  const dispose = () => {
+    $target.off('.cardhub-open');
+    $target.removeData('cardhub-dispose');
   };
+  $target.data('cardhub-dispose', dispose);
+  return dispose;
+}
+
+function runDispose($target: JQuery<HTMLElement>) {
+  const dispose = $target.data('cardhub-dispose');
+  if (typeof dispose === 'function') {
+    (dispose as () => void)();
+  }
 }
 
 function createOpenOnce(handler: () => void): () => void {

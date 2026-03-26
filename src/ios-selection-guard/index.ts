@@ -1,135 +1,100 @@
-function isIOS(): boolean {
-  const ua = navigator.userAgent;
-  const isAppleMobile = /iPad|iPhone|iPod/.test(ua);
-  const isModernIPad = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
-  return isAppleMobile || isModernIPad;
-}
+import { setupCrashGuard } from './guards/crash-guard';
+import { setupDiagnosticsPanel } from './diagnostics/diagnostics-panel';
+import { isIOS } from './core/env';
+import { setupSelectionGuard } from './guards/selection-guard';
+import { Disposable, FeatureSettings } from './core/types';
+import { applyHeavyMode } from './core/heavy-mode';
+import { loadSettings, saveSettings } from './core/settings';
 
-function isEditable(el: Element | null): boolean {
-  if (!el) {
-    return false;
-  }
-  const tag = el.tagName.toLowerCase();
-  if (el instanceof HTMLElement && el.isContentEditable) {
-    return true;
-  }
-  return tag === 'textarea' || tag === 'input';
-}
-
-function getInputSelectionRange(el: Element | null): { start: number; end: number } | null {
-  if (!el) {
-    return null;
-  }
-  if (el instanceof HTMLTextAreaElement) {
-    return { start: el.selectionStart ?? 0, end: el.selectionEnd ?? 0 };
-  }
-  if (el instanceof HTMLInputElement) {
-    return { start: el.selectionStart ?? 0, end: el.selectionEnd ?? 0 };
-  }
-  return null;
-}
-
-function hasActiveInputSelection(doc: Document): boolean {
-  const active = doc.activeElement;
-  const range = getInputSelectionRange(active);
-  if (!range) {
-    return false;
-  }
-  return range.start !== range.end;
-}
-
-function clearInputSelection(doc: Document): void {
-  const active = doc.activeElement;
-  if (!active) {
-    return;
-  }
-  const range = getInputSelectionRange(active);
-  if (!range) {
-    return;
-  }
-  if (active instanceof HTMLTextAreaElement || active instanceof HTMLInputElement) {
-    const caret = range.end;
-    active.setSelectionRange(caret, caret);
-  }
-}
-
-function closestEditable(el: Element | null): Element | null {
-  let current = el;
-  while (current) {
-    if (isEditable(current)) {
-      return current;
+function bindPageHide(disposables: Disposable[]): void {
+  $(window).on('pagehide', () => {
+    for (const item of disposables) {
+      item.dispose();
     }
-    current = current.parentElement;
-  }
-  return null;
-}
-
-function hasActiveSelection(doc: Document): boolean {
-  const selection = doc.getSelection();
-  return !!selection && !selection.isCollapsed;
-}
-
-function clearSelection(doc: Document): void {
-  const selection = doc.getSelection();
-  if (selection && !selection.isCollapsed) {
-    selection.removeAllRanges();
-  }
-}
-
-function blurEditable(doc: Document): void {
-  const active = doc.activeElement;
-  if (active instanceof HTMLElement && isEditable(active)) {
-    active.blur();
-  }
+  });
 }
 
 $(() => {
-  if (!isIOS()) {
-    return;
-  }
-
   const doc = window.parent?.document;
   if (!doc) {
     return;
   }
 
-  const onPointerDown = (event: Event) => {
-    if (!hasActiveSelection(doc) && !hasActiveInputSelection(doc)) {
+  const onIOS = isIOS();
+  let settings: FeatureSettings = loadSettings();
+  let crashGuard: Disposable | null = null;
+  let selectionGuard: Disposable | null = null;
+  let autoBackgroundLightMode = false;
+
+  const applySettings = () => {
+    if (!settings.enableAutoLightModeOnBackground) {
+      autoBackgroundLightMode = false;
+    }
+    if (settings.enableAutoLightModeOnBackground && doc.visibilityState === 'hidden') {
+      autoBackgroundLightMode = true;
+    }
+    applyHeavyMode(doc, settings.enableHeavyMode || autoBackgroundLightMode);
+    if (!onIOS) {
       return;
     }
-
-    const target = event.target as Element | null;
-    if (closestEditable(target)) {
-      return;
+    if (settings.enableCrashGuard) {
+      if (!crashGuard) {
+        crashGuard = setupCrashGuard(doc, {
+          getEnableMemorySnapshot: () => settings.enableMemorySnapshot,
+        });
+      }
+    } else if (crashGuard) {
+      crashGuard.dispose();
+      crashGuard = null;
     }
 
-    // Exit selection mode so the next tap can trigger real clicks.
-    clearSelection(doc);
-    clearInputSelection(doc);
-    blurEditable(doc);
+    if (settings.enableSelectionGuard) {
+      if (!selectionGuard) {
+        selectionGuard = setupSelectionGuard(doc);
+      }
+    } else if (selectionGuard) {
+      selectionGuard.dispose();
+      selectionGuard = null;
+    }
   };
 
-  doc.addEventListener('touchstart', onPointerDown, true);
-  doc.addEventListener('mousedown', onPointerDown, true);
+  const diagnostics = setupDiagnosticsPanel(doc, {
+    getSettings: () => settings,
+    onChangeSettings: next => {
+      settings = { ...next };
+      saveSettings(settings);
+      applySettings();
+    },
+  });
 
-  const onCopyLike = () => {
-    // iOS sometimes stays in selection mode after copy; exit it ASAP.
-    setTimeout(() => {
-      clearSelection(doc);
-      clearInputSelection(doc);
-      blurEditable(doc);
-    }, 0);
+  applySettings();
+
+  const onVisibilityChange = () => {
+    if (!onIOS || !settings.enableAutoLightModeOnBackground) {
+      autoBackgroundLightMode = false;
+      applySettings();
+      return;
+    }
+    autoBackgroundLightMode = doc.visibilityState === 'hidden';
+    applySettings();
   };
+  doc.addEventListener('visibilitychange', onVisibilityChange, true);
 
-  doc.addEventListener('copy', onCopyLike, true);
-  doc.addEventListener('cut', onCopyLike, true);
+  if (!onIOS) {
+    bindPageHide([
+      { dispose: () => doc.removeEventListener('visibilitychange', onVisibilityChange, true) },
+      diagnostics,
+      { dispose: () => applyHeavyMode(doc, false) },
+    ]);
+    return;
+  }
 
   console.info('[ios-selection-guard] enabled');
-
-  $(window).on('pagehide', () => {
-    doc.removeEventListener('touchstart', onPointerDown, true);
-    doc.removeEventListener('mousedown', onPointerDown, true);
-    doc.removeEventListener('copy', onCopyLike, true);
-    doc.removeEventListener('cut', onCopyLike, true);
-  });
+  bindPageHide([
+    { dispose: () => doc.removeEventListener('visibilitychange', onVisibilityChange, true) },
+    { dispose: () => selectionGuard?.dispose() },
+    { dispose: () => crashGuard?.dispose() },
+    { dispose: () => applyHeavyMode(doc, false) },
+    diagnostics,
+  ]);
 });

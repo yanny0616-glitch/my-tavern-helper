@@ -83,6 +83,7 @@ const entryFilter = process.env.TAVERN_HELPER_ENTRY?.trim();
 const filteredEntries = entryFilter
   ? config.entries.filter(entry => entry.script.includes(entryFilter))
   : config.entries;
+const isSingleEntryBuild = Boolean(entryFilter);
 
 let io: Server;
 function watch_tavern_helper(compiler: webpack.Compiler) {
@@ -191,6 +192,7 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
   const should_obfuscate = fs
     .readFileSync(path.join(import.meta.dirname, entry.script), 'utf-8')
     .includes('@obfuscate');
+  const disable_dts = process.env.TAVERN_HELPER_DISABLE_DTS === '1';
   const script_filepath = path.parse(entry.script);
 
   return (_env, argv) => ({
@@ -446,11 +448,10 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
     )
       .concat(
         { apply: watch_tavern_helper },
-        { apply: schema_dump },
-        { apply: tavern_sync },
+        ...(isSingleEntryBuild ? [] : [{ apply: schema_dump }, { apply: tavern_sync }]),
         new VueLoaderPlugin(),
         unpluginAutoImport({
-          dts: true,
+          dts: !disable_dts,
           dtsMode: 'overwrite',
           imports: [
             'vue',
@@ -463,7 +464,7 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
           ],
         }),
         unpluginVueComponents({
-          dts: true,
+          dts: !disable_dts,
           syncMode: 'overwrite',
           // globs: ['src/panel/component/*.vue'],
           resolvers: [VueUseComponentsResolver(), VueUseDirectiveResolver()],

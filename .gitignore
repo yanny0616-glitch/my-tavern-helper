@@ -16,3 +16,6 @@ components.d.ts
 data_runtime/
 local/
 
+# Claude Code
+.claude/
+__write_test.tmp
