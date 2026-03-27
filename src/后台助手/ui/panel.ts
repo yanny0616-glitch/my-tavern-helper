@@ -81,9 +81,12 @@ const S = {
   bold: 'font-weight:700;',
   sub: 'font-size:12px;color:#9fb0cc;',
   meta: 'font-size:12px;color:#c7d6ef;',
-  toggleBtn: 'width:100%;padding:12px;border-radius:14px;border:none;font-size:14px;font-weight:700;cursor:pointer;transition:background 0.2s;',
-  smallBtn: 'padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.06);color:#fff;font-size:12px;font-weight:600;cursor:pointer;',
-  errorBox: 'display:none;padding:10px 12px;border-radius:12px;background:rgba(127,29,29,0.28);border:1px solid rgba(248,113,113,0.26);color:#ffd6d6;font-size:12px;',
+  toggleBtn:
+    'width:100%;padding:12px;border-radius:14px;border:none;font-size:14px;font-weight:700;cursor:pointer;transition:background 0.2s;',
+  smallBtn:
+    'padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.06);color:#fff;font-size:12px;font-weight:600;cursor:pointer;',
+  errorBox:
+    'display:none;padding:10px 12px;border-radius:12px;background:rgba(127,29,29,0.28);border:1px solid rgba(248,113,113,0.26);color:#ffd6d6;font-size:12px;',
 };
 
 function buildHTML(): string {
@@ -277,10 +280,20 @@ export function setupPanel(options: PanelOptions): PanelController {
     $('bark-config').style.display = noti.barkEnabled ? 'grid' : 'none';
     const barkInput = panel.querySelector('[data-role="bark-url"]') as HTMLInputElement;
     if (barkInput && barkInput !== doc.activeElement) barkInput.value = noti.barkUrl;
-    $('bark-status').textContent = noti.barkEnabled && noti.barkUrl ? '已配置' : noti.barkEnabled ? '请填入 Bark URL' : '';
+    $('bark-status').textContent =
+      noti.barkEnabled && noti.barkUrl ? '已配置' : noti.barkEnabled ? '请填入 Bark URL' : '';
 
     // Notification fields
-    const fieldNames = ['characterName', 'duration', 'tokenCount', 'reasoningDuration', 'timeToFirstToken', 'model', 'api', 'preview'] as const;
+    const fieldNames = [
+      'characterName',
+      'duration',
+      'tokenCount',
+      'reasoningDuration',
+      'timeToFirstToken',
+      'model',
+      'api',
+      'preview',
+    ] as const;
     for (const name of fieldNames) {
       const cb = panel.querySelector(`[data-field="${name}"]`) as HTMLInputElement | null;
       if (cb) cb.checked = noti.fields[name];

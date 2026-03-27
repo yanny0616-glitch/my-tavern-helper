@@ -87,7 +87,9 @@ function init() {
       updateSetting({ notification: { ...settings.notification, barkUrl: url } });
     },
     onNotificationFieldChange: fields => {
-      updateSetting({ notification: { ...settings.notification, fields: { ...settings.notification.fields, ...fields } } });
+      updateSetting({
+        notification: { ...settings.notification, fields: { ...settings.notification.fields, ...fields } },
+      });
     },
     onRequestPermission: () => {
       void notification.requestPermission();

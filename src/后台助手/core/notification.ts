@@ -144,7 +144,8 @@ export function createNotificationController(options: NotificationControllerOpti
     const barkUrl = options.getBarkUrl();
     if (options.getBarkEnabled() && barkUrl) {
       const base = barkUrl.endsWith('/') ? barkUrl : barkUrl + '/';
-      const paramStr = '?icon=https://raw.githubusercontent.com/SillyTavern/SillyTavern/release/public/img/apple-icon-72x72.png';
+      const paramStr =
+        '?icon=https://raw.githubusercontent.com/SillyTavern/SillyTavern/release/public/img/apple-icon-72x72.png';
       const barkFetchUrl = base + encodeURIComponent('生成已完成') + '/' + encodeURIComponent(body) + paramStr;
       fetch(barkFetchUrl).catch(err => {
         console.warn('[后台助手] Bark 推送失败:', err);
