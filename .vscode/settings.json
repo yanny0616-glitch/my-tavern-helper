@@ -50,5 +50,6 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "typescript.tsdk": "node_modules/typescript/lib",
-  "chatgpt.openOnStartup": true
+  "chatgpt.openOnStartup": true,
+  "liveServer.settings.cors": true
 }
