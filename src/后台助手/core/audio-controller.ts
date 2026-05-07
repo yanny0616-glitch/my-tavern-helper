@@ -94,14 +94,18 @@ export function createKeepAliveController(options: CreateKeepAliveControllerOpti
     const cdnAudio = new Audio();
     cdnAudio.src = SILENT_AUDIO_CDN;
     cdnAudio.preload = 'auto';
-    cdnAudio.addEventListener('canplaythrough', () => {
-      if (!el.paused) {
-        el.src = SILENT_AUDIO_CDN;
-        el.loop = true;
-        el.play().catch(() => {});
-        console.info('[后台助手] 已切换到 CDN 长音频');
-      }
-    }, { once: true });
+    cdnAudio.addEventListener(
+      'canplaythrough',
+      () => {
+        if (!el.paused) {
+          el.src = SILENT_AUDIO_CDN;
+          el.loop = true;
+          el.play().catch(() => {});
+          console.info('[后台助手] 已切换到 CDN 长音频');
+        }
+      },
+      { once: true },
+    );
 
     el.addEventListener('play', () => {
       statusText = '播放中';

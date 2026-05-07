@@ -20,7 +20,7 @@ function isIOS(): boolean {
 
 // 判定为"点击"的阈值
 const TAP_MAX_DURATION = 500; // 按住不超过 500ms
-const TAP_MAX_DISTANCE = 15;  // 移动不超过 15px
+const TAP_MAX_DISTANCE = 15; // 移动不超过 15px
 
 $(() => {
   if (!doc || !isIOS()) {
@@ -49,12 +49,14 @@ $(() => {
 
     // 3. 对目标重新派发 click，让本次点击生效
     if (target instanceof Element) {
-      target.dispatchEvent(new MouseEvent('click', {
-        bubbles: true,
-        cancelable: true,
-        clientX: x,
-        clientY: y,
-      }));
+      target.dispatchEvent(
+        new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+          clientX: x,
+          clientY: y,
+        }),
+      );
     }
 
     console.info('[ios-touch-fix] recovered from stuck state');

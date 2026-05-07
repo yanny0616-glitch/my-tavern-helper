@@ -466,7 +466,6 @@ export function setupPanel(options: PanelOptions): PanelController {
     if (lenInput && lenInput !== doc.activeElement) lenInput.value = String(noti.fields.previewLength);
     const previewLenRow = $('noti-preview-len');
     if (previewLenRow) previewLenRow.style.display = noti.fields.preview ? 'flex' : 'none';
-
   };
 
   const open = () => {

@@ -139,14 +139,16 @@ function init() {
     if (releaseGenLock) return;
     if (!navigator.locks) return;
     const controller = new AbortController();
-    navigator.locks.request('bg-helper-generation', { signal: controller.signal }, () => {
-      return new Promise<void>(resolve => {
-        releaseGenLock = () => {
-          resolve();
-          releaseGenLock = null;
-        };
-      });
-    }).catch(() => {});
+    navigator.locks
+      .request('bg-helper-generation', { signal: controller.signal }, () => {
+        return new Promise<void>(resolve => {
+          releaseGenLock = () => {
+            resolve();
+            releaseGenLock = null;
+          };
+        });
+      })
+      .catch(() => {});
     // 备选释放：abort controller
     if (!releaseGenLock) {
       releaseGenLock = () => {
