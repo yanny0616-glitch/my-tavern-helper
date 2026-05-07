@@ -31,5 +31,6 @@ export const SettingsSchema = z
       })
       .prefault({}),
     panelOpen: z.boolean().prefault(false),
+    theme: z.enum(['dark', 'light']).prefault('dark'),
   })
   .prefault({});

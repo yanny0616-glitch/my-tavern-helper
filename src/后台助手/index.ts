@@ -52,6 +52,7 @@ function init() {
     isIOS: iosDevice,
     deviceName,
     panelOpen: settings.panelOpen,
+    theme: settings.theme,
   });
 
   panel = setupPanel({
@@ -59,6 +60,9 @@ function init() {
     initialOpen: settings.panelOpen,
     getState: getViewState,
     onOpenChange: open => updateSetting({ panelOpen: open }),
+    onThemeToggle: () => {
+      updateSetting({ theme: settings.theme === 'dark' ? 'light' : 'dark' });
+    },
 
     onKeepAliveToggle: enabled => {
       updateSetting({ keepAlive: { ...settings.keepAlive, enabled } });
@@ -129,8 +133,43 @@ function init() {
     check();
   };
 
-  eventOn(tavern_events.GENERATION_ENDED, messageId => waitAndNotify(messageId));
-  eventOn(iframe_events.GENERATION_ENDED, (_text, messageId) => waitAndNotify(messageId));
+  // Web Lock：生成期间获取锁，防止浏览器限制后台网络请求
+  let releaseGenLock: (() => void) | null = null;
+  const acquireGenLock = () => {
+    if (releaseGenLock) return;
+    if (!navigator.locks) return;
+    const controller = new AbortController();
+    navigator.locks.request('bg-helper-generation', { signal: controller.signal }, () => {
+      return new Promise<void>(resolve => {
+        releaseGenLock = () => {
+          resolve();
+          releaseGenLock = null;
+        };
+      });
+    }).catch(() => {});
+    // 备选释放：abort controller
+    if (!releaseGenLock) {
+      releaseGenLock = () => {
+        controller.abort();
+        releaseGenLock = null;
+      };
+    }
+  };
+  const releaseGenLockFn = () => {
+    releaseGenLock?.();
+  };
+
+  eventOn(tavern_events.GENERATION_STARTED, acquireGenLock);
+  eventOn(iframe_events.GENERATION_STARTED, acquireGenLock);
+  eventOn(tavern_events.GENERATION_ENDED, messageId => {
+    releaseGenLockFn();
+    waitAndNotify(messageId);
+  });
+  eventOn(iframe_events.GENERATION_ENDED, (_text, messageId) => {
+    releaseGenLockFn();
+    waitAndNotify(messageId);
+  });
+  eventOn(tavern_events.GENERATION_STOPPED, releaseGenLockFn);
 
   // Cleanup
   const stopReload = reloadOnChatChange();
