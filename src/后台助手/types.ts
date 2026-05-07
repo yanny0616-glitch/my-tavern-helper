@@ -26,6 +26,7 @@ export type Settings = {
     fields: NotificationFields;
   };
   panelOpen: boolean;
+  theme: 'dark' | 'light';
 };
 
 export type KeepAliveSnapshot = {
@@ -59,6 +60,7 @@ export type ViewState = {
   isIOS: boolean;
   deviceName: string;
   panelOpen: boolean;
+  theme: 'dark' | 'light';
 };
 
 export type PanelController = Disposable & {

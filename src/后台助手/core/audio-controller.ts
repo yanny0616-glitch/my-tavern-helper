@@ -1,4 +1,4 @@
-import { AUTO_RESUME_INTERVAL_MS, SILENT_AUDIO_URL } from './constants';
+import { AUTO_RESUME_INTERVAL_MS, SILENT_AUDIO_CDN, createFallbackWavUrl } from './constants';
 import { KeepAliveSnapshot } from '../types';
 
 type CreateKeepAliveControllerOptions = {
@@ -79,17 +79,33 @@ export function createKeepAliveController(options: CreateKeepAliveControllerOpti
     if (audio) return audio;
 
     const el = doc.createElement('audio');
-    el.src = SILENT_AUDIO_URL;
+    // 先用动态生成的小 WAV 立即播放，同时后台加载 CDN 长音频
+    el.src = createFallbackWavUrl();
     el.loop = true;
     el.preload = 'auto';
     el.volume = 1;
     el.muted = false;
-    el.autoplay = false;
-    el.controls = false;
     el.setAttribute('playsinline', 'true');
     el.setAttribute('webkit-playsinline', 'true');
     el.setAttribute('aria-hidden', 'true');
     el.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;';
+
+    // 预加载 CDN 音频，就绪后无缝切换
+    const cdnAudio = new Audio();
+    cdnAudio.src = SILENT_AUDIO_CDN;
+    cdnAudio.preload = 'auto';
+    cdnAudio.addEventListener(
+      'canplaythrough',
+      () => {
+        if (!el.paused) {
+          el.src = SILENT_AUDIO_CDN;
+          el.loop = true;
+          el.play().catch(() => {});
+          console.info('[后台助手] 已切换到 CDN 长音频');
+        }
+      },
+      { once: true },
+    );
 
     el.addEventListener('play', () => {
       statusText = '播放中';
