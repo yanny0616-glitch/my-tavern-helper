@@ -414,8 +414,7 @@ export function useLibraryActions(options: LibraryActionOptions) {
       }
     }
     const headers = (ctx?.getRequestHeaders ? ctx.getRequestHeaders() : st?.getRequestHeaders?.()) as
-      | Record<string, string>
-      | undefined;
+      Record<string, string> | undefined;
     if (!headers || !Object.keys(headers).length) {
       toastr.error('删除失败：无法获取请求头');
       return false;
