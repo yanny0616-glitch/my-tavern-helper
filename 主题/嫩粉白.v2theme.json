@@ -1,0 +1,34 @@
+{
+  "kind": "acu-v2-theme",
+  "version": 1,
+  "theme": {
+    "id": "custom:milk-berry-pink",
+    "name": "嫩粉白",
+    "colorScheme": "light",
+    "tokens": {
+      "bg0": "#FFF6F8",
+      "bg1": "#FFFFFF",
+      "bg2": "#FCE8EE",
+      "sidebarBg": "#FDEFF3",
+      "hoverOverlay": "rgba(240, 140, 170, 0.10)",
+      "border": "rgba(226, 120, 151, 0.16)",
+      "border2": "rgba(226, 120, 151, 0.30)",
+      "text1": "#4A3A40",
+      "text2": "#7A626B",
+      "text3": "#AF929C",
+      "accent": "#F7A8C1",
+      "accent2": "#FBC3D5",
+      "onAccent": "#5F3242",
+      "accentGlow": "rgba(247, 168, 193, 0.35)",
+      "success": "#8FBF95",
+      "warning": "#D19A55",
+      "danger": "#D97682",
+      "fontUi": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", sans-serif",
+      "fontMono": "Consolas, Menlo, Monaco, \"Courier New\", monospace",
+      "radiusLg": "18px",
+      "radiusMd": "16px",
+      "radiusSm": "12px",
+      "shadow": "0 8px 24px rgba(233, 150, 180, 0.16)"
+    }
+  }
+}
