@@ -1,27 +1,43 @@
-# SP·数据库 主题
+# SP·数据库 主题（v2 格式）
 
-为 [SP·数据库（shujuku）](https://github.com/AlbusKen/shujuku) 插件制作的可导入主题，「鎏金」系列一深一浅，成对使用。
+为 [SP·数据库（shujuku）](https://github.com/AlbusKen/shujuku) 插件新版界面（填表工作台）制作的可导入主题。文件格式为插件的 **acu-v2-theme** 规范。
 
 | 文件 | 主题名 | 明暗 | 风格 |
 | --- | --- | --- | --- |
-| `鎏金夜阙.theme.json` | 鎏金·夜阙 | 深色 | 深靛夜幕 + 鎏金强调，宋体排版 |
-| `鎏金晨光.theme.json` | 鎏金·晨光 | 浅色 | 暖纸底色 + 金褐强调，宋体排版 |
+| `奶莓粉.v2theme.json` | 奶莓粉 | 浅色 | 粉嫩底色 + 玫瑰粉强调，内容区近白底、深梅灰文字，粉而不腻、保证可读性 |
+| `鎏金夜阙.v2theme.json` | 鎏金·夜阙 | 深色 | 深靛夜幕 + 鎏金强调，宋体排版 |
+| `鎏金晨光.v2theme.json` | 鎏金·晨光 | 浅色 | 暖纸底色 + 金褐强调，宋体排版 |
 
 ## 导入方法
 
-1. 下载想要的 `.theme.json` 文件到本地；
-2. 打开酒馆中 SP·数据库 的主界面，进入 **设置 → 主题**；
-3. 点击 **导入主题**，选择刚下载的 JSON 文件；
-4. 导入成功后会自动切换到新主题，之后也可以在主题下拉框中随时切换。
+1. 下载想要的 `.v2theme.json` 文件到本地；
+2. 打开填表工作台，点右上角 ⚙ 打开设置面板；
+3. 在「主题」区点击 **导入主题**，选择刚下载的 JSON 文件；
+4. 导入成功后自动切换到新主题，之后可在主题列表中随时切换。
 
 ## 自定义
 
-主题文件是纯 JSON，可以直接编辑后重新导入（若 ID 冲突，插件会自动重命名）：
+文件是纯 JSON，可编辑后重新导入（同 `id` 会覆盖旧版本）。注意事项：
 
-- `theme.variables`：核心颜色变量（`--acu-bg-*` 背景、`--acu-text-*` 文字、`--acu-accent*` 强调色、`--acu-radius-*` 圆角等），主体风格由这里决定；
-- `theme.fontFamily`：整体字体，想换回黑体可改为系统 sans-serif 字体栈；
-- `theme.customCSS`：组件级样式覆盖，其中 `#popup` 会被自动替换为弹窗根选择器；
-- `theme.windowChromeVariables` / `toastVariables` / `visualizerVariables`：窗口标题栏、Toast 提示、可视化编辑器的独立覆盖入口，留空则回退到核心变量；
-- `theme.previewColors`：主题选择器里的预览色块，不影响实际样式。
+- `theme.tokens` 里 **23 个 token 全部必填**，缺一个都会导入失败；
+- token 值不能包含 `; { } < > !`、注释或 `url(...)`（插件的安全过滤）；
+- `theme.name` 不要与内置主题（浅色 / 深色 / 奶油风 / 地雷色）重名，否则会被视作切换内置主题；
+- `theme.id` 需形如 `custom:xxx`（字母数字开头，3~49 位字母数字、`-`、`_`），不合法时插件会按名称自动生成；
+- 最多可保存 24 个自定义主题。
 
-> 注：导入时插件只读取 `formatVersion` 和 `theme` 两个字段，`templateMeta` 等其余字段仅作说明用途。
+### token 速查
+
+| token | 作用 |
+| --- | --- |
+| `bg0` / `bg1` / `bg2` | 页面底色 / 卡片底色 / 次级底色（chip、分组） |
+| `sidebarBg` | 侧边栏底色 |
+| `hoverOverlay` | 悬停遮罩 |
+| `border` / `border2` | 常规边框 / 强边框 |
+| `text1` / `text2` / `text3` | 主文字 / 次级文字 / 辅助文字 |
+| `accent` / `accent2` | 主强调色（按钮、选中态）/ 次强调色（hover） |
+| `onAccent` | 强调色上面的文字颜色 |
+| `accentGlow` | 强调色光晕 |
+| `success` / `warning` / `danger` | 语义色 |
+| `fontUi` / `fontMono` | 界面字体 / 等宽字体 |
+| `radiusLg` / `radiusMd` / `radiusSm` | 大 / 中 / 小圆角 |
+| `shadow` | 卡片阴影 |
